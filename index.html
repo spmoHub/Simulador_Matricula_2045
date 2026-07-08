@@ -1,0 +1,3093 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Simulador de matrícula AD 2030–2045 · v12</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --green:#173F18;--green2:#2f6b2e;--green3:#eaf4e7;--ink:#15201a;--muted:#667085;
+      --line:#dce4dc;--bg:#f6f8f5;--panel:#fff;--red:#b42318;--yellow:#fffaeb;--orange:#df8b2d;
+      --shadow:0 14px 35px rgba(23,63,24,.10);--radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    header{background:linear-gradient(135deg,var(--green),#285d2a);color:white;padding:26px 34px 24px;box-shadow:var(--shadow)}
+    header h1{margin:0;font-size:28px;letter-spacing:-.03em}
+    header p{margin:8px 0 0;color:#dcebd8;line-height:1.45;max-width:1240px}
+    .wrap{max-width:1540px;margin:0 auto;padding:24px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 6px 20px rgba(16,24,40,.04)}
+    .topbar{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px}
+    @media(min-width:1100px){.topbar{grid-template-columns:1.55fr 1fr}}
+    h2{font-size:18px;margin:0 0 12px;letter-spacing:-.02em}
+    h3{font-size:15px;margin:16px 0 10px;color:var(--green)}
+    .muted{color:var(--muted)} .small{font-size:12px}.mini{font-size:11px;color:var(--muted)}
+    .btn{border:0;background:var(--green);color:white;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800;display:inline-flex;gap:8px;align-items:center}
+    .btn:hover{background:#245823}.btn.secondary{background:#eef4ee;color:var(--green);border:1px solid #cddbcc}.btn.ghost{background:#fff;color:var(--green);border:1px solid var(--line)}
+    .btn.danger{background:#fee4e2;color:#912018;border:1px solid #fecdca}
+    input[type=file]{width:100%;padding:12px;border:1px dashed #a9b8a8;background:#fbfdfb;border-radius:14px}
+    .split{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+    .tab{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--green);font-weight:800;cursor:pointer}
+    .tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+    .tabpane{display:none}.tabpane.active{display:block}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:1150px){.grid.two{grid-template-columns:480px 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+    .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+    @media(min-width:1100px){.kpis{grid-template-columns:repeat(6,1fr)}}
+    .kpi{background:#fbfdfb;border:1px solid var(--line);border-radius:16px;padding:14px}
+    .kpi .label{font-size:12px;color:var(--muted)}.kpi .value{font-size:22px;font-weight:900;margin-top:6px;letter-spacing:-.03em}
+    table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.3px}
+    th,td{border-bottom:1px solid var(--line);padding:8px 8px;text-align:right;vertical-align:middle}
+    th{position:sticky;top:0;background:#f0f7ef;color:var(--green);z-index:1}
+    th.text,td.text{text-align:left}.table-wrap{max-height:640px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:white}
+    .field label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}
+    .field input,.field select{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:9px 10px;font:inherit}
+    .control-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    @media(min-width:950px){.control-grid{grid-template-columns:repeat(6,1fr)}}
+    .note{background:#f7fbf7;border:1px solid #dcecdc;border-left:5px solid var(--green2);border-radius:14px;padding:12px 14px;line-height:1.45}
+    .warn{background:#fffaeb;border:1px solid #fedf89;color:#93370d;border-radius:14px;padding:12px}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:14px}.error{background:#fff1f0;border:1px solid #ffc9c4;color:#912018;border-radius:14px;padding:12px}
+    .pill{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:800}
+    .pill.ok{background:#e7f7ed;color:#027a48}.pill.warn{background:#fff4cc;color:#946200}.pill.bad{background:#fde8e5;color:var(--red)}.pill.gray{background:#eef2f6;color:#475467}.pill.orange{background:#fff1df;color:#b35309}
+    .chartbox{height:390px}.hidden{display:none!important}
+    .formula{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#102515;color:#d8f5d4;padding:12px 14px;border-radius:14px;white-space:pre-wrap;line-height:1.45}
+    .sticky-actions{position:sticky;bottom:0;background:rgba(246,248,245,.95);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}
+    .control-table input{width:82px;border:1px solid var(--line);border-radius:9px;padding:6px;text-align:right}
+    .control-table input.name{width:170px;text-align:left}
+    .control-table th{font-size:11px}
+    code{background:#eef4ee;border:1px solid #d9e7d7;border-radius:6px;padding:2px 5px}
+    .section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Simulador de matrícula AD 2030–2045 · v12</h1>
+  <p>
+    Versión corregida sin tarjeta de campus topados, con lectura directa de controles antes de recalcular, Internacionalización variable NI+RI, Posgrado/Ejecutivo editable, RI tetramestral remanente, campus nuevos, apertura de programas y configuración exportable. El crecimiento se captura como
+    <b>tasa de crecimiento anual por bloque</b>. Los NI representan el corte AD/agosto; los RI representan la foto acumulada visible en ese mismo corte.
+  </p>
+</header>
+
+<div class="wrap">
+  <div class="topbar">
+    <section class="card">
+      <h2>Base de datos</h2>
+      <p class="muted small">
+        Intenta cargar <b>modelo_simulador.xlsx</b> desde la misma carpeta. Si el navegador bloquea la carga automática, selecciona el Excel manualmente.
+      </p>
+      <div class="split">
+        <input id="fileInput" type="file" accept=".xlsx,.xls"/>
+        <button id="reloadBtn" class="btn secondary" type="button">Reintentar carga automática</button>
+      </div>
+      <div id="loadMsg" class="warn" style="margin-top:12px">Esperando carga de Excel...</div>
+    </section>
+
+    <section class="card">
+      <h2>Escenario actual</h2>
+      <div class="control-grid">
+        <div class="field" style="grid-column:span 2">
+          <label>Nombre del escenario</label>
+          <input id="scenarioName" value="Escenario usuario"/>
+        </div>
+        <div class="field">
+          <label>Tope por capacidad</label>
+          <select id="capMode">
+            <option value="freeze" selected>Sí, congelar al 100%</option>
+            <option value="off">No aplicar tope</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Rezago continuidad</label>
+          <select id="lagSelect">
+            <option value="0" selected>Mismo año</option>
+            <option value="1">1 año</option>
+            <option value="2">2 años</option>
+            <option value="3">3 años</option>
+          </select>
+        </div>
+      </div>
+      <div id="modelStatus" class="muted small" style="margin-top:10px">Sin datos cargados.</div>
+    </section>
+  </div>
+
+  <section id="app" class="hidden">
+    <div id="kpis" class="kpis"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="resumen">Resumen</button>
+      <button class="tab" data-tab="crecimiento">Crecimiento por bloques</button>
+      <button class="tab" data-tab="pos_eje">Posgrado / Ejecutivo</button>
+      <button class="tab" data-tab="internacional">Internacionalización</button>
+      <button class="tab" data-tab="capacidad">Capacidad editable</button>
+      <button class="tab" data-tab="nuevos">Campus nuevos</button>
+      <button class="tab" data-tab="programas">Programas</button>
+      <button class="tab" data-tab="campus">Resultado por campus</button>
+      <button class="tab" data-tab="config">Configuración / CSV</button>
+      <button class="tab" data-tab="metodo">Cómo calcula</button>
+    </div>
+
+    <div id="resumen" class="tabpane active">
+      <div class="grid two">
+        <section class="card">
+          <h2>Lectura rápida</h2>
+          <div id="summaryTable" class="table-wrap"></div>
+          <div class="note" style="margin-top:14px">
+            El CSV de proyección exporta <b>todos los años 2030–2045</b>, por campus y nivel, con NI externo,
+            NI por continuidad, NI por programas, RI, MT, capacidad y si se congeló por saturación.
+          </div>
+        </section>
+        <section class="card">
+          <h2>MT por nivel</h2>
+          <div class="chartbox"><canvas id="chartLevels"></canvas></div>
+        </section>
+      </div>
+    </div>
+
+    <div id="crecimiento" class="tabpane">
+      <section class="card">
+        <div class="section-title">
+          <div>
+            <h2>Tasa de crecimiento anual por bloque</h2>
+            <p class="muted small">
+              Cada porcentaje es una tasa anual que aplica solo dentro del bloque. Ejemplo: 3% en 2030–2034 significa que cada año de ese bloque crece 3%.
+            </p>
+          </div>
+          <button id="recalcFromBaseBtn" class="btn ghost" type="button">Recalcular RI/NI y continuidad desde base</button>
+        </div>
+
+        <div class="card" style="background:#fbfdfb;margin-bottom:14px">
+          <h3 style="margin-top:0">Aplicar valores rápidos a todos los campus</h3>
+          <div class="control-grid">
+            <div class="field"><label>Prepa 2030–2034</label><input id="bulkPre1" type="number" step="0.1" value="0"></div>
+            <div class="field"><label>Prepa 2035–2039</label><input id="bulkPre2" type="number" step="0.1" value="0"></div>
+            <div class="field"><label>Prepa 2040–2045</label><input id="bulkPre3" type="number" step="0.1" value="0"></div>
+            <div class="field"><label>Externos Prof. 2030–2034</label><input id="bulkProf1" type="number" step="0.1" value="0"></div>
+            <div class="field"><label>Externos Prof. 2035–2039</label><input id="bulkProf2" type="number" step="0.1" value="0"></div>
+            <div class="field"><label>Externos Prof. 2040–2045</label><input id="bulkProf3" type="number" step="0.1" value="0"></div>
+          </div>
+          <div class="split" style="margin-top:10px">
+            <button id="applyAllBtn" class="btn secondary" type="button">Aplicar a todos</button>
+          </div>
+        </div>
+
+        <h3>Controles por campus</h3>
+        <div id="campusControls" class="table-wrap control-table"></div>
+
+        <h3>Posgrado y Ejecutivo, crecimiento institucional simple por bloque</h3>
+        <div id="globalControls" class="table-wrap control-table"></div>
+
+        <div class="sticky-actions split">
+          <button id="recomputeBtn" class="btn" type="button">Actualizar proyección</button>
+          <button id="saveLocalBtn" class="btn secondary" type="button">Guardar escenario en navegador</button>
+          <button id="loadLocalBtn" class="btn ghost" type="button">Cargar último escenario</button>
+        </div>
+      </section>
+    </div>
+
+    
+    <div id="pos_eje" class="tabpane">
+      <section class="card">
+        <h2>Variables para Posgrado y Ejecutivo</h2>
+        <p class="muted small">
+          Estos niveles ahora se proyectan con variables propias: factor RI/NI, crecimiento orgánico, nuevas universidades corporativas y nuevos programas.
+        </p>
+        <div class="note" style="margin-bottom:14px">
+          El factor RI/NI estima los RI a partir de los NI. Las nuevas universidades corporativas generan NI adicionales según el promedio capturado por convenio.
+        </div>
+        <div id="peControls" class="table-wrap control-table"></div>
+
+        <h3>RI AD del nuevo modelo</h3>
+        <p class="muted small">
+          El factor RI/NI AD estima los RI visibles en agosto a partir de los NI AD del nuevo modelo.
+        </p>
+        <div id="riFactorControls" class="table-wrap control-table"></div>
+
+        <h3>RI tetramestral remanente</h3>
+        <p class="muted small">
+          Esta es la bolsa de RI de la modalidad tetramestral que ya no capta. Se calcula por atrás y solo se muestra como foto AD.
+        </p>
+        <div id="tetraControls" class="table-wrap control-table"></div>
+
+        <div class="split" style="margin-top:12px">
+          <button id="peRecomputeBtn" class="btn" type="button">Actualizar Posgrado / Ejecutivo</button>
+        </div>
+
+        <h3>Resultado</h3>
+        <div id="riResultTable" class="table-wrap"></div>
+      </section>
+    </div>
+
+    <div id="internacional" class="tabpane">
+      <section class="card">
+        <h2>Internacionalización</h2>
+        <p class="muted small">
+          La ruta de Internacionalización tiene como referencia <b>14,000 de MT AD en 2035</b>. La MT ya no se fuerza: se calcula con NI + RI según las variables que captures, para que puedas ajustar hasta acercarte al objetivo.
+        </p>
+        <div class="grid two">
+          <div>
+            <div id="intlControls" class="table-wrap control-table"></div>
+            <div class="split" style="margin-top:12px">
+              <button id="intlRecomputeBtn" class="btn" type="button">Actualizar Internacionalización</button>
+            </div>
+            <div class="note" style="margin-top:14px">
+              Antes de 2035, el simulador usa los países, NI por país, productos y factor RI/NI AD para calcular NI, RI y MT.
+              La MT 2035 no se fuerza: se compara contra el objetivo de 14,000.
+            </div>
+          </div>
+          <div>
+            <h3>Internacionalización</h3>
+            <div class="chartbox"><canvas id="chartInternational"></canvas></div>
+            <h3>NI + RI hacia el objetivo 2035</h3>
+            <div id="intlResultTable" class="table-wrap"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="capacidad" class="tabpane">
+      <section class="card">
+        <h2>Capacidad editable</h2>
+        <p class="muted small">
+          Ya no se usa <code>% MT que usa salones</code>. Puedes modificar salones, tamaño de grupo, turnos y utilización desde aquí.
+          Utilización vacía o desconocida se toma como 100%.
+        </p>
+        <div id="capacityControls" class="table-wrap control-table"></div>
+
+        <h3>Año en que se topa cada campus</h3>
+        <div id="saturationYearTable" class="table-wrap"></div>
+
+        <h3>Resultado de capacidad en el año final</h3>
+        <div id="capacityResultTable" class="table-wrap"></div>
+      </section>
+    </div>
+
+    <div id="nuevos" class="tabpane">
+      <section class="card">
+        <h2>Simular campus nuevo</h2>
+        <div class="grid two">
+          <div class="card" style="background:#fbfdfb">
+            <h3 style="margin-top:0">Agregar campus</h3>
+            <div class="control-grid">
+              <div class="field" style="grid-column:span 2"><label>Nombre del campus nuevo</label><input id="newCampusName" placeholder="Ej. Mérida"></div>
+              <div class="field"><label>Método</label><select id="newCampusMethod"><option value="referencia">Parecido a campus actual</option><option value="cero">Desde cero</option></select></div>
+              <div class="field"><label>Año de apertura</label><input id="newCampusStart" type="number" value="2032"></div>
+              <div class="field"><label>Campus referencia</label><select id="newCampusRef"></select></div>
+              <div class="field"><label>Escala vs referencia</label><input id="newCampusScale" type="number" step="0.05" value="0.50"></div>
+              <div class="field"><label>NI inicial Prepa</label><input id="newCampusPreNI" type="number" value="0"></div>
+              <div class="field"><label>NI externo Prof. inicial</label><input id="newCampusProfExtNI" type="number" value="0"></div>
+              <div class="field"><label>Salones Prepa</label><input id="newCampusPreRooms" type="number" value="0"></div>
+              <div class="field"><label>Salones Prof.</label><input id="newCampusProfRooms" type="number" value="0"></div>
+            </div>
+            <div class="split" style="margin-top:12px">
+              <button id="addCampusBtn" class="btn" type="button">Agregar campus simulado</button>
+            </div>
+            <p class="mini">Si usas referencia, se copian NI, continuidad, RI/NI y parámetros de capacidad multiplicados por la escala.</p>
+          </div>
+          <div>
+            <h3>Campus simulados</h3>
+            <div id="newCampusTable" class="table-wrap"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="programas" class="tabpane">
+      <section class="card">
+        <h2>Apertura de programas</h2>
+        <p class="muted small">
+          Puedes abrir un programa en cierto año. Los NI proyectados del programa se suman a Profesional como <b>NI por programas</b>.
+          Puedes escribir el programa manualmente o tomar como referencia uno del portafolio histórico.
+        </p>
+        <div class="grid two">
+          <div class="card" style="background:#fbfdfb">
+            <h3 style="margin-top:0">Agregar programa</h3>
+            <div class="control-grid">
+              <div class="field"><label>Nivel / línea</label><select id="progLevel">
+                <option value="Profesional">Profesional</option>
+                <option value="Posgrado">Posgrado</option>
+                <option value="Ejecutivo">Ejecutivo</option>
+                <option value="Internacionalización">Internacionalización</option>
+              </select></div>
+              <div class="field"><label>Campus donde abrirá</label><select id="progCampus"></select></div>
+              <div class="field" style="grid-column:span 2"><label>Referencia del portafolio histórico</label><select id="progRef"></select></div>
+              <div class="field" style="grid-column:span 2"><label>Nombre del programa</label><input id="progName" placeholder="Ej. Ingeniería en IA"></div>
+              <div class="field"><label>Año apertura</label><input id="progYear" type="number" value="2032"></div>
+              <div class="field"><label>NI inicial</label><input id="progNI" type="number" value="50"></div>
+              <div class="field"><label>Tasa 2030–2034</label><input id="progG1" type="number" step="0.1" value="0"></div>
+              <div class="field"><label>Tasa 2035–2039</label><input id="progG2" type="number" step="0.1" value="0"></div>
+              <div class="field"><label>Tasa 2040–2045</label><input id="progG3" type="number" step="0.1" value="0"></div>
+            </div>
+            <div class="split" style="margin-top:12px">
+              <button id="useProgRefBtn" class="btn ghost" type="button">Usar referencia</button>
+              <button id="addProgramBtn" class="btn" type="button">Agregar programa</button>
+            </div>
+          </div>
+          <div>
+            <h3>Programas simulados</h3>
+            <div id="programsSimTable" class="table-wrap"></div>
+          </div>
+        </div>
+
+        <h3>Portafolio histórico</h3>
+        <div class="grid two">
+          <div id="programTable" class="table-wrap"></div>
+          <div class="chartbox"><canvas id="chartPrograms"></canvas></div>
+        </div>
+      </section>
+    </div>
+
+    <div id="campus" class="tabpane">
+      <section class="card">
+        <h2>Resultado por campus</h2>
+        <div id="campusTable" class="table-wrap"></div>
+      </section>
+    </div>
+
+    <div id="config" class="tabpane">
+      <section class="card">
+        <h2>Guardar y exportar</h2>
+        <p class="muted small">
+          <b>Configuración CSV</b> guarda todos los inputs del escenario. <b>Proyección CSV</b> guarda todos los años 2030–2045.
+        </p>
+        <div class="split">
+          <button id="downloadConfigBtn" class="btn" type="button">Descargar configuración CSV</button>
+          <button id="downloadProjectionBtn" class="btn secondary" type="button">Descargar proyección CSV completo</button>
+          <label class="btn ghost" for="configFile">Cargar configuración CSV</label>
+          <input id="configFile" class="hidden" type="file" accept=".csv,text/csv"/>
+        </div>
+        <div id="configPreview" class="table-wrap" style="margin-top:14px"></div>
+      </section>
+    </div>
+
+    <div id="metodo" class="tabpane">
+      <section class="card">
+        <h2>Cómo calcula</h2>
+        <div class="grid two">
+          <div>
+            <h3>Prepa</h3>
+            <div class="formula">NI Prepa[t] = NI Prepa[t-1] × (1 + tasa anual del bloque)
+
+RI Prepa[t] = NI Prepa[t] × factor RI/NI Prepa
+
+MT Prepa[t] = NI Prepa[t] + RI Prepa[t]</div>
+
+            <h3>Profesional</h3>
+            <div class="formula">NI continuidad[t] = NI Prepa[t - rezago] × continuidad_prof
+
+NI externos[t] = NI externos[t-1] × (1 + tasa anual del bloque)
+
+NI programas[t] = suma de NI de programas abiertos en el año t
+
+NI Profesional AD[t] = NI continuidad AD[t] + NI externos AD[t] + NI programas AD[t]
+
+RI Profesional[t] = NI Profesional[t] × factor RI/NI Prof
+
+MT Profesional[t] = NI Profesional[t] + RI Profesional[t]</div>
+          </div>
+          <div>
+            <h3>Capacidad</h3>
+            <div class="formula">Capacidad[t] =
+  (salones actuales + salones de edificios disponibles)
+  × tamaño grupo
+  × turnos
+  × utilización</div>
+
+            <h3>Tope por capacidad</h3>
+            <div class="formula">Si MT propuesta[t] > Capacidad[t]:
+
+  MT[t] = Capacidad[t]
+  NI[t] = MT[t] ÷ (1 + factor RI/NI)
+  RI[t] = NI[t] × factor RI/NI
+
+Después ese campus/nivel queda congelado hacia adelante.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <p class="mini" style="margin-top:18px">
+    Para carga automática local: deja <code>index.html</code> y <code>modelo_simulador.xlsx</code> en la misma carpeta y abre con
+    <code>python -m http.server 8000</code>. Si abres con doble clic, usa el selector de archivo.
+  </p>
+</div>
+
+<script>
+const AUTO_FILES = ["./modelo_simulador.xlsx", "./modelo_simulador_v12.xlsx", "./modelo_simulador_v11.xlsx", "./modelo_simulador_v10.xlsx", "./modelo_simulador_v9.xlsx", "./modelo_simulador_v7.xlsx", "./modelo_simulador_v6.xlsx", "./modelo_simulador_v5.xlsx", "./modelo_simulador_v4.xlsx", "./modelo_simulador_v3.xlsx", "./plantilla_modelo_simulador(2).xlsx"];
+
+const state = {
+  workbookName:null,
+  data:null,
+  config:null,
+  projection:null,
+  charts:{}
+};
+
+const fmt0 = new Intl.NumberFormat("es-MX", {maximumFractionDigits:0});
+const fmt1 = new Intl.NumberFormat("es-MX", {minimumFractionDigits:1, maximumFractionDigits:1});
+const fmt2 = new Intl.NumberFormat("es-MX", {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtPct = new Intl.NumberFormat("es-MX", {style:"percent", minimumFractionDigits:1, maximumFractionDigits:1});
+
+function $(id){return document.getElementById(id)}
+function num(v, fallback=0){
+  if(v===null||v===undefined||v==="") return fallback;
+  if(typeof v==="number" && isFinite(v)) return v;
+  const n=Number(String(v).replace(/,/g,"").replace(/%/g,"").trim());
+  return isFinite(n) ? n : fallback;
+}
+function txt(v){return (v??"").toString().trim()}
+function levelKey(v){
+  const s=txt(v).toLowerCase();
+  if(s.includes("prep")) return "Preparatoria";
+  if(s.includes("prof")) return "Profesional";
+  if(s.includes("pos")) return "Posgrado";
+  if(s.includes("eje")) return "Ejecutivo";
+  return txt(v);
+}
+function range(a,b){return Array.from({length:Math.max(0,b-a+1)},(_,i)=>a+i)}
+function sum(rows, field){return rows.reduce((a,r)=>a+num(r[field]),0)}
+function safeDiv(a,b,fallback=0){return b ? a/b : fallback}
+function lastYear(rows){return Math.max(...rows.map(r=>num(r.anio)).filter(Boolean))}
+function pctInput(v){return (num(v)*100).toFixed(2)}
+function pctFromInput(v){return num(v)/100}
+function slug(s){return txt(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"")||"escenario"}
+function setMsg(kind,text){const el=$("loadMsg");el.className=kind;el.textContent=text}
+
+function sheetToRows(wb,name){
+  const ws=wb.Sheets[name]; if(!ws) return [];
+  return XLSX.utils.sheet_to_json(ws,{defval:null}).map(row=>{
+    const out={};
+    for(const [k,v] of Object.entries(row)) out[txt(k).toLowerCase()] = v;
+    if(out.nivel) out.nivel=levelKey(out.nivel);
+    if(out.campus) out.campus=txt(out.campus);
+    if(out.campus_origen) out.campus_origen=txt(out.campus_origen);
+    if(out.campus_destino) out.campus_destino=txt(out.campus_destino);
+    return out;
+  });
+}
+
+function parseWorkbook(wb){
+  const data={
+    parametros:sheetToRows(wb,"parametros_generales"),
+    catalogo:sheetToRows(wb,"catalogo_campus").filter(r=>txt(r.campus) && num(r.activo,1)!==0),
+    historicoNivel:sheetToRows(wb,"historico_nivel").filter(r=>r.anio && r.nivel),
+    pmpNivel:sheetToRows(wb,"pmp_nivel").filter(r=>r.anio && r.nivel),
+    historicoCampus:sheetToRows(wb,"historico_campus").filter(r=>r.anio && r.campus && r.nivel),
+    pmpCampus:sheetToRows(wb,"pmp_campus").filter(r=>r.anio && r.campus && r.nivel),
+    supCampus:sheetToRows(wb,"supuestos_campus").filter(r=>txt(r.campus)),
+    capacidad:sheetToRows(wb,"capacidad").filter(r=>txt(r.campus) && r.nivel),
+    edificios:sheetToRows(wb,"edificios").filter(r=>txt(r.campus) && txt(r.edificio) && num(r.incluir,1)!==0),
+    programas:sheetToRows(wb,"programas_historico").filter(r=>txt(r.campus) && txt(r.programa) && r.anio),
+    continuidad:sheetToRows(wb,"continuidad_historica").filter(r=>r.anio_egreso && txt(r.campus_origen))
+  };
+  const params=Object.fromEntries(data.parametros.map(r=>[txt(r.parametro),num(r.valor,r.valor)]));
+  data.baseYear=num(params.anio_base_proyeccion,lastYear(data.pmpNivel));
+  data.startYear=num(params.anio_inicio_proyeccion,data.baseYear+1);
+  data.endYear=num(params.anio_final_proyeccion,2045);
+  data.blocks=[
+    {key:"b1",label:`${data.startYear}–2034`,start:data.startYear,end:2034},
+    {key:"b2",label:"2035–2039",start:2035,end:2039},
+    {key:"b3",label:`2040–${data.endYear}`,start:2040,end:data.endYear}
+  ];
+  return data;
+}
+
+function baseRow(data,campus,nivel,year=data.baseYear){
+  return data.pmpCampus.find(r=>num(r.anio)===year && r.campus===campus && r.nivel===nivel) || {};
+}
+function historicalRows(data,campus,nivel){
+  return data.historicoCampus.filter(r=>r.campus===campus && r.nivel===nivel && num(r.ni_total)>0);
+}
+function avgRINIFactorFromHistorical(data,campus,nivel){
+  const rows=historicalRows(data,campus,nivel).filter(r=>num(r.ri)>0);
+  const ratios=rows.map(r=>safeDiv(num(r.ri),num(r.ni_total),null)).filter(v=>isFinite(v) && v>=0);
+  if(ratios.length) return ratios.reduce((a,b)=>a+b,0)/ratios.length;
+  const b=baseRow(data,campus,nivel);
+  return safeDiv(num(b.ri),num(b.ni_total),0);
+}
+function cagrFromPmp(data,campus,nivel){
+  const rows=data.pmpCampus.filter(r=>r.campus===campus && r.nivel===nivel && num(r.ni_total)>0).sort((a,b)=>num(a.anio)-num(b.anio));
+  if(rows.length>=2){
+    const first=rows[0], last=rows[rows.length-1], years=num(last.anio)-num(first.anio);
+    if(years>0 && num(first.ni_total)>0) return Math.pow(num(last.ni_total)/num(first.ni_total),1/years)-1;
+  }
+  return 0;
+}
+function levelCagrFromPmp(data,nivel){
+  const rows=data.pmpNivel.filter(r=>r.nivel===nivel && num(r.mt)>0).sort((a,b)=>num(a.anio)-num(b.anio));
+  if(rows.length>=2){
+    const first=rows[0], last=rows[rows.length-1], years=num(last.anio)-num(first.anio);
+    if(years>0 && num(first.mt)>0) return Math.pow(num(last.mt)/num(first.mt),1/years)-1;
+  }
+  return 0;
+}
+function continuityFromBase(data,campus){
+  const r=data.supCampus.find(x=>x.campus===campus);
+  if(r && r.continuidad_prof!==null && r.continuidad_prof!==undefined && r.continuidad_prof!=="") return num(r.continuidad_prof);
+  const contRows=data.continuidad.filter(x=>x.campus_origen===campus);
+  const niByYear=new Map(data.historicoCampus.filter(x=>x.campus===campus && x.nivel==="Preparatoria").map(x=>[num(x.anio),num(x.ni_total)]));
+  const ratios=[];
+  for(const row of contRows){
+    const ni=niByYear.get(num(row.anio_egreso));
+    if(ni>0) ratios.push(num(row.continuaron_prof)/ni);
+  }
+  return ratios.length ? ratios.reduce((a,b)=>a+b,0)/ratios.length : 0;
+}
+function capacityFromBase(data,campus,nivel){
+  const r=data.capacidad.find(x=>x.campus===campus && x.nivel===nivel);
+  const defaults = nivel==="Profesional" ? {grupo:25,turnos:3,util:1} : {grupo:30,turnos:1,util:1};
+  if(!r) return {salones:0,grupo:defaults.grupo,turnos:defaults.turnos,util:defaults.util};
+  return {
+    salones:num(r.salones_actuales,0),
+    grupo:num(r.tamano_grupo,defaults.grupo),
+    turnos:num(r.turnos,defaults.turnos),
+    util:num(r.utilizacion,defaults.util) || defaults.util
+  };
+}
+function initialBase(data,campus,nivel){
+  const r=baseRow(data,campus,nivel);
+  return {ni:num(r.ni_total), ri:num(r.ri), mt:num(r.mt), ni_externo:num(r.ni_externo,NaN), ni_continuidad:num(r.ni_continuidad,NaN)};
+}
+
+function initConfigFromData(data){
+  const campusCfg={};
+  for(const c of data.catalogo.map(r=>r.campus)){
+    const preGrowth=cagrFromPmp(data,c,"Preparatoria");
+    const profGrowth=cagrFromPmp(data,c,"Profesional");
+    campusCfg[c]={
+      campus:c, include:1, isNew:0, start_year:data.startYear, method:"base", reference:"",
+      continuidad_prof:continuityFromBase(data,c),
+      factor_ri_ni_prepa:avgRINIFactorFromHistorical(data,c,"Preparatoria"),
+      factor_ri_ni_prof:avgRINIFactorFromHistorical(data,c,"Profesional"),
+      prepa_b1:preGrowth, prepa_b2:preGrowth, prepa_b3:preGrowth,
+      profext_b1:profGrowth, profext_b2:profGrowth, profext_b3:profGrowth,
+      base:{Preparatoria:initialBase(data,c,"Preparatoria"), Profesional:initialBase(data,c,"Profesional")},
+      cap:{Preparatoria:capacityFromBase(data,c,"Preparatoria"), Profesional:capacityFromBase(data,c,"Profesional")}
+    };
+  }
+  return {
+    scenarioName:"Escenario usuario",
+    capMode:"freeze",
+    lag:0,
+    campus:campusCfg,
+    programs:[],
+    global:{
+      posgrado_b1:levelCagrFromPmp(data,"Posgrado"),posgrado_b2:levelCagrFromPmp(data,"Posgrado"),posgrado_b3:levelCagrFromPmp(data,"Posgrado"),
+      ejecutivo_b1:levelCagrFromPmp(data,"Ejecutivo"),ejecutivo_b2:levelCagrFromPmp(data,"Ejecutivo"),ejecutivo_b3:levelCagrFromPmp(data,"Ejecutivo")
+    }
+  };
+}
+
+function blockFor(year){
+  return state.data.blocks.find(b=>year>=b.start && year<=b.end) || state.data.blocks[state.data.blocks.length-1];
+}
+function rateFor(c,prefix,year){
+  return num(c[`${prefix}_${blockFor(year).key}`],0);
+}
+function globalRateFor(prefix,year){
+  return num(state.config.global[`${prefix}_${blockFor(year).key}`],0);
+}
+function programRate(p,year){
+  return num(p[`g_${blockFor(year).key}`],0);
+}
+function allCampusNames(){
+  return Object.values(state.config.campus).filter(c=>num(c.include,1)!==0).map(c=>c.campus);
+}
+function extraRoomsFromBuildings(data,campus,nivel,year){
+  return data.edificios.filter(e=>e.campus===campus && num(e.anio_disponible)<=year).reduce((acc,e)=>{
+    const share=nivel==="Preparatoria" ? num(e.pct_prepa,0) : num(e.pct_prof,0);
+    return acc + num(e.salones_aportados)*share;
+  },0);
+}
+function capacityFor(campus,nivel,year){
+  const c=state.config.campus[campus];
+  if(!c || !c.cap || !c.cap[nivel]) return null;
+  const cap=c.cap[nivel];
+  const buildingRooms = num(c.isNew) ? 0 : extraRoomsFromBuildings(state.data,campus,nivel,year);
+  const rooms=num(cap.salones)+buildingRooms;
+  if(rooms<=0) return null;
+  return {capacity:rooms*num(cap.grupo)*num(cap.turnos)*num(cap.util,1), rooms, grupo:num(cap.grupo), turnos:num(cap.turnos), util:num(cap.util,1)};
+}
+
+function computeProgramNIByCampus(){
+  const map=new Map();
+  for(const p of state.config.programs.filter(x=>num(x.include,1)!==0)){
+    let ni=0;
+    for(let y=state.data.startYear;y<=state.data.endYear;y++){
+      if(y<num(p.open_year)) continue;
+      if(y===num(p.open_year)) ni=num(p.ni_inicial);
+      else ni=ni*(1+programRate(p,y));
+      const key=`${p.campus}|${y}`;
+      map.set(key,(map.get(key)||0)+ni);
+    }
+  }
+  return map;
+}
+function applyCapacity(row,campus,nivel,year,factor){
+  if(state.config.capMode!=="freeze") return {...row,frozen:false,capped:false};
+  const cap=capacityFor(campus,nivel,year);
+  if(!cap || cap.capacity<=0) return {...row,frozen:false,capped:false};
+  if(row.mt<=cap.capacity) return {...row,frozen:false,capped:false};
+  const niAllowed=cap.capacity/(1+factor);
+  if(nivel==="Profesional"){
+    const total=row.ni||0;
+    const pExt=total ? row.ni_externo/total : 0;
+    const pCont=total ? row.ni_continuidad/total : 0;
+    const pProg=total ? row.ni_programas/total : 0;
+    return {...row,ni:niAllowed,ni_externo:niAllowed*pExt,ni_continuidad:niAllowed*pCont,ni_programas:niAllowed*pProg,ri:niAllowed*factor,mt:cap.capacity,frozen:true,capped:true};
+  }
+  return {...row,ni:niAllowed,ni_externo:niAllowed,ni_continuidad:0,ni_programas:0,ri:niAllowed*factor,mt:cap.capacity,frozen:true,capped:true};
+}
+
+function computeProjection(){
+  const d=state.data,cfg=state.config;
+  const years=range(d.startYear,d.endYear);
+  const levelSeries=[...d.historicoNivel,...d.pmpNivel].map(r=>({anio:num(r.anio),nivel:r.nivel,ni:num(r.ni),ri:num(r.ri),mt:num(r.mt),tipo:num(r.anio)<=2025?"Histórico":"PMP"}));
+  const campusSeries=[];
+  const capacityRows=[];
+  const programMap=computeProgramNIByCampus();
+  const freeze={};
+
+  for(const campus of allCampusNames()){
+    const c=cfg.campus[campus];
+    const preFactor=num(c.factor_ri_ni_prepa,0);
+    const proFactor=num(c.factor_ri_ni_prof,0);
+    const startY=num(c.start_year,d.startYear);
+
+    const preBase=c.base?.Preparatoria || {ni:0,ri:0,mt:0};
+    const proBase=c.base?.Profesional || {ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0};
+
+    let lastPre = {ni:num(preBase.ni),ri:num(preBase.ri),mt:num(preBase.mt),ni_externo:num(preBase.ni),ni_continuidad:0,ni_programas:0};
+    let proContBase=num(proBase.ni_continuidad,NaN);
+    if(!isFinite(proContBase)) proContBase=num(preBase.ni)*num(c.continuidad_prof);
+    let proExt=num(proBase.ni_externo,NaN);
+    if(!isFinite(proExt)) proExt=Math.max(num(proBase.ni)-proContBase,0);
+    let lastPro={ni:num(proBase.ni),ri:num(proBase.ri),mt:num(proBase.mt),ni_externo:proExt,ni_continuidad:proContBase,ni_programas:0};
+
+    const prepaNIByYear=new Map([[d.baseYear,lastPre.ni]]);
+    for(const y of years){
+      if(y<startY){
+        const zeroPre={anio:y,campus,nivel:"Preparatoria",ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0,ni_programas:0,frozen:false};
+        const zeroPro={anio:y,campus,nivel:"Profesional",ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0,ni_programas:0,frozen:false};
+        campusSeries.push({...zeroPre,factor_ri_ni:preFactor,continuidad_prof:0});
+        campusSeries.push({...zeroPro,factor_ri_ni:proFactor,continuidad_prof:num(c.continuidad_prof)});
+        continue;
+      }
+
+      let preRow;
+      if(freeze[`${campus}|Preparatoria`]){
+        preRow={...freeze[`${campus}|Preparatoria`],anio:y,frozen:true,capped:false};
+      }else{
+        const baseNI = (num(c.isNew) && y===startY) ? lastPre.ni : lastPre.ni*(1+rateFor(c,"prepa",y));
+        preRow={anio:y,campus,nivel:"Preparatoria",ni:baseNI,ni_externo:baseNI,ni_continuidad:0,ni_programas:0,ri:baseNI*preFactor,mt:baseNI*(1+preFactor)};
+        preRow=applyCapacity(preRow,campus,"Preparatoria",y,preFactor);
+        if(preRow.frozen) freeze[`${campus}|Preparatoria`]={...preRow};
+      }
+      prepaNIByYear.set(y,preRow.ni);
+      lastPre=preRow;
+      campusSeries.push({...preRow,factor_ri_ni:preFactor,continuidad_prof:0});
+
+      let proRow;
+      if(freeze[`${campus}|Profesional`]){
+        proRow={...freeze[`${campus}|Profesional`],anio:y,frozen:true,capped:false};
+      }else{
+        const lagY=y-num(cfg.lag,0);
+        const preForCont=prepaNIByYear.get(lagY) ?? 0;
+        const contNI=preForCont*num(c.continuidad_prof);
+        const extNI=(num(c.isNew) && y===startY) ? lastPro.ni_externo : lastPro.ni_externo*(1+rateFor(c,"profext",y));
+        const progNI=programMap.get(`${campus}|${y}`) || 0;
+        const totalNI=contNI+extNI+progNI;
+        proRow={anio:y,campus,nivel:"Profesional",ni:totalNI,ni_externo:extNI,ni_continuidad:contNI,ni_programas:progNI,ri:totalNI*proFactor,mt:totalNI*(1+proFactor)};
+        proRow=applyCapacity(proRow,campus,"Profesional",y,proFactor);
+        if(proRow.frozen) freeze[`${campus}|Profesional`]={...proRow};
+      }
+      lastPro=proRow;
+      campusSeries.push({...proRow,factor_ri_ni:proFactor,continuidad_prof:num(c.continuidad_prof)});
+
+      for(const nivel of ["Preparatoria","Profesional"]){
+        const row=nivel==="Preparatoria" ? preRow : proRow;
+        const cap=capacityFor(campus,nivel,y);
+        if(cap){
+          capacityRows.push({anio:y,campus,nivel,mt:row.mt,capacity:cap.capacity,rooms:cap.rooms,ratio:safeDiv(row.mt,cap.capacity,null),frozen:row.frozen});
+        }
+      }
+    }
+  }
+
+  for(const y of years){
+    for(const nivel of ["Preparatoria","Profesional"]){
+      const rows=campusSeries.filter(r=>r.anio===y && r.nivel===nivel);
+      levelSeries.push({anio:y,nivel,ni:sum(rows,"ni"),ri:sum(rows,"ri"),mt:sum(rows,"mt"),tipo:"Proyección"});
+    }
+    for(const nivel of ["Posgrado","Ejecutivo"]){
+      const base=d.pmpNivel.find(r=>num(r.anio)===d.baseYear && r.nivel===nivel);
+      const prev=levelSeries.find(r=>r.anio===y-1 && r.nivel===nivel) || {mt:num(base?.mt),ni:num(base?.ni),ri:num(base?.ri)};
+      const prefix=nivel==="Posgrado" ? "posgrado" : "ejecutivo";
+      const rate=globalRateFor(prefix,y);
+      const niShare=safeDiv(prev.ni,prev.mt,safeDiv(num(base?.ni),num(base?.mt),0));
+      const mt=prev.mt*(1+rate);
+      const ni=mt*niShare;
+      levelSeries.push({anio:y,nivel,ni,ri:mt-ni,mt,tipo:"Proyección"});
+    }
+  }
+  return {levelSeries,campusSeries,capacityRows};
+}
+
+function recompute(){
+  if(!state.data || !state.config) return;
+  readTopInputs();
+  state.projection=computeProjection();
+  renderAll();
+}
+function readTopInputs(){
+  state.config.scenarioName=$("scenarioName").value || "Escenario usuario";
+  state.config.capMode=$("capMode").value;
+  state.config.lag=num($("lagSelect").value,0);
+}
+function renderAll(){
+  renderSelectors();
+  renderKpis();
+  renderSummary();
+  renderControls();
+  renderCapacityControls();
+  renderNewCampusTable();
+  renderPrograms();
+  renderLevelChart();
+  renderCampusTable();
+  renderCapacityResultTable();
+  renderConfigPreview();
+  $("modelStatus").innerHTML=buildStatus();
+}
+function buildStatus(){
+  const d=state.data;
+  const nNew=Object.values(state.config.campus).filter(c=>num(c.isNew)).length;
+  return `<div><b>Archivo:</b> ${state.workbookName}</div>
+    <div><b>Base:</b> ${d.baseYear} · <b>Proyección:</b> ${d.startYear}–${d.endYear}</div>
+    <div><b>Campus base:</b> ${fmt0.format(d.catalogo.length)} · <b>Campus simulados:</b> ${fmt0.format(nNew)} · <b>Programas simulados:</b> ${fmt0.format(state.config.programs.length)}</div>`;
+}
+function renderKpis(){
+  const d=state.data,p=state.projection;
+  const baseTotal=sum(d.pmpNivel.filter(r=>num(r.anio)===d.baseYear),"mt");
+  const finalRows=p.levelSeries.filter(r=>r.anio===d.endYear);
+  const totalFinal=sum(finalRows,"mt");
+  const newCampusFinal=p.campusSeries.filter(r=>r.anio===d.endYear && num(state.config.campus[r.campus]?.isNew)).reduce((a,r)=>a+r.mt,0);
+  const progFinal=p.campusSeries.filter(r=>r.anio===d.endYear && r.nivel==="Profesional").reduce((a,r)=>a+r.ni_programas,0);
+  const capped=p.campusSeries.filter(r=>r.anio===d.endYear && r.frozen).length;
+  $("kpis").innerHTML=[
+    ["MT PMP 2029",fmt0.format(baseTotal),"Desde pmp_nivel"],
+    [`MT ${d.endYear}`,fmt0.format(totalFinal),state.config.scenarioName],
+    ["Δ vs 2029",fmtPct.format(safeDiv(totalFinal-baseTotal,baseTotal)),"Proyección total"],
+    ["MT campus nuevos",fmt0.format(newCampusFinal),`Año ${d.endYear}`],
+    ["NI programas",fmt0.format(progFinal),`Año ${d.endYear}`],
+    ["Congelados",fmt0.format(capped),"Por capacidad"]
+  ].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="label">${x[2]}</div></div>`).join("");
+}
+function renderSummary(){
+  const d=state.data,p=state.projection;
+  const rows=["Preparatoria","Profesional","Posgrado","Ejecutivo"].map(nivel=>{
+    const b=d.pmpNivel.find(r=>num(r.anio)===d.baseYear && r.nivel===nivel);
+    const f=p.levelSeries.find(r=>r.anio===d.endYear && r.nivel===nivel);
+    return [nivel,fmt0.format(num(b?.mt)),fmt0.format(f?.mt||0),fmtPct.format(safeDiv((f?.mt||0)-num(b?.mt),num(b?.mt))),fmt0.format(f?.ni||0),fmt0.format(f?.ri||0)];
+  });
+  $("summaryTable").innerHTML=tableHtml(["Nivel",`MT ${d.baseYear}`,`MT ${d.endYear}`,"Δ","NI AD final","RI AD final"],rows,[0]);
+}
+function renderControls(){
+  const headers=["Campus","Tipo","Continuidad","RI/NI Prepa","RI/NI Prof","Prepa 30–34","Prepa 35–39","Prepa 40–45","Ext Prof 30–34","Ext Prof 35–39","Ext Prof 40–45"];
+  const rows=Object.values(state.config.campus).filter(c=>num(c.include,1)!==0).map(c=>`
+    <tr>
+      <td class="text">${c.campus}</td>
+      <td class="text">${num(c.isNew)?'<span class="pill orange">Nuevo</span>':'<span class="pill gray">Base</span>'}</td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="continuidad_prof" value="${pctInput(c.continuidad_prof)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="factor_ri_ni_prepa" value="${fmt2.format(c.factor_ri_ni_prepa)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="factor_ri_ni_prof" value="${fmt2.format(c.factor_ri_ni_prof)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="prepa_b1" value="${pctInput(c.prepa_b1)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="prepa_b2" value="${pctInput(c.prepa_b2)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="prepa_b3" value="${pctInput(c.prepa_b3)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="profext_b1" value="${pctInput(c.profext_b1)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="profext_b2" value="${pctInput(c.profext_b2)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="profext_b3" value="${pctInput(c.profext_b3)}"></td>
+    </tr>`).join("");
+  $("campusControls").innerHTML=`<table><thead><tr>${headers.map((h,i)=>`<th class="${i<2?'text':''}">${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>`;
+  $("campusControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",handleCampusInput));
+
+  const globalRows=[
+    ["Posgrado","posgrado_b1","posgrado_b2","posgrado_b3"],
+    ["Ejecutivo","ejecutivo_b1","ejecutivo_b2","ejecutivo_b3"]
+  ].map(r=>`<tr><td class="text">${r[0]}</td>${r.slice(1).map(f=>`<td><input data-zone="global" data-f="${f}" value="${pctInput(state.config.global[f])}"></td>`).join("")}</tr>`).join("");
+  $("globalControls").innerHTML=`<table><thead><tr><th class="text">Nivel</th><th>2030–2034</th><th>2035–2039</th><th>2040–2045</th></tr></thead><tbody>${globalRows}</tbody></table>`;
+  $("globalControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{state.config.global[e.target.dataset.f]=pctFromInput(e.target.value);}));
+}
+function handleCampusInput(e){
+  const campus=e.target.dataset.c, f=e.target.dataset.f;
+  state.config.campus[campus][f]=f.includes("factor") ? num(e.target.value) : pctFromInput(e.target.value);
+}
+function renderCapacityControls(){
+  const headers=["Campus","Nivel","Salones","Tamaño grupo","Turnos","Utilización"];
+  const rows=[];
+  for(const c of Object.values(state.config.campus).filter(c=>num(c.include,1)!==0)){
+    for(const nivel of ["Preparatoria","Profesional"]){
+      const cap=c.cap[nivel];
+      rows.push(`<tr>
+        <td class="text">${c.campus}</td><td class="text">${nivel}</td>
+        <td><input data-zone="cap" data-c="${c.campus}" data-n="${nivel}" data-f="salones" value="${fmt1.format(cap.salones)}"></td>
+        <td><input data-zone="cap" data-c="${c.campus}" data-n="${nivel}" data-f="grupo" value="${fmt1.format(cap.grupo)}"></td>
+        <td><input data-zone="cap" data-c="${c.campus}" data-n="${nivel}" data-f="turnos" value="${fmt1.format(cap.turnos)}"></td>
+        <td><input data-zone="cap" data-c="${c.campus}" data-n="${nivel}" data-f="util" value="${pctInput(cap.util)}"></td>
+      </tr>`);
+    }
+  }
+  $("capacityControls").innerHTML=`<table><thead><tr>${headers.map((h,i)=>`<th class="${i<2?'text':''}">${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
+  $("capacityControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{
+    const c=state.config.campus[e.target.dataset.c], n=e.target.dataset.n, f=e.target.dataset.f;
+    c.cap[n][f]=f==="util" ? pctFromInput(e.target.value) : num(e.target.value);
+  }));
+}
+function renderSelectors(){
+  const campusOptions=Object.values(state.config.campus).filter(c=>num(c.include,1)!==0).map(c=>`<option value="${escapeHtml(c.campus)}">${escapeHtml(c.campus)}</option>`).join("");
+  $("newCampusRef").innerHTML=state.data.catalogo.map(c=>`<option value="${escapeHtml(c.campus)}">${escapeHtml(c.campus)}</option>`).join("");
+  $("progCampus").innerHTML=campusOptions;
+  const refs=portfolioRefs();
+  $("progRef").innerHTML=`<option value="">Manual / sin referencia</option>`+refs.map(r=>`<option value="${escapeHtml(r.key)}">${escapeHtml(r.label)}</option>`).join("");
+}
+function portfolioRefs(){
+  const d=state.data;
+  const latestByKey=new Map();
+  for(const r of d.programas){
+    const key=`${r.campus}|${r.programa}`;
+    if(!latestByKey.has(key) || num(r.anio)>num(latestByKey.get(key).anio)) latestByKey.set(key,r);
+  }
+  return Array.from(latestByKey.entries()).map(([key,r])=>({key,label:`${r.campus} · ${r.programa} · NI ${fmt0.format(num(r.ni))}`,row:r,cagr:programCagr(r.campus,r.programa)})).sort((a,b)=>num(b.row.mt)-num(a.row.mt)).slice(0,200);
+}
+function programCagr(campus,programa){
+  const rows=state.data.programas.filter(r=>r.campus===campus && r.programa===programa && num(r.ni)>0).sort((a,b)=>num(a.anio)-num(b.anio));
+  if(rows.length>=2){
+    const first=rows[0], last=rows[rows.length-1], years=num(last.anio)-num(first.anio);
+    if(years>0 && num(first.ni)>0) return Math.pow(num(last.ni)/num(first.ni),1/years)-1;
+  }
+  return 0;
+}
+function renderNewCampusTable(){
+  const rows=Object.values(state.config.campus).filter(c=>num(c.isNew)).map(c=>[
+    c.campus,c.method,c.reference||"",c.start_year,fmt0.format(c.base.Preparatoria.ni),fmt0.format(c.base.Profesional.ni_externo),
+    c.include?'<span class="pill ok">Incluido</span>':'<span class="pill gray">Excluido</span>',
+    `<button class="btn danger" type="button" onclick="removeNewCampus('${escapeAttr(c.campus)}')">Eliminar</button>`
+  ]);
+  $("newCampusTable").innerHTML=rows.length ? tableHtml(["Campus","Método","Referencia","Apertura","NI Prepa inicial","NI Ext Prof inicial","Estado",""],rows,[0,1,2]) : `<div class="warn">No hay campus simulados todavía.</div>`;
+}
+function removeNewCampus(campus){
+  delete state.config.campus[campus];
+  state.config.programs = state.config.programs.filter(p=>p.campus!==campus);
+  recompute();
+}
+window.removeNewCampus=removeNewCampus;
+
+function addNewCampus(){
+  const name=txt($("newCampusName").value);
+  if(!name){alert("Escribe el nombre del campus nuevo.");return}
+  if(state.config.campus[name]){alert("Ya existe un campus con ese nombre.");return}
+  const method=$("newCampusMethod").value;
+  const start=num($("newCampusStart").value,state.data.startYear);
+  const ref=$("newCampusRef").value;
+  const scale=num($("newCampusScale").value,1);
+  let basePreNI=num($("newCampusPreNI").value,0);
+  let baseProfExt=num($("newCampusProfExtNI").value,0);
+  let cont=0, preFactor=0, profFactor=0, preRates={b1:0,b2:0,b3:0}, profRates={b1:0,b2:0,b3:0};
+  let capPre={salones:num($("newCampusPreRooms").value,0),grupo:30,turnos:1,util:1};
+  let capProf={salones:num($("newCampusProfRooms").value,0),grupo:25,turnos:3,util:1};
+
+  if(method==="referencia" && state.config.campus[ref]){
+    const rc=state.config.campus[ref];
+    basePreNI=num(rc.base.Preparatoria.ni)*scale;
+    baseProfExt=num(rc.base.Profesional.ni_externo, num(rc.base.Profesional.ni))*scale;
+    cont=num(rc.continuidad_prof);
+    preFactor=num(rc.factor_ri_ni_prepa);
+    profFactor=num(rc.factor_ri_ni_prof);
+    preRates={b1:num(rc.prepa_b1),b2:num(rc.prepa_b2),b3:num(rc.prepa_b3)};
+    profRates={b1:num(rc.profext_b1),b2:num(rc.profext_b2),b3:num(rc.profext_b3)};
+    capPre={...rc.cap.Preparatoria, salones:num(rc.cap.Preparatoria.salones)*scale};
+    capProf={...rc.cap.Profesional, salones:num(rc.cap.Profesional.salones)*scale};
+  }
+
+  state.config.campus[name]={
+    campus:name,include:1,isNew:1,start_year:start,method,reference:ref,
+    continuidad_prof:cont,factor_ri_ni_prepa:preFactor,factor_ri_ni_prof:profFactor,
+    prepa_b1:preRates.b1,prepa_b2:preRates.b2,prepa_b3:preRates.b3,
+    profext_b1:profRates.b1,profext_b2:profRates.b2,profext_b3:profRates.b3,
+    base:{
+      Preparatoria:{ni:basePreNI,ri:basePreNI*preFactor,mt:basePreNI*(1+preFactor),ni_externo:basePreNI,ni_continuidad:0},
+      Profesional:{ni:baseProfExt,ri:baseProfExt*profFactor,mt:baseProfExt*(1+profFactor),ni_externo:baseProfExt,ni_continuidad:0}
+    },
+    cap:{Preparatoria:capPre,Profesional:capProf}
+  };
+  $("newCampusName").value="";
+  recompute();
+}
+function addProgram(){
+  const campus=$("progCampus").value;
+  const name=txt($("progName").value);
+  if(!campus || !name){alert("Selecciona campus y escribe el programa.");return}
+  state.config.programs.push({
+    id:`P${Date.now()}`,
+    include:1,
+    campus,
+    programa:name,
+    reference:$("progRef").value,
+    open_year:num($("progYear").value,state.data.startYear),
+    ni_inicial:num($("progNI").value,0),
+    g_b1:pctFromInput($("progG1").value),
+    g_b2:pctFromInput($("progG2").value),
+    g_b3:pctFromInput($("progG3").value)
+  });
+  $("progName").value="";
+  recompute();
+}
+function useProgramReference(){
+  const key=$("progRef").value;
+  if(!key) return;
+  const ref=portfolioRefs().find(r=>r.key===key);
+  if(!ref) return;
+  $("progName").value=ref.row.programa;
+  $("progNI").value=Math.round(num(ref.row.ni));
+  const g=pctInput(ref.cagr);
+  $("progG1").value=g; $("progG2").value=g; $("progG3").value=g;
+}
+function renderPrograms(){
+  const simRows=state.config.programs.map((p,i)=>[
+    p.include?'<span class="pill ok">Sí</span>':'<span class="pill gray">No</span>',
+    p.campus,p.programa,p.open_year,fmt0.format(p.ni_inicial),fmtPct.format(p.g_b1),fmtPct.format(p.g_b2),fmtPct.format(p.g_b3),
+    `<button class="btn danger" type="button" onclick="removeProgram(${i})">Eliminar</button>`
+  ]);
+  $("programsSimTable").innerHTML=simRows.length ? tableHtml(["Incluir","Campus","Programa","Apertura","NI inicial","30–34","35–39","40–45",""],simRows,[0,1,2]) : `<div class="warn">No hay programas simulados todavía.</div>`;
+
+  const d=state.data;
+  if(!d.programas.length){$("programTable").innerHTML=`<div class="warn">No hay programas históricos.</div>`;return}
+  const latest=lastYear(d.programas);
+  const top=d.programas.filter(r=>num(r.anio)===latest).sort((a,b)=>num(b.mt)-num(a.mt)).slice(0,30);
+  $("programTable").innerHTML=tableHtml(["Campus","Programa","Año","NI","RI","MT"],top.map(r=>[r.campus,r.programa,num(r.anio),fmt0.format(num(r.ni)),fmt0.format(num(r.ri)),fmt0.format(num(r.mt))]),[0,1]);
+  const keys=top.slice(0,8).map(r=>`${r.campus}|${r.programa}`);
+  const years=range(Math.min(...d.programas.map(r=>num(r.anio))),latest);
+  const datasets=keys.map(k=>({label:k,data:years.map(y=>sum(d.programas.filter(r=>num(r.anio)===y && `${r.campus}|${r.programa}`===k),"mt")),tension:.25}));
+  if(state.charts.programs) state.charts.programs.destroy();
+  state.charts.programs=new Chart($("chartPrograms"),{type:"line",data:{labels:years,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt0.format(v)}}}}});
+}
+function removeProgram(i){state.config.programs.splice(i,1);recompute()}
+window.removeProgram=removeProgram;
+
+function renderLevelChart(){
+  const d=state.data,p=state.projection;
+  const years=range(Math.min(...p.levelSeries.map(r=>r.anio)),d.endYear);
+  const datasets=["Preparatoria","Profesional","Posgrado","Ejecutivo"].map(nivel=>({
+    label:nivel,
+    data:years.map(y=>Math.round(p.levelSeries.find(r=>r.anio===y && r.nivel===nivel)?.mt ?? NaN)),
+    tension:.25
+  }));
+  if(state.charts.levels) state.charts.levels.destroy();
+  state.charts.levels=new Chart($("chartLevels"),{type:"line",data:{labels:years,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt0.format(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt0.format(v)}}}}});
+}
+function renderCampusTable(){
+  const d=state.data,p=state.projection;
+  const baseRows=d.pmpCampus.filter(r=>num(r.anio)===d.baseYear);
+  const final=p.campusSeries.filter(r=>r.anio===d.endYear);
+  const rows=allCampusNames().map(campus=>{
+    const b=baseRows.filter(r=>r.campus===campus);
+    const f=final.filter(r=>r.campus===campus);
+    const prof=f.find(r=>r.nivel==="Profesional")||{};
+    const pre=f.find(r=>r.nivel==="Preparatoria")||{};
+    const mtBase=sum(b,"mt");
+    return [
+      campus,
+      num(state.config.campus[campus]?.isNew)?'<span class="pill orange">Nuevo</span>':'<span class="pill gray">Base</span>',
+      fmt0.format(mtBase),
+      fmt0.format(sum(f,"mt")),
+      mtBase ? fmtPct.format(safeDiv(sum(f,"mt")-mtBase,mtBase)) : "Nuevo",
+      fmt0.format(pre.mt||0),
+      fmt0.format(prof.mt||0),
+      fmt0.format(prof.ni_continuidad||0),
+      fmt0.format(prof.ni_externo||0),
+      fmt0.format(prof.ni_programas||0),
+      prof.frozen || pre.frozen ? `<span class="pill bad">Congelado</span>` : `<span class="pill ok">Activo</span>`
+    ];
+  }).sort((a,b)=>Number(String(b[3]).replace(/,/g,""))-Number(String(a[3]).replace(/,/g,"")));
+  $("campusTable").innerHTML=tableHtml(["Campus","Tipo",`MT ${d.baseYear}`,`MT ${d.endYear}`,"Δ","Prepa final","Prof final","NI cont.","NI ext.","NI programas","Estado"],rows,[0,1]);
+}
+function renderCapacityResultTable(){
+  const d=state.data,p=state.projection;
+  const rows=p.capacityRows.filter(r=>r.anio===d.endYear).sort((a,b)=>(b.ratio||0)-(a.ratio||0)).map(r=>[
+    r.campus,
+    r.nivel,
+    fmt0.format(r.mt),
+    fmt0.format(r.capacity),
+    fmt1.format(r.rooms),
+    pillRatio(r.ratio),
+    r.frozen ? '<span class="pill bad">Congelado</span>' : '<span class="pill gray">No</span>'
+  ]);
+  $("capacityResultTable").innerHTML = rows.length
+    ? tableHtml(["Campus","Nivel",`MT ${d.endYear}`,"Capacidad","Salones disp.","Uso","Tope aplicado"],rows,[0,1])
+    : '<div class="warn">No hay datos de capacidad para mostrar.</div>';
+}
+function pillRatio(r){
+  if(r===null||r===undefined||!isFinite(r)) return `<span class="pill gray">Sin cap.</span>`;
+  if(r<.9) return `<span class="pill ok">${fmtPct.format(r)}</span>`;
+  if(r<1) return `<span class="pill warn">${fmtPct.format(r)}</span>`;
+  return `<span class="pill bad">${fmtPct.format(r)}</span>`;
+}
+function renderConfigPreview(){
+  const rows=configRows().slice(0,100).map(r=>[r.tipo,r.campus||"",r.variable,r.valor]);
+  $("configPreview").innerHTML=tableHtml(["Tipo","Campus","Variable","Valor"],rows,[0,1,2]);
+}
+
+function tableHtml(headers,rows,textCols=[0]){
+  return `<table><thead><tr>${headers.map((h,i)=>`<th class="${textCols.includes(i)?'text':''}">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map((c,i)=>`<td class="${textCols.includes(i)?'text':''}">${c??""}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+function escapeHtml(s){return txt(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function escapeAttr(s){return escapeHtml(s).replace(/`/g,"")}
+
+function configRows(){
+  const cfg=state.config, rows=[];
+  rows.push({tipo:"global",campus:"",variable:"scenarioName",valor:cfg.scenarioName});
+  rows.push({tipo:"global",campus:"",variable:"capMode",valor:cfg.capMode});
+  rows.push({tipo:"global",campus:"",variable:"lag",valor:cfg.lag});
+  for(const [k,v] of Object.entries(cfg.global)) rows.push({tipo:"global",campus:"",variable:k,valor:v});
+  for(const [campus,c] of Object.entries(cfg.campus)){
+    for(const [k,v] of Object.entries(c)){
+      if(["base","cap"].includes(k)) continue;
+      rows.push({tipo:"campus",campus,variable:k,valor:v});
+    }
+    for(const nivel of ["Preparatoria","Profesional"]){
+      for(const [k,v] of Object.entries(c.base[nivel])) rows.push({tipo:`base_${nivel}`,campus,variable:k,valor:v});
+      for(const [k,v] of Object.entries(c.cap[nivel])) rows.push({tipo:`cap_${nivel}`,campus,variable:k,valor:v});
+    }
+  }
+  for(const p of cfg.programs){
+    for(const [k,v] of Object.entries(p)) rows.push({tipo:"programa",campus:p.campus,variable:`${p.id}.${k}`,valor:v});
+  }
+  return rows;
+}
+function csvEscape(v){return `"${String(v??"").replace(/"/g,'""')}"`}
+function downloadCsv(filename,rows){
+  if(!rows.length) return;
+  const headers=Object.keys(rows[0]);
+  const csv=[headers.join(","),...rows.map(r=>headers.map(h=>csvEscape(r[h])).join(","))].join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
+}
+function downloadConfig(){downloadCsv(`configuracion_${slug(state.config.scenarioName)}.csv`,configRows())}
+function downloadProjection(){
+  const capMap=new Map(state.projection.capacityRows.map(r=>[`${r.campus}|${r.nivel}|${r.anio}`,r]));
+  const rows=state.projection.campusSeries.map(r=>{
+    const cap=capMap.get(`${r.campus}|${r.nivel}|${r.anio}`) || {};
+    return {
+      escenario:state.config.scenarioName, anio:r.anio, campus:r.campus, campus_nuevo:num(state.config.campus[r.campus]?.isNew)?1:0, nivel:r.nivel,
+      ni_total:Math.round(r.ni), ni_externo:Math.round(r.ni_externo), ni_continuidad:Math.round(r.ni_continuidad), ni_programas:Math.round(r.ni_programas),
+      ri:Math.round(r.ri), mt:Math.round(r.mt), factor_ri_ni:r.factor_ri_ni, continuidad_prof:r.continuidad_prof,
+      capacidad:cap.capacity ? Math.round(cap.capacity) : "", salones_disponibles:cap.rooms ? cap.rooms : "", uso_capacidad:cap.ratio ?? "",
+      congelado:r.frozen?1:0
+    };
+  });
+  downloadCsv(`proyeccion_completa_${slug(state.config.scenarioName)}.csv`,rows);
+}
+async function importConfigCsv(file){
+  const text=await file.text();
+  const rows=parseCsv(text);
+  const newPrograms=new Map();
+  for(const r of rows){
+    if(r.tipo==="global"){
+      if(r.variable==="scenarioName") state.config.scenarioName=r.valor;
+      else if(r.variable==="capMode") state.config.capMode=r.valor;
+      else if(r.variable==="lag") state.config.lag=num(r.valor);
+      else state.config.global[r.variable]=num(r.valor,r.valor);
+    }else if(r.tipo==="campus"){
+      ensureCampusConfig(r.campus);
+      state.config.campus[r.campus][r.variable]=num(r.valor,r.valor);
+    }else if(r.tipo && r.tipo.startsWith("base_")){
+      ensureCampusConfig(r.campus);
+      const nivel=r.tipo.replace("base_","");
+      state.config.campus[r.campus].base[nivel][r.variable]=num(r.valor,r.valor);
+    }else if(r.tipo && r.tipo.startsWith("cap_")){
+      ensureCampusConfig(r.campus);
+      const nivel=r.tipo.replace("cap_","");
+      state.config.campus[r.campus].cap[nivel][r.variable]=num(r.valor,r.valor);
+    }else if(r.tipo==="programa"){
+      const [id,field]=r.variable.split(".");
+      if(!newPrograms.has(id)) newPrograms.set(id,{id});
+      newPrograms.get(id)[field]=num(r.valor,r.valor);
+    }
+  }
+  if(newPrograms.size) state.config.programs=Array.from(newPrograms.values());
+  $("scenarioName").value=state.config.scenarioName; $("capMode").value=state.config.capMode; $("lagSelect").value=state.config.lag;
+  recompute();
+}
+function ensureCampusConfig(campus){
+  if(state.config.campus[campus]) return;
+  state.config.campus[campus]={
+    campus,include:1,isNew:1,start_year:state.data.startYear,method:"importado",reference:"",
+    continuidad_prof:0,factor_ri_ni_prepa:0,factor_ri_ni_prof:0,prepa_b1:0,prepa_b2:0,prepa_b3:0,profext_b1:0,profext_b2:0,profext_b3:0,
+    base:{Preparatoria:{ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0},Profesional:{ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0}},
+    cap:{Preparatoria:{salones:0,grupo:30,turnos:1,util:1},Profesional:{salones:0,grupo:25,turnos:3,util:1}}
+  };
+}
+function parseCsv(text){
+  const lines=text.trim().split(/\r?\n/); if(lines.length<2) return [];
+  const headers=splitCsvLine(lines[0]);
+  return lines.slice(1).map(line=>{const cells=splitCsvLine(line),obj={};headers.forEach((h,i)=>obj[h]=cells[i]??"");return obj;});
+}
+function splitCsvLine(line){
+  const out=[]; let cur="", inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i], nx=line[i+1];
+    if(ch==='"' && inQ && nx==='"'){cur+='"'; i++; continue}
+    if(ch==='"'){inQ=!inQ; continue}
+    if(ch==="," && !inQ){out.push(cur); cur=""; continue}
+    cur+=ch;
+  }
+  out.push(cur); return out;
+}
+
+
+/* ==============================
+   V4 overrides: Posgrado, Ejecutivo e Internacionalización
+   ============================== */
+
+function defaultContinuityForLevel(data,nivel){
+  const rows=data.pmpNivel.filter(r=>r.nivel===nivel).sort((a,b)=>num(a.anio)-num(b.anio));
+  const base=rows.find(r=>num(r.anio)===data.baseYear);
+  const prev=rows.find(r=>num(r.anio)===data.baseYear-1);
+  if(prev && num(prev.mt)>0 && base) return safeDiv(num(base.ri),num(prev.mt),0);
+  if(base && num(base.mt)>0) return safeDiv(num(base.ri),num(base.mt),0);
+  return 0;
+}
+function initSegmentConfig(data,nivel){
+  const g=levelCagrFromPmp(data,nivel);
+  return {
+    continuidad: defaultContinuityForLevel(data,nivel),
+    organico_b1:g, organico_b2:g, organico_b3:g,
+    empresas_base:0,
+    nuevas_empresas_b1:0, nuevas_empresas_b2:0, nuevas_empresas_b3:0,
+    inscritos_empresa:0,
+    corporativas_base:0,
+    nuevas_corporativas_b1:0, nuevas_corporativas_b2:0, nuevas_corporativas_b3:0,
+    inscritos_corporativa:0
+  };
+}
+function initConfigFromData(data){
+  const campusCfg={};
+  for(const c of data.catalogo.map(r=>r.campus)){
+    const preGrowth=cagrFromPmp(data,c,"Preparatoria");
+    const profGrowth=cagrFromPmp(data,c,"Profesional");
+    campusCfg[c]={
+      campus:c, include:1, isNew:0, start_year:data.startYear, method:"base", reference:"",
+      continuidad_prof:continuityFromBase(data,c),
+      factor_ri_ni_prepa:avgRINIFactorFromHistorical(data,c,"Preparatoria"),
+      factor_ri_ni_prof:avgRINIFactorFromHistorical(data,c,"Profesional"),
+      prepa_b1:preGrowth, prepa_b2:preGrowth, prepa_b3:preGrowth,
+      profext_b1:profGrowth, profext_b2:profGrowth, profext_b3:profGrowth,
+      base:{Preparatoria:initialBase(data,c,"Preparatoria"), Profesional:initialBase(data,c,"Profesional")},
+      cap:{Preparatoria:capacityFromBase(data,c,"Preparatoria"), Profesional:capacityFromBase(data,c,"Profesional")}
+    };
+  }
+  return {
+    scenarioName:"Escenario usuario",
+    capMode:"freeze",
+    lag:0,
+    campus:campusCfg,
+    programs:[],
+    segments:{
+      Posgrado:initSegmentConfig(data,"Posgrado"),
+      Ejecutivo:initSegmentConfig(data,"Ejecutivo")
+    },
+    international:{
+      include:1,
+      target_2035:14000,
+      paises_2035:8,
+      productos_2035:4,
+      inscritos_producto_pre:250,
+      organico_b2:0.04,
+      organico_b3:0.03,
+      nuevos_productos_b2:1,
+      nuevos_productos_b3:1,
+      inscritos_producto_post:300
+    },
+    global:{
+      posgrado_b1:levelCagrFromPmp(data,"Posgrado"),posgrado_b2:levelCagrFromPmp(data,"Posgrado"),posgrado_b3:levelCagrFromPmp(data,"Posgrado"),
+      ejecutivo_b1:levelCagrFromPmp(data,"Ejecutivo"),ejecutivo_b2:levelCagrFromPmp(data,"Ejecutivo"),ejecutivo_b3:levelCagrFromPmp(data,"Ejecutivo")
+    }
+  };
+}
+function computeProgramNIMaps(){
+  const maps={campus:new Map(),level:new Map(),international:new Map()};
+  for(const p of state.config.programs.filter(x=>num(x.include,1)!==0)){
+    let ni=0;
+    const nivel=p.nivel || "Profesional";
+    for(let y=state.data.startYear;y<=state.data.endYear;y++){
+      if(y<num(p.open_year)) continue;
+      if(y===num(p.open_year)) ni=num(p.ni_inicial);
+      else ni=ni*(1+programRate(p,y));
+      if(nivel==="Profesional"){
+        const key=`${p.campus}|${y}`;
+        maps.campus.set(key,(maps.campus.get(key)||0)+ni);
+      }else if(nivel==="Internacionalización"){
+        maps.international.set(y,(maps.international.get(y)||0)+ni);
+      }else{
+        const key=`${nivel}|${y}`;
+        maps.level.set(key,(maps.level.get(key)||0)+ni);
+      }
+    }
+  }
+  return maps;
+}
+function computeSegmentLevel(nivel, years, levelSeries, programMaps){
+  const d=state.data;
+  const seg=state.config.segments[nivel] || initSegmentConfig(d,nivel);
+  const base=d.pmpNivel.find(r=>num(r.anio)===d.baseYear && r.nivel===nivel) || {ni:0,ri:0,mt:0};
+  let prev={ni:num(base.ni),ri:num(base.ri),mt:num(base.mt)};
+  let empresas=num(seg.empresas_base);
+  let corporativas=num(seg.corporativas_base);
+  for(const y of years){
+    const b=blockFor(y).key;
+    empresas += num(seg[`nuevas_empresas_${b}`],0);
+    corporativas += num(seg[`nuevas_corporativas_${b}`],0);
+    const organicRate=num(seg[`organico_${b}`],0);
+    const niOrganico=prev.ni*(1+organicRate);
+    const niConvenios=empresas*num(seg.inscritos_empresa,0);
+    const niCorporativas=corporativas*num(seg.inscritos_corporativa,0);
+    const niProgramas=programMaps.level.get(`${nivel}|${y}`) || 0;
+    const ni=niOrganico+niConvenios+niCorporativas+niProgramas;
+    const ri=prev.mt*num(seg.continuidad,0);
+    const mt=ni+ri;
+    const row={
+      anio:y,nivel,tipo:"Proyección",campus:"Institucional",
+      ni,ri,mt,
+      ni_organico:niOrganico,
+      ni_convenios:niConvenios,
+      ni_corporativas:niCorporativas,
+      ni_programas:niProgramas,
+      empresas_convenio:empresas,
+      universidades_corporativas:corporativas,
+      continuidad:num(seg.continuidad,0)
+    };
+    levelSeries.push(row);
+    prev={ni,ri,mt};
+  }
+}
+function computeInternational(years, levelSeries, programMaps){
+  const intl=state.config.international;
+  if(!intl || num(intl.include,1)===0) return;
+  const start=state.data.startYear;
+  const targetYear=2035;
+  const target=num(intl.target_2035,14000);
+  const paisesTarget=num(intl.paises_2035,0);
+  const productosTarget=num(intl.productos_2035,0);
+  const inscritosProductoPre=num(intl.inscritos_producto_pre,0);
+  const prog2035=programMaps.international.get(targetYear) || 0;
+  const targetDrivers=Math.max(target-prog2035,0);
+  const finalProductContribution=productosTarget*inscritosProductoPre;
+  const inscritosPaisCalibrado=paisesTarget>0 ? Math.max((targetDrivers-finalProductContribution)/paisesTarget,0) : 0;
+  let prev={ni:0,ri:0,mt:0};
+  let productosPost=0;
+  for(const y of years){
+    let niProductos=0, niPaises=0, productos=0, paises=0, mt=0, ni=0;
+    const niProgramas=programMaps.international.get(y) || 0;
+    if(y<=targetYear){
+      const progress=Math.max(0, Math.min(1, (y-start+1)/(targetYear-start+1)));
+      paises=paisesTarget*progress;
+      productos=productosTarget*progress;
+      niPaises=paises*inscritosPaisCalibrado;
+      niProductos=productos*inscritosProductoPre;
+      mt=niPaises+niProductos+niProgramas;
+      if(y===targetYear) mt=target;
+      ni=mt;
+    }else{
+      const b=blockFor(y).key;
+      productosPost += num(intl[`nuevos_productos_${b}`],0);
+      productos=productosTarget+productosPost;
+      paises=paisesTarget;
+      niProductos=productosPost*num(intl.inscritos_producto_post,0);
+      const organic=num(intl[`organico_${b}`],0);
+      mt=prev.mt*(1+organic)+niProductos+niProgramas;
+      ni=mt;
+    }
+    const row={
+      anio:y,nivel:"Internacionalización",tipo:"Proyección",campus:"Institucional",
+      ni,ri:0,mt,
+      ni_paises:niPaises,
+      ni_productos:niProductos,
+      ni_programas:niProgramas,
+      paises,
+      productos,
+      target_2035:target
+    };
+    levelSeries.push(row);
+    prev={ni,ri:0,mt};
+  }
+}
+function computeProjection(){
+  const d=state.data,cfg=state.config;
+  const years=range(d.startYear,d.endYear);
+  const levelSeries=[...d.historicoNivel,...d.pmpNivel].map(r=>({anio:num(r.anio),nivel:r.nivel,ni:num(r.ni),ri:num(r.ri),mt:num(r.mt),tipo:num(r.anio)<=2025?"Histórico":"PMP"}));
+  const campusSeries=[];
+  const capacityRows=[];
+  const programMaps=computeProgramNIMaps();
+  const freeze={};
+
+  for(const campus of allCampusNames()){
+    const c=cfg.campus[campus];
+    const preFactor=num(c.factor_ri_ni_prepa,0);
+    const proFactor=num(c.factor_ri_ni_prof,0);
+    const startY=num(c.start_year,d.startYear);
+    const preBase=c.base?.Preparatoria || {ni:0,ri:0,mt:0};
+    const proBase=c.base?.Profesional || {ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0};
+
+    let lastPre={ni:num(preBase.ni),ri:num(preBase.ri),mt:num(preBase.mt),ni_externo:num(preBase.ni),ni_continuidad:0,ni_programas:0};
+    let proContBase=num(proBase.ni_continuidad,NaN);
+    if(!isFinite(proContBase)) proContBase=num(preBase.ni)*num(c.continuidad_prof);
+    let proExt=num(proBase.ni_externo,NaN);
+    if(!isFinite(proExt)) proExt=Math.max(num(proBase.ni)-proContBase,0);
+    let lastPro={ni:num(proBase.ni),ri:num(proBase.ri),mt:num(proBase.mt),ni_externo:proExt,ni_continuidad:proContBase,ni_programas:0};
+
+    const prepaNIByYear=new Map([[d.baseYear,lastPre.ni]]);
+    for(const y of years){
+      if(y<startY){
+        const zeroPre={anio:y,campus,nivel:"Preparatoria",ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0,ni_programas:0,frozen:false};
+        const zeroPro={anio:y,campus,nivel:"Profesional",ni:0,ri:0,mt:0,ni_externo:0,ni_continuidad:0,ni_programas:0,frozen:false};
+        campusSeries.push({...zeroPre,factor_ri_ni:preFactor,continuidad_prof:0});
+        campusSeries.push({...zeroPro,factor_ri_ni:proFactor,continuidad_prof:num(c.continuidad_prof)});
+        continue;
+      }
+
+      let preRow;
+      if(freeze[`${campus}|Preparatoria`]){
+        preRow={...freeze[`${campus}|Preparatoria`],anio:y,frozen:true,capped:false};
+      }else{
+        const baseNI=(num(c.isNew) && y===startY) ? lastPre.ni : lastPre.ni*(1+rateFor(c,"prepa",y));
+        preRow={anio:y,campus,nivel:"Preparatoria",ni:baseNI,ni_externo:baseNI,ni_continuidad:0,ni_programas:0,ri:baseNI*preFactor,mt:baseNI*(1+preFactor)};
+        preRow=applyCapacity(preRow,campus,"Preparatoria",y,preFactor);
+        if(preRow.frozen) freeze[`${campus}|Preparatoria`]={...preRow};
+      }
+      prepaNIByYear.set(y,preRow.ni);
+      lastPre=preRow;
+      campusSeries.push({...preRow,factor_ri_ni:preFactor,continuidad_prof:0});
+
+      let proRow;
+      if(freeze[`${campus}|Profesional`]){
+        proRow={...freeze[`${campus}|Profesional`],anio:y,frozen:true,capped:false};
+      }else{
+        const lagY=y-num(cfg.lag,0);
+        const preForCont=prepaNIByYear.get(lagY) ?? 0;
+        const contNI=preForCont*num(c.continuidad_prof);
+        const extNI=(num(c.isNew) && y===startY) ? lastPro.ni_externo : lastPro.ni_externo*(1+rateFor(c,"profext",y));
+        const progNI=programMaps.campus.get(`${campus}|${y}`) || 0;
+        const totalNI=contNI+extNI+progNI;
+        proRow={anio:y,campus,nivel:"Profesional",ni:totalNI,ni_externo:extNI,ni_continuidad:contNI,ni_programas:progNI,ri:totalNI*proFactor,mt:totalNI*(1+proFactor)};
+        proRow=applyCapacity(proRow,campus,"Profesional",y,proFactor);
+        if(proRow.frozen) freeze[`${campus}|Profesional`]={...proRow};
+      }
+      lastPro=proRow;
+      campusSeries.push({...proRow,factor_ri_ni:proFactor,continuidad_prof:num(c.continuidad_prof)});
+
+      for(const nivel of ["Preparatoria","Profesional"]){
+        const row=nivel==="Preparatoria" ? preRow : proRow;
+        const cap=capacityFor(campus,nivel,y);
+        if(cap){
+          capacityRows.push({anio:y,campus,nivel,mt:row.mt,capacity:cap.capacity,rooms:cap.rooms,ratio:safeDiv(row.mt,cap.capacity,null),frozen:row.frozen});
+        }
+      }
+    }
+  }
+
+  for(const y of years){
+    for(const nivel of ["Preparatoria","Profesional"]){
+      const rows=campusSeries.filter(r=>r.anio===y && r.nivel===nivel);
+      levelSeries.push({anio:y,nivel,ni:sum(rows,"ni"),ri:sum(rows,"ri"),mt:sum(rows,"mt"),tipo:"Proyección"});
+    }
+  }
+  computeSegmentLevel("Posgrado",years,levelSeries,programMaps);
+  computeSegmentLevel("Ejecutivo",years,levelSeries,programMaps);
+  computeInternational(years,levelSeries,programMaps);
+
+  return {levelSeries,campusSeries,capacityRows};
+}
+function renderAll(){
+  renderSelectors();
+  renderKpis();
+  renderSummary();
+  renderControls();
+  renderPEControls();
+  renderInternationalControls();
+  renderCapacityControls();
+  renderNewCampusTable();
+  renderPrograms();
+  renderLevelChart();
+  renderInternationalChart();
+  renderCampusTable();
+  renderCapacityResultTable();
+  renderConfigPreview();
+  $("modelStatus").innerHTML=buildStatus();
+}
+function buildStatus(){
+  const d=state.data;
+  const nNew=Object.values(state.config.campus).filter(c=>num(c.isNew)).length;
+  const nPrograms=state.config.programs.length;
+  return `<div><b>Archivo:</b> ${state.workbookName}</div>
+    <div><b>Base:</b> ${d.baseYear} · <b>Proyección:</b> ${d.startYear}–${d.endYear}</div>
+    <div><b>Campus base:</b> ${fmt0.format(d.catalogo.length)} · <b>Campus simulados:</b> ${fmt0.format(nNew)} · <b>Programas simulados:</b> ${fmt0.format(nPrograms)}</div>
+    <div><b>Internacionalización 2035:</b> ${fmt0.format(state.projection?.levelSeries.find(r=>r.anio===2035 && r.nivel==="Internacionalización")?.mt || 0)}</div>`;
+}
+function renderKpis(){
+  const d=state.data,p=state.projection;
+  const baseTotal=sum(d.pmpNivel.filter(r=>num(r.anio)===d.baseYear),"mt");
+  const finalRows=p.levelSeries.filter(r=>r.anio===d.endYear);
+  const totalFinal=sum(finalRows,"mt");
+  const newCampusFinal=p.campusSeries.filter(r=>r.anio===d.endYear && num(state.config.campus[r.campus]?.isNew)).reduce((a,r)=>a+r.mt,0);
+  const progFinal=p.campusSeries.filter(r=>r.anio===d.endYear && r.nivel==="Profesional").reduce((a,r)=>a+r.ni_programas,0);
+  const intl2035=p.levelSeries.find(r=>r.anio===2035 && r.nivel==="Internacionalización")?.mt || 0;
+  const capped=p.campusSeries.filter(r=>r.anio===d.endYear && r.frozen).length;
+  $("kpis").innerHTML=[
+    ["MT PMP 2029",fmt0.format(baseTotal),"Desde pmp_nivel"],
+    [`MT ${d.endYear}`,fmt0.format(totalFinal),state.config.scenarioName],
+    ["Δ vs 2029",fmtPct.format(safeDiv(totalFinal-baseTotal,baseTotal)),"Incluye Internacionalización"],
+    ["Internacionalización 2035",fmt0.format(intl2035),"Objetivo default 14,000"],
+    ["MT campus nuevos",fmt0.format(newCampusFinal),`Año ${d.endYear}`],
+    ["Congelados",fmt0.format(capped),"Por capacidad"]
+  ].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="label">${x[2]}</div></div>`).join("");
+}
+function renderSummary(){
+  const d=state.data,p=state.projection;
+  const levels=["Preparatoria","Profesional","Posgrado","Ejecutivo","Internacionalización"];
+  const rows=levels.map(nivel=>{
+    const b=d.pmpNivel.find(r=>num(r.anio)===d.baseYear && r.nivel===nivel);
+    const f=p.levelSeries.find(r=>r.anio===d.endYear && r.nivel===nivel);
+    const baseMt=num(b?.mt);
+    return [nivel,fmt0.format(baseMt),fmt0.format(f?.mt||0),baseMt?fmtPct.format(safeDiv((f?.mt||0)-baseMt,baseMt)):"Nuevo",fmt0.format(f?.ni||0),fmt0.format(f?.ri||0)];
+  });
+  $("summaryTable").innerHTML=tableHtml(["Nivel / línea",`MT ${d.baseYear}`,`MT ${d.endYear}`,"Δ","NI AD final","RI AD final"],rows,[0]);
+}
+function renderControls(){
+  const headers=["Campus","Tipo","Continuidad","RI/NI Prepa","RI/NI Prof","Prepa 30–34","Prepa 35–39","Prepa 40–45","Ext Prof 30–34","Ext Prof 35–39","Ext Prof 40–45"];
+  const rows=Object.values(state.config.campus).filter(c=>num(c.include,1)!==0).map(c=>`
+    <tr>
+      <td class="text">${c.campus}</td>
+      <td class="text">${num(c.isNew)?'<span class="pill orange">Nuevo</span>':'<span class="pill gray">Base</span>'}</td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="continuidad_prof" value="${pctInput(c.continuidad_prof)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="factor_ri_ni_prepa" value="${fmt2.format(c.factor_ri_ni_prepa)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="factor_ri_ni_prof" value="${fmt2.format(c.factor_ri_ni_prof)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="prepa_b1" value="${pctInput(c.prepa_b1)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="prepa_b2" value="${pctInput(c.prepa_b2)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="prepa_b3" value="${pctInput(c.prepa_b3)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="profext_b1" value="${pctInput(c.profext_b1)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="profext_b2" value="${pctInput(c.profext_b2)}"></td>
+      <td><input data-zone="campus" data-c="${c.campus}" data-f="profext_b3" value="${pctInput(c.profext_b3)}"></td>
+    </tr>`).join("");
+  $("campusControls").innerHTML=`<table><thead><tr>${headers.map((h,i)=>`<th class="${i<2?'text':''}">${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>`;
+  $("campusControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",handleCampusInput));
+
+  const segRows=["Posgrado","Ejecutivo"].map(nivel=>{
+    const s=state.config.segments[nivel];
+    return `<tr><td class="text">${nivel}</td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b1" value="${pctInput(s.organico_b1)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b2" value="${pctInput(s.organico_b2)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b3" value="${pctInput(s.organico_b3)}"></td>
+    </tr>`;
+  }).join("");
+  $("globalControls").innerHTML=`<table><thead><tr><th class="text">Nivel</th><th>Orgánico 2030–2034</th><th>Orgánico 2035–2039</th><th>Orgánico 2040–2045</th></tr></thead><tbody>${segRows}</tbody></table>`;
+  $("globalControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{
+    state.config.segments[e.target.dataset.n][e.target.dataset.f]=pctFromInput(e.target.value);
+  }));
+}
+function renderPEControls(){
+  const headers=[
+    "Nivel","Continuidad","Org. 30–34","Org. 35–39","Org. 40–45",
+    "Empresas base","Nuevas emp. 30–34","Nuevas emp. 35–39","Nuevas emp. 40–45","Inscritos / empresa",
+    "Corp. base","Nuevas corp. 30–34","Nuevas corp. 35–39","Nuevas corp. 40–45","Inscritos / corp."
+  ];
+  const rows=["Posgrado","Ejecutivo"].map(nivel=>{
+    const s=state.config.segments[nivel];
+    return `<tr>
+      <td class="text">${nivel}</td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="continuidad" data-type="pct" value="${pctInput(s.continuidad)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b1" data-type="pct" value="${pctInput(s.organico_b1)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b2" data-type="pct" value="${pctInput(s.organico_b2)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b3" data-type="pct" value="${pctInput(s.organico_b3)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="empresas_base" value="${fmt1.format(s.empresas_base)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_empresas_b1" value="${fmt1.format(s.nuevas_empresas_b1)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_empresas_b2" value="${fmt1.format(s.nuevas_empresas_b2)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_empresas_b3" value="${fmt1.format(s.nuevas_empresas_b3)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="inscritos_empresa" value="${fmt1.format(s.inscritos_empresa)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="corporativas_base" value="${fmt1.format(s.corporativas_base)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b1" value="${fmt1.format(s.nuevas_corporativas_b1)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b2" value="${fmt1.format(s.nuevas_corporativas_b2)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b3" value="${fmt1.format(s.nuevas_corporativas_b3)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="inscritos_corporativa" value="${fmt1.format(s.inscritos_corporativa)}"></td>
+    </tr>`;
+  }).join("");
+  $("peControls").innerHTML=`<table><thead><tr>${headers.map((h,i)=>`<th class="${i===0?'text':''}">${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>`;
+  $("peControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{
+    const s=state.config.segments[e.target.dataset.n];
+    s[e.target.dataset.f]=e.target.dataset.type==="pct" ? pctFromInput(e.target.value) : num(e.target.value);
+  }));
+}
+function renderInternationalControls(){
+  const i=state.config.international;
+  const rows=[
+    ["Objetivo MT 2035","target_2035",i.target_2035,"num"],
+    ["Países a donde se expandirá a 2035","paises_2035",i.paises_2035,"num"],
+    ["Nuevos productos acumulados a 2035","productos_2035",i.productos_2035,"num"],
+    ["Inscritos promedio por producto antes de 2035","inscritos_producto_pre",i.inscritos_producto_pre,"num"],
+    ["Crecimiento orgánico 2036–2039","organico_b2",pctInput(i.organico_b2),"pct"],
+    ["Crecimiento orgánico 2040–2045","organico_b3",pctInput(i.organico_b3),"pct"],
+    ["Nuevos productos por año 2036–2039","nuevos_productos_b2",i.nuevos_productos_b2,"num"],
+    ["Nuevos productos por año 2040–2045","nuevos_productos_b3",i.nuevos_productos_b3,"num"],
+    ["Inscritos promedio por producto después de 2035","inscritos_producto_post",i.inscritos_producto_post,"num"]
+  ];
+  $("intlControls").innerHTML=`<table><thead><tr><th class="text">Variable</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>`
+    <tr><td class="text">${r[0]}</td><td><input data-zone="intl" data-f="${r[1]}" data-type="${r[3]}" value="${r[2]}"></td></tr>`).join("")}</tbody></table>`;
+  $("intlControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{
+    state.config.international[e.target.dataset.f]=e.target.dataset.type==="pct" ? pctFromInput(e.target.value) : num(e.target.value);
+  }));
+}
+function renderSelectors(){
+  const campusOptions=Object.values(state.config.campus).filter(c=>num(c.include,1)!==0).map(c=>`<option value="${escapeHtml(c.campus)}">${escapeHtml(c.campus)}</option>`).join("");
+  $("newCampusRef").innerHTML=state.data.catalogo.map(c=>`<option value="${escapeHtml(c.campus)}">${escapeHtml(c.campus)}</option>`).join("");
+  $("progCampus").innerHTML=campusOptions || '<option value="Institucional">Institucional</option>';
+  const refs=portfolioRefs();
+  $("progRef").innerHTML=`<option value="">Manual / sin referencia</option>`+refs.map(r=>`<option value="${escapeHtml(r.key)}">${escapeHtml(r.label)}</option>`).join("");
+}
+function addProgram(){
+  const nivel=$("progLevel").value || "Profesional";
+  const campus=nivel==="Profesional" ? $("progCampus").value : "Institucional";
+  const name=txt($("progName").value);
+  if(!name){alert("Escribe el programa.");return}
+  if(nivel==="Profesional" && !campus){alert("Selecciona campus.");return}
+  state.config.programs.push({
+    id:`P${Date.now()}`,
+    include:1,
+    nivel,
+    campus,
+    programa:name,
+    reference:$("progRef").value,
+    open_year:num($("progYear").value,state.data.startYear),
+    ni_inicial:num($("progNI").value,0),
+    g_b1:pctFromInput($("progG1").value),
+    g_b2:pctFromInput($("progG2").value),
+    g_b3:pctFromInput($("progG3").value)
+  });
+  $("progName").value="";
+  recompute();
+}
+function renderPrograms(){
+  const simRows=state.config.programs.map((p,i)=>[
+    p.include?'<span class="pill ok">Sí</span>':'<span class="pill gray">No</span>',
+    p.nivel || "Profesional",
+    p.campus || "Institucional",
+    p.programa,
+    p.open_year,
+    fmt0.format(p.ni_inicial),
+    fmtPct.format(p.g_b1),
+    fmtPct.format(p.g_b2),
+    fmtPct.format(p.g_b3),
+    `<button class="btn danger" type="button" onclick="removeProgram(${i})">Eliminar</button>`
+  ]);
+  $("programsSimTable").innerHTML=simRows.length ? tableHtml(["Incluir","Nivel","Campus","Programa","Apertura","NI inicial","30–34","35–39","40–45",""],simRows,[0,1,2,3]) : `<div class="warn">No hay programas simulados todavía.</div>`;
+
+  const d=state.data;
+  if(!d.programas.length){$("programTable").innerHTML=`<div class="warn">No hay programas históricos.</div>`;return}
+  const latest=lastYear(d.programas);
+  const top=d.programas.filter(r=>num(r.anio)===latest).sort((a,b)=>num(b.mt)-num(a.mt)).slice(0,30);
+  $("programTable").innerHTML=tableHtml(["Campus","Programa","Año","NI","RI","MT"],top.map(r=>[r.campus,r.programa,num(r.anio),fmt0.format(num(r.ni)),fmt0.format(num(r.ri)),fmt0.format(num(r.mt))]),[0,1]);
+  const keys=top.slice(0,8).map(r=>`${r.campus}|${r.programa}`);
+  const years=range(Math.min(...d.programas.map(r=>num(r.anio))),latest);
+  const datasets=keys.map(k=>({label:k,data:years.map(y=>sum(d.programas.filter(r=>num(r.anio)===y && `${r.campus}|${r.programa}`===k),"mt")),tension:.25}));
+  if(state.charts.programs) state.charts.programs.destroy();
+  state.charts.programs=new Chart($("chartPrograms"),{type:"line",data:{labels:years,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt0.format(v)}}}}});
+}
+function renderLevelChart(){
+  const d=state.data,p=state.projection;
+  const years=range(Math.min(...p.levelSeries.map(r=>r.anio)),d.endYear);
+  const datasets=["Preparatoria","Profesional","Posgrado","Ejecutivo","Internacionalización"].map(nivel=>({
+    label:nivel,
+    data:years.map(y=>Math.round(p.levelSeries.find(r=>r.anio===y && r.nivel===nivel)?.mt ?? NaN)),
+    tension:.25
+  }));
+  if(state.charts.levels) state.charts.levels.destroy();
+  state.charts.levels=new Chart($("chartLevels"),{type:"line",data:{labels:years,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt0.format(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt0.format(v)}}}}});
+}
+function renderInternationalChart(){
+  const rows=state.projection.levelSeries.filter(r=>r.nivel==="Internacionalización" && r.tipo==="Proyección");
+  if(!rows.length) return;
+  if(state.charts.intl) state.charts.intl.destroy();
+  state.charts.intl=new Chart($("chartInternational"),{
+    type:"line",
+    data:{labels:rows.map(r=>r.anio),datasets:[{label:"MT Internacionalización",data:rows.map(r=>Math.round(r.mt)),tension:.25}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt0.format(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt0.format(v)}}}}
+  });
+}
+function renderCampusTable(){
+  const d=state.data,p=state.projection;
+  const baseRows=d.pmpCampus.filter(r=>num(r.anio)===d.baseYear);
+  const final=p.campusSeries.filter(r=>r.anio===d.endYear);
+  const rows=allCampusNames().map(campus=>{
+    const b=baseRows.filter(r=>r.campus===campus);
+    const f=final.filter(r=>r.campus===campus);
+    const prof=f.find(r=>r.nivel==="Profesional")||{};
+    const pre=f.find(r=>r.nivel==="Preparatoria")||{};
+    const mtBase=sum(b,"mt");
+    return [
+      campus,
+      num(state.config.campus[campus]?.isNew)?'<span class="pill orange">Nuevo</span>':'<span class="pill gray">Base</span>',
+      fmt0.format(mtBase),
+      fmt0.format(sum(f,"mt")),
+      mtBase ? fmtPct.format(safeDiv(sum(f,"mt")-mtBase,mtBase)) : "Nuevo",
+      fmt0.format(pre.mt||0),
+      fmt0.format(prof.mt||0),
+      fmt0.format(prof.ni_continuidad||0),
+      fmt0.format(prof.ni_externo||0),
+      fmt0.format(prof.ni_programas||0),
+      prof.frozen || pre.frozen ? `<span class="pill bad">Congelado</span>` : `<span class="pill ok">Activo</span>`
+    ];
+  }).sort((a,b)=>Number(String(b[3]).replace(/,/g,""))-Number(String(a[3]).replace(/,/g,"")));
+  const instRows=["Posgrado","Ejecutivo","Internacionalización"].map(nivel=>{
+    const r=state.projection.levelSeries.find(x=>x.anio===state.data.endYear && x.nivel===nivel) || {};
+    return ["Institucional",`<span class="pill gray">${nivel}</span>`,"",fmt0.format(r.mt||0),"", "", fmt0.format(r.mt||0), "", "", fmt0.format(r.ni_programas||0), `<span class="pill ok">Activo</span>`];
+  });
+  $("campusTable").innerHTML=tableHtml(["Campus","Tipo",`MT ${d.baseYear}`,`MT ${d.endYear}`,"Δ","Prepa final","Nivel final","NI cont.","NI ext.","NI programas","Estado"],rows.concat(instRows),[0,1]);
+}
+function configRows(){
+  const cfg=state.config, rows=[];
+  rows.push({tipo:"global",campus:"",variable:"scenarioName",valor:cfg.scenarioName});
+  rows.push({tipo:"global",campus:"",variable:"capMode",valor:cfg.capMode});
+  rows.push({tipo:"global",campus:"",variable:"lag",valor:cfg.lag});
+  for(const [nivel,s] of Object.entries(cfg.segments || {})){
+    for(const [k,v] of Object.entries(s)) rows.push({tipo:"segmento",campus:nivel,variable:k,valor:v});
+  }
+  for(const [k,v] of Object.entries(cfg.international || {})) rows.push({tipo:"internacionalizacion",campus:"",variable:k,valor:v});
+  for(const [campus,c] of Object.entries(cfg.campus)){
+    for(const [k,v] of Object.entries(c)){
+      if(["base","cap"].includes(k)) continue;
+      rows.push({tipo:"campus",campus,variable:k,valor:v});
+    }
+    for(const nivel of ["Preparatoria","Profesional"]){
+      for(const [k,v] of Object.entries(c.base[nivel])) rows.push({tipo:`base_${nivel}`,campus,variable:k,valor:v});
+      for(const [k,v] of Object.entries(c.cap[nivel])) rows.push({tipo:`cap_${nivel}`,campus,variable:k,valor:v});
+    }
+  }
+  for(const p of cfg.programs){
+    for(const [k,v] of Object.entries(p)) rows.push({tipo:"programa",campus:p.campus,variable:`${p.id}.${k}`,valor:v});
+  }
+  return rows;
+}
+function downloadProjection(){
+  const capMap=new Map(state.projection.capacityRows.map(r=>[`${r.campus}|${r.nivel}|${r.anio}`,r]));
+  const rows=[];
+  for(const r of state.projection.campusSeries){
+    const cap=capMap.get(`${r.campus}|${r.nivel}|${r.anio}`) || {};
+    rows.push({
+      escenario:state.config.scenarioName, anio:r.anio, campus:r.campus, campus_nuevo:num(state.config.campus[r.campus]?.isNew)?1:0, nivel:r.nivel,
+      ni_total:Math.round(r.ni), ni_externo:Math.round(r.ni_externo), ni_continuidad:Math.round(r.ni_continuidad), ni_programas:Math.round(r.ni_programas),
+      ri:Math.round(r.ri), mt:Math.round(r.mt), factor_ri_ni:r.factor_ri_ni, continuidad_prof:r.continuidad_prof,
+      capacidad:cap.capacity ? Math.round(cap.capacity) : "", salones_disponibles:cap.rooms ? cap.rooms : "", uso_capacidad:cap.ratio ?? "",
+      congelado:r.frozen?1:0,
+      empresas_convenio:"", universidades_corporativas:"", paises:"", productos:""
+    });
+  }
+  for(const r of state.projection.levelSeries.filter(x=>x.tipo==="Proyección" && ["Posgrado","Ejecutivo","Internacionalización"].includes(x.nivel))){
+    rows.push({
+      escenario:state.config.scenarioName, anio:r.anio, campus:"Institucional", campus_nuevo:0, nivel:r.nivel,
+      ni_total:Math.round(r.ni||0), ni_externo:Math.round(r.ni_organico||r.ni||0), ni_continuidad:"", ni_programas:Math.round(r.ni_programas||0),
+      ri:Math.round(r.ri||0), mt:Math.round(r.mt||0), factor_ri_ni:"", continuidad_prof:r.continuidad ?? "",
+      capacidad:"", salones_disponibles:"", uso_capacidad:"", congelado:0,
+      empresas_convenio:r.empresas_convenio ?? "", universidades_corporativas:r.universidades_corporativas ?? "", paises:r.paises ?? "", productos:r.productos ?? "",
+      ni_convenios:Math.round(r.ni_convenios||0), ni_corporativas:Math.round(r.ni_corporativas||0), ni_paises:Math.round(r.ni_paises||0), ni_productos:Math.round(r.ni_productos||0)
+    });
+  }
+  downloadCsv(`proyeccion_completa_${slug(state.config.scenarioName)}.csv`,rows);
+}
+async function importConfigCsv(file){
+  const text = await file.text();
+  const rows = parseCsv(text);
+  const importedPrograms = new Map();
+
+  for(const r of rows){
+    if(r.tipo === "global"){
+      if(r.variable === "scenarioName") state.config.scenarioName = r.valor;
+      else if(r.variable === "capMode") state.config.capMode = r.valor;
+      else if(r.variable === "lag") state.config.lag = num(r.valor);
+      else if(r.variable.startsWith("posgrado_")){
+        const key = r.variable.replace("posgrado_","organico_");
+        state.config.segments.Posgrado[key] = num(r.valor);
+      }else if(r.variable.startsWith("ejecutivo_")){
+        const key = r.variable.replace("ejecutivo_","organico_");
+        state.config.segments.Ejecutivo[key] = num(r.valor);
+      }
+    }else if(r.tipo === "segmento"){
+      if(!state.config.segments[r.campus]) state.config.segments[r.campus] = initSegmentConfig(state.data,r.campus);
+      state.config.segments[r.campus][r.variable] = String(r.variable).includes("organico") || r.variable === "continuidad" ? num(r.valor) : num(r.valor, r.valor);
+    }else if(r.tipo === "internacionalizacion"){
+      state.config.international[r.variable] = num(r.valor, r.valor);
+    }else if(r.tipo === "campus"){
+      ensureCampusConfig(r.campus);
+      state.config.campus[r.campus][r.variable] = num(r.valor, r.valor);
+    }else if(r.tipo && r.tipo.startsWith("base_")){
+      ensureCampusConfig(r.campus);
+      const nivel = r.tipo.replace("base_","");
+      if(!state.config.campus[r.campus].base[nivel]) state.config.campus[r.campus].base[nivel] = {};
+      state.config.campus[r.campus].base[nivel][r.variable] = num(r.valor, r.valor);
+    }else if(r.tipo && r.tipo.startsWith("cap_")){
+      ensureCampusConfig(r.campus);
+      const nivel = r.tipo.replace("cap_","");
+      if(!state.config.campus[r.campus].cap[nivel]) state.config.campus[r.campus].cap[nivel] = {};
+      state.config.campus[r.campus].cap[nivel][r.variable] = num(r.valor, r.valor);
+    }else if(r.tipo === "programa"){
+      const [id,field] = String(r.variable).split(".");
+      if(!importedPrograms.has(id)) importedPrograms.set(id,{id});
+      importedPrograms.get(id)[field] = num(r.valor, r.valor);
+    }
+  }
+
+  if(importedPrograms.size) state.config.programs = Array.from(importedPrograms.values());
+  normalizeConfig();
+  $("scenarioName").value = state.config.scenarioName;
+  $("capMode").value = state.config.capMode;
+  $("lagSelect").value = state.config.lag;
+  recompute();
+}
+function normalizeConfig(){
+  if(!state.config.segments){
+    state.config.segments = {
+      Posgrado:initSegmentConfig(state.data,"Posgrado"),
+      Ejecutivo:initSegmentConfig(state.data,"Ejecutivo")
+    };
+  }
+  if(!state.config.segments.Posgrado) state.config.segments.Posgrado = initSegmentConfig(state.data,"Posgrado");
+  if(!state.config.segments.Ejecutivo) state.config.segments.Ejecutivo = initSegmentConfig(state.data,"Ejecutivo");
+  if(!state.config.international){
+    state.config.international = {
+      include:1,target_2035:14000,paises_2035:8,productos_2035:4,inscritos_producto_pre:250,
+      organico_b2:0.04,organico_b3:0.03,nuevos_productos_b2:1,nuevos_productos_b3:1,inscritos_producto_post:300
+    };
+  }
+  if(!state.config.programs) state.config.programs = [];
+}
+
+async function loadAuto(){
+  setMsg("warn","Intentando cargar base desde la misma carpeta...");
+  for(const f of AUTO_FILES){
+    try{
+      const res=await fetch(f,{cache:"no-store"});
+      if(!res.ok) continue;
+      await loadArrayBuffer(await res.arrayBuffer(), f.replace("./",""));
+      return;
+    }catch(e){}
+  }
+  setMsg("warn","No se pudo cargar automáticamente. Selecciona el Excel manualmente.");
+}
+async function loadArrayBuffer(buf,name){
+  const wb=XLSX.read(buf,{type:"array"});
+  state.data=parseWorkbook(wb);
+  state.config=initConfigFromData(state.data);
+  state.workbookName=name;
+  $("scenarioName").value=state.config.scenarioName; $("capMode").value=state.config.capMode; $("lagSelect").value=state.config.lag;
+  recompute();
+  $("app").classList.remove("hidden");
+  setMsg("ok",`Base cargada: ${name}`);
+}
+
+$("fileInput").addEventListener("change",async e=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  try{await loadArrayBuffer(await file.arrayBuffer(),file.name)}
+  catch(err){console.error(err);setMsg("error","No se pudo leer el archivo seleccionado.")}
+});
+$("reloadBtn").addEventListener("click",loadAuto);
+$("recomputeBtn").addEventListener("click",recompute);
+$("capMode").addEventListener("change",recompute);
+$("lagSelect").addEventListener("change",recompute);
+$("scenarioName").addEventListener("change",recompute);
+$("applyAllBtn").addEventListener("click",()=>{
+  const vals={prepa_b1:pctFromInput($("bulkPre1").value),prepa_b2:pctFromInput($("bulkPre2").value),prepa_b3:pctFromInput($("bulkPre3").value),profext_b1:pctFromInput($("bulkProf1").value),profext_b2:pctFromInput($("bulkProf2").value),profext_b3:pctFromInput($("bulkProf3").value)};
+  for(const c of Object.values(state.config.campus)) Object.assign(c,vals);
+  recompute();
+});
+$("recalcFromBaseBtn").addEventListener("click",()=>{
+  for(const campus of Object.keys(state.config.campus)){
+    if(num(state.config.campus[campus].isNew)) continue;
+    state.config.campus[campus].factor_ri_ni_prepa=avgRINIFactorFromHistorical(state.data,campus,"Preparatoria");
+    state.config.campus[campus].factor_ri_ni_prof=avgRINIFactorFromHistorical(state.data,campus,"Profesional");
+    state.config.campus[campus].continuidad_prof=continuityFromBase(state.data,campus);
+  }
+  recompute();
+});
+$("saveLocalBtn").addEventListener("click",()=>{localStorage.setItem("simulador_matricula_config_v12",JSON.stringify(state.config));alert("Escenario guardado en este navegador.");});
+$("loadLocalBtn").addEventListener("click",()=>{const raw=localStorage.getItem("simulador_matricula_config_v12");if(!raw){alert("No hay escenario guardado.");return}state.config=JSON.parse(raw);normalizeConfig();$("scenarioName").value=state.config.scenarioName;$("capMode").value=state.config.capMode;$("lagSelect").value=state.config.lag;recompute();});
+$("addCampusBtn").addEventListener("click",addNewCampus);
+$("addProgramBtn").addEventListener("click",addProgram);
+$("useProgRefBtn").addEventListener("click",useProgramReference);
+$("downloadConfigBtn").addEventListener("click",downloadConfig);
+$("downloadProjectionBtn").addEventListener("click",downloadProjection);
+$("configFile").addEventListener("change",e=>{const file=e.target.files?.[0]; if(file) importConfigCsv(file);});
+document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".tabpane").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  $(btn.dataset.tab).classList.add("active");
+}));
+
+
+
+/* ==============================
+   V5 overrides: saturación, RI/NI institucional y universidades corporativas
+   ============================== */
+
+function levelRINIFactorFromHistory(data,nivel){
+  const hist = data.historicoNivel.filter(r=>r.nivel===nivel && num(r.ni)>0 && num(r.ri)>0);
+  const ratios = hist.map(r=>safeDiv(num(r.ri),num(r.ni),null)).filter(v=>isFinite(v) && v>=0);
+  if(ratios.length) return ratios.reduce((a,b)=>a+b,0)/ratios.length;
+  const pmp = data.pmpNivel.filter(r=>r.nivel===nivel && num(r.ni)>0 && num(r.ri)>0);
+  const ratiosPmp = pmp.map(r=>safeDiv(num(r.ri),num(r.ni),null)).filter(v=>isFinite(v) && v>=0);
+  if(ratiosPmp.length) return ratiosPmp.reduce((a,b)=>a+b,0)/ratiosPmp.length;
+  return 0;
+}
+function initSegmentConfig(data,nivel){
+  const g=levelCagrFromPmp(data,nivel);
+  return {
+    factor_ri_ni: levelRINIFactorFromHistory(data,nivel),
+    organico_b1:g, organico_b2:g, organico_b3:g,
+    nuevas_corporativas_b1:0,
+    nuevas_corporativas_b2:0,
+    nuevas_corporativas_b3:0,
+    ni_por_corporativa:0
+  };
+}
+function initConfigFromData(data){
+  const campusCfg={};
+  for(const c of data.catalogo.map(r=>r.campus)){
+    const preGrowth=cagrFromPmp(data,c,"Preparatoria");
+    const profGrowth=cagrFromPmp(data,c,"Profesional");
+    campusCfg[c]={
+      campus:c, include:1, isNew:0, start_year:data.startYear, method:"base", reference:"",
+      continuidad_prof:continuityFromBase(data,c),
+      factor_ri_ni_prepa:avgRINIFactorFromHistorical(data,c,"Preparatoria"),
+      factor_ri_ni_prof:avgRINIFactorFromHistorical(data,c,"Profesional"),
+      prepa_b1:preGrowth, prepa_b2:preGrowth, prepa_b3:preGrowth,
+      profext_b1:profGrowth, profext_b2:profGrowth, profext_b3:profGrowth,
+      base:{Preparatoria:initialBase(data,c,"Preparatoria"), Profesional:initialBase(data,c,"Profesional")},
+      cap:{Preparatoria:capacityFromBase(data,c,"Preparatoria"), Profesional:capacityFromBase(data,c,"Profesional")}
+    };
+  }
+  return {
+    scenarioName:"Escenario usuario",
+    capMode:"freeze",
+    lag:0,
+    campus:campusCfg,
+    programs:[],
+    segments:{
+      Posgrado:initSegmentConfig(data,"Posgrado"),
+      Ejecutivo:initSegmentConfig(data,"Ejecutivo")
+    },
+    international:{
+      include:1,
+      target_2035:14000,
+      factor_ri_ni:0,
+      paises_2035:8,
+      productos_2035:4,
+      inscritos_producto_pre:250,
+      organico_b2:0.04,
+      organico_b3:0.03,
+      nuevos_productos_b2:1,
+      nuevos_productos_b3:1,
+      inscritos_producto_post:300
+    },
+    global:{}
+  };
+}
+function normalizeConfig(){
+  if(!state.config.segments){
+    state.config.segments = {
+      Posgrado:initSegmentConfig(state.data,"Posgrado"),
+      Ejecutivo:initSegmentConfig(state.data,"Ejecutivo")
+    };
+  }
+  if(!state.config.segments.Posgrado) state.config.segments.Posgrado = initSegmentConfig(state.data,"Posgrado");
+  if(!state.config.segments.Ejecutivo) state.config.segments.Ejecutivo = initSegmentConfig(state.data,"Ejecutivo");
+  for(const nivel of ["Posgrado","Ejecutivo"]){
+    const fresh = initSegmentConfig(state.data,nivel);
+    state.config.segments[nivel] = {...fresh, ...state.config.segments[nivel]};
+    if(state.config.segments[nivel].factor_ri_ni === undefined) state.config.segments[nivel].factor_ri_ni = fresh.factor_ri_ni;
+    if(state.config.segments[nivel].ni_por_corporativa === undefined) state.config.segments[nivel].ni_por_corporativa = state.config.segments[nivel].inscritos_corporativa || 0;
+  }
+  if(!state.config.international){
+    state.config.international = {
+      include:1,target_2035:14000,factor_ri_ni:0,paises_2035:8,productos_2035:4,inscritos_producto_pre:250,
+      organico_b2:0.04,organico_b3:0.03,nuevos_productos_b2:1,nuevos_productos_b3:1,inscritos_producto_post:300
+    };
+  }
+  if(state.config.international.factor_ri_ni === undefined) state.config.international.factor_ri_ni = 0;
+  if(!state.config.programs) state.config.programs = [];
+}
+function computeSegmentLevel(nivel, years, levelSeries, programMaps){
+  const d=state.data;
+  const seg=state.config.segments[nivel] || initSegmentConfig(d,nivel);
+  const base=d.pmpNivel.find(r=>num(r.anio)===d.baseYear && r.nivel===nivel) || {ni:0,ri:0,mt:0};
+  let prev={ni:num(base.ni),ri:num(base.ri),mt:num(base.mt)};
+  let corporativas=0;
+  const factor=num(seg.factor_ri_ni,0);
+  for(const y of years){
+    const b=blockFor(y).key;
+    corporativas += num(seg[`nuevas_corporativas_${b}`],0);
+    const organicRate=num(seg[`organico_${b}`],0);
+    const niOrganico=prev.ni*(1+organicRate);
+    const niCorporativas=corporativas*num(seg.ni_por_corporativa,0);
+    const niProgramas=programMaps.level.get(`${nivel}|${y}`) || 0;
+    const ni=niOrganico+niCorporativas+niProgramas;
+    const ri=ni*factor;
+    const mt=ni+ri;
+    const row={
+      anio:y,nivel,tipo:"Proyección",campus:"Institucional",
+      ni,ri,mt,
+      ni_organico:niOrganico,
+      ni_corporativas:niCorporativas,
+      ni_programas:niProgramas,
+      universidades_corporativas:corporativas,
+      factor_ri_ni:factor
+    };
+    levelSeries.push(row);
+    prev={ni,ri,mt};
+  }
+}
+function computeInternational(years, levelSeries, programMaps){
+  const intl=state.config.international;
+  if(!intl || num(intl.include,1)===0) return;
+  const start=state.data.startYear;
+  const targetYear=2035;
+  const targetMT=num(intl.target_2035,14000);
+  const factor=num(intl.factor_ri_ni,0);
+  const targetNI=targetMT/(1+factor);
+  const paisesTarget=num(intl.paises_2035,0);
+  const productosTarget=num(intl.productos_2035,0);
+  const inscritosProductoPre=num(intl.inscritos_producto_pre,0);
+  const prog2035=programMaps.international.get(targetYear) || 0;
+  const targetDrivers=Math.max(targetNI-prog2035,0);
+  const finalProductContribution=productosTarget*inscritosProductoPre;
+  const inscritosPaisCalibrado=paisesTarget>0 ? Math.max((targetDrivers-finalProductContribution)/paisesTarget,0) : 0;
+  let prev={ni:0,ri:0,mt:0};
+  let productosPost=0;
+  for(const y of years){
+    let niProductos=0, niPaises=0, productos=0, paises=0, ni=0;
+    const niProgramas=programMaps.international.get(y) || 0;
+    if(y<=targetYear){
+      const progress=Math.max(0, Math.min(1, (y-start+1)/(targetYear-start+1)));
+      paises=paisesTarget*progress;
+      productos=productosTarget*progress;
+      niPaises=paises*inscritosPaisCalibrado;
+      niProductos=productos*inscritosProductoPre;
+      ni=niPaises+niProductos+niProgramas;
+      if(y===targetYear) ni=targetNI;
+    }else{
+      const b=blockFor(y).key;
+      productosPost += num(intl[`nuevos_productos_${b}`],0);
+      productos=productosTarget+productosPost;
+      paises=paisesTarget;
+      niProductos=productosPost*num(intl.inscritos_producto_post,0);
+      const organic=num(intl[`organico_${b}`],0);
+      ni=prev.ni*(1+organic)+niProductos+niProgramas;
+    }
+    const ri=ni*factor;
+    const mt=ni+ri;
+    const row={
+      anio:y,nivel:"Internacionalización",tipo:"Proyección",campus:"Institucional",
+      ni,ri,mt,
+      ni_paises:niPaises,
+      ni_productos:niProductos,
+      ni_programas:niProgramas,
+      paises,productos,
+      target_2035:targetMT,
+      factor_ri_ni:factor
+    };
+    levelSeries.push(row);
+    prev={ni,ri,mt};
+  }
+}
+function renderAll(){
+  normalizeConfig();
+  renderSelectors();
+  renderKpis();
+  renderSummary();
+  renderControls();
+  renderPEControls();
+  renderInternationalControls();
+  renderCapacityControls();
+  renderNewCampusTable();
+  renderPrograms();
+  renderLevelChart();
+  renderInternationalChart();
+  renderCampusTable();
+  renderSaturationYearTable();
+  renderCapacityResultTable();
+  renderConfigPreview();
+  $("modelStatus").innerHTML=buildStatus();
+}
+function renderKpis(){
+  const d=state.data,p=state.projection;
+  const baseTotal=sum(d.pmpNivel.filter(r=>num(r.anio)===d.baseYear),"mt");
+  const finalRows=p.levelSeries.filter(r=>r.anio===d.endYear);
+  const totalFinal=sum(finalRows,"mt");
+  const newCampusFinal=p.campusSeries.filter(r=>r.anio===d.endYear && num(state.config.campus[r.campus]?.isNew)).reduce((a,r)=>a+r.mt,0);
+  const progFinal=p.campusSeries.filter(r=>r.anio===d.endYear && r.nivel==="Profesional").reduce((a,r)=>a+r.ni_programas,0);
+  const intl2035=p.levelSeries.find(r=>r.anio===2035 && r.nivel==="Internacionalización")?.mt || 0;
+  $("kpis").innerHTML=[
+    ["MT PMP 2029",fmt0.format(baseTotal),"Desde pmp_nivel"],
+    [`MT ${d.endYear}`,fmt0.format(totalFinal),state.config.scenarioName],
+    ["Δ vs 2029",fmtPct.format(safeDiv(totalFinal-baseTotal,baseTotal)),"Incluye Internacionalización"],
+    ["Internacionalización 2035",fmt0.format(intl2035),"Objetivo default 14,000"],
+    ["MT campus nuevos",fmt0.format(newCampusFinal),`Año ${d.endYear}`],
+    ["NI programas Prof.",fmt0.format(progFinal),`Año ${d.endYear}`]
+  ].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="label">${x[2]}</div></div>`).join("");
+}
+function renderPEControls(){
+  const headers=[
+    "Nivel","Factor RI/NI AD","Org. 30–34","Org. 35–39","Org. 40–45",
+    "Nuevas univ. corp. 30–34","Nuevas univ. corp. 35–39","Nuevas univ. corp. 40–45","NI por univ. corporativa"
+  ];
+  const rows=["Posgrado","Ejecutivo"].map(nivel=>{
+    const s=state.config.segments[nivel];
+    return `<tr>
+      <td class="text">${nivel}</td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="factor_ri_ni" value="${fmt2.format(s.factor_ri_ni)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b1" data-type="pct" value="${pctInput(s.organico_b1)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b2" data-type="pct" value="${pctInput(s.organico_b2)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="organico_b3" data-type="pct" value="${pctInput(s.organico_b3)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b1" value="${fmt1.format(s.nuevas_corporativas_b1)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b2" value="${fmt1.format(s.nuevas_corporativas_b2)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b3" value="${fmt1.format(s.nuevas_corporativas_b3)}"></td>
+      <td><input data-zone="seg" data-n="${nivel}" data-f="ni_por_corporativa" value="${fmt1.format(s.ni_por_corporativa)}"></td>
+    </tr>`;
+  }).join("");
+  $("peControls").innerHTML=`<table><thead><tr>${headers.map((h,i)=>`<th class="${i===0?'text':''}">${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>`;
+  $("peControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{
+    const s=state.config.segments[e.target.dataset.n];
+    s[e.target.dataset.f]=e.target.dataset.type==="pct" ? pctFromInput(e.target.value) : num(e.target.value);
+  }));
+}
+function renderInternationalControls(){
+  const i=state.config.international;
+  const rows=[
+    ["Objetivo MT 2035","target_2035",i.target_2035,"num"],
+    ["Factor RI/NI AD","factor_ri_ni",fmt2.format(i.factor_ri_ni),"num"],
+    ["Países a donde se expandirá a 2035","paises_2035",i.paises_2035,"num"],
+    ["Nuevos productos acumulados a 2035","productos_2035",i.productos_2035,"num"],
+    ["NI promedio por producto antes de 2035","inscritos_producto_pre",i.inscritos_producto_pre,"num"],
+    ["Crecimiento orgánico 2036–2039","organico_b2",pctInput(i.organico_b2),"pct"],
+    ["Crecimiento orgánico 2040–2045","organico_b3",pctInput(i.organico_b3),"pct"],
+    ["Nuevos productos por año 2036–2039","nuevos_productos_b2",i.nuevos_productos_b2,"num"],
+    ["Nuevos productos por año 2040–2045","nuevos_productos_b3",i.nuevos_productos_b3,"num"],
+    ["NI promedio por producto después de 2035","inscritos_producto_post",i.inscritos_producto_post,"num"]
+  ];
+  $("intlControls").innerHTML=`<table><thead><tr><th class="text">Variable</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>`
+    <tr><td class="text">${r[0]}</td><td><input data-zone="intl" data-f="${r[1]}" data-type="${r[3]}" value="${r[2]}"></td></tr>`).join("")}</tbody></table>`;
+  $("intlControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{
+    state.config.international[e.target.dataset.f]=e.target.dataset.type==="pct" ? pctFromInput(e.target.value) : num(e.target.value);
+  }));
+}
+function renderSaturationYearTable(){
+  const rows=[];
+  const grouped=new Map();
+  for(const r of state.projection.capacityRows){
+    const key=`${r.campus}|${r.nivel}`;
+    if((r.ratio>=1 || r.frozen) && !grouped.has(key)) grouped.set(key,r);
+  }
+  for(const r of grouped.values()){
+    rows.push([
+      r.campus,
+      r.nivel,
+      r.anio,
+      fmt0.format(r.mt),
+      fmt0.format(r.capacity),
+      fmt0.format(Math.max(0,r.mt-r.capacity)),
+      fmt1.format(r.rooms),
+      pillRatio(r.ratio)
+    ]);
+  }
+  rows.sort((a,b)=>num(a[2])-num(b[2]) || String(a[0]).localeCompare(String(b[0])));
+  $("saturationYearTable").innerHTML = rows.length
+    ? tableHtml(["Campus","Nivel","Primer año topado","MT año topado","Capacidad","Excedente","Salones","Uso"],rows,[0,1])
+    : '<div class="ok">Con la configuración actual, ningún campus/nivel se topa por capacidad.</div>';
+}
+function downloadProjection(){
+  const capMap=new Map(state.projection.capacityRows.map(r=>[`${r.campus}|${r.nivel}|${r.anio}`,r]));
+  const firstSat=new Map();
+  for(const r of state.projection.capacityRows){
+    const key=`${r.campus}|${r.nivel}`;
+    if((r.ratio>=1 || r.frozen) && !firstSat.has(key)) firstSat.set(key,r.anio);
+  }
+  const rows=[];
+  for(const r of state.projection.campusSeries){
+    const cap=capMap.get(`${r.campus}|${r.nivel}|${r.anio}`) || {};
+    rows.push({
+      escenario:state.config.scenarioName, anio:r.anio, campus:r.campus, campus_nuevo:num(state.config.campus[r.campus]?.isNew)?1:0, nivel:r.nivel,
+      ni_total:Math.round(r.ni), ni_externo:Math.round(r.ni_externo), ni_continuidad:Math.round(r.ni_continuidad), ni_programas:Math.round(r.ni_programas),
+      ri:Math.round(r.ri), mt:Math.round(r.mt), factor_ri_ni:r.factor_ri_ni, continuidad_prof:r.continuidad_prof,
+      capacidad:cap.capacity ? Math.round(cap.capacity) : "", salones_disponibles:cap.rooms ? cap.rooms : "", uso_capacidad:cap.ratio ?? "",
+      primer_anio_topado:firstSat.get(`${r.campus}|${r.nivel}`) || "",
+      congelado:r.frozen?1:0,
+      universidades_corporativas:"", paises:"", productos:""
+    });
+  }
+  for(const r of state.projection.levelSeries.filter(x=>x.tipo==="Proyección" && ["Posgrado","Ejecutivo","Internacionalización"].includes(x.nivel))){
+    rows.push({
+      escenario:state.config.scenarioName, anio:r.anio, campus:"Institucional", campus_nuevo:0, nivel:r.nivel,
+      ni_total:Math.round(r.ni||0), ni_externo:Math.round(r.ni_organico||r.ni||0), ni_continuidad:"", ni_programas:Math.round(r.ni_programas||0),
+      ri:Math.round(r.ri||0), mt:Math.round(r.mt||0), factor_ri_ni:r.factor_ri_ni ?? "", continuidad_prof:"",
+      capacidad:"", salones_disponibles:"", uso_capacidad:"", primer_anio_topado:"", congelado:0,
+      universidades_corporativas:r.universidades_corporativas ?? "", paises:r.paises ?? "", productos:r.productos ?? "",
+      ni_corporativas:Math.round(r.ni_corporativas||0), ni_paises:Math.round(r.ni_paises||0), ni_productos:Math.round(r.ni_productos||0)
+    });
+  }
+  downloadCsv(`proyeccion_completa_${slug(state.config.scenarioName)}.csv`,rows);
+}
+function renderInternationalChart(){
+  const rows=state.projection.levelSeries.filter(r=>r.nivel==="Internacionalización" && r.tipo==="Proyección");
+  if(!rows.length) return;
+  if(state.charts.intl) state.charts.intl.destroy();
+  state.charts.intl=new Chart($("chartInternational"),{
+    type:"line",
+    data:{labels:rows.map(r=>r.anio),datasets:[
+      {label:"MT Internacionalización",data:rows.map(r=>Math.round(r.mt)),tension:.25},
+      {label:"NI Internacionalización",data:rows.map(r=>Math.round(r.ni)),tension:.25},
+      {label:"RI Internacionalización",data:rows.map(r=>Math.round(r.ri)),tension:.25}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt0.format(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt0.format(v)}}}}
+  });
+}
+
+
+/* ==============================
+   V6 overrides: corte AD, RI tetramestral remanente y factor RI/NI AD por bloque
+   ============================== */
+function factorByBlock(obj, year){
+  const b = blockFor(year).key;
+  if(obj[`factor_ri_ni_${b}`] !== undefined) return num(obj[`factor_ri_ni_${b}`],0);
+  return num(obj.factor_ri_ni,0);
+}
+function levelRINIFactorFromHistory(data,nivel){
+  const hist = data.historicoNivel.filter(r=>r.nivel===nivel && num(r.ni)>0 && num(r.ri)>0);
+  const ratios = hist.map(r=>safeDiv(num(r.ri),num(r.ni),null)).filter(v=>isFinite(v) && v>=0);
+  if(ratios.length) return ratios.reduce((a,b)=>a+b,0)/ratios.length;
+  const pmp = data.pmpNivel.filter(r=>r.nivel===nivel && num(r.ni)>0 && num(r.ri)>0);
+  const ratiosPmp = pmp.map(r=>safeDiv(num(r.ri),num(r.ni),null)).filter(v=>isFinite(v) && v>=0);
+  if(ratiosPmp.length) return ratiosPmp.reduce((a,b)=>a+b,0)/ratiosPmp.length;
+  return 0;
+}
+function initSegmentConfig(data,nivel){
+  const g=levelCagrFromPmp(data,nivel);
+  const f=levelRINIFactorFromHistory(data,nivel);
+  return {
+    factor_ri_ni_b1:f,factor_ri_ni_b2:f,factor_ri_ni_b3:f,
+    organico_b1:g,organico_b2:g,organico_b3:g,
+    nuevas_corporativas_b1:0,nuevas_corporativas_b2:0,nuevas_corporativas_b3:0,
+    ni_por_corporativa:0,
+    tetra_include:1,
+    ri_tetra_inicial:0,
+    tetra_metodo:nivel==="Ejecutivo" ? "fijo" : "tasa",
+    tetra_perdida_fija_periodo:nivel==="Ejecutivo" ? 400 : 0,
+    tetra_tasa_perdida_periodo:nivel==="Posgrado" ? 0.15 : 0
+  };
+}
+function initConfigFromData(data){
+  const campusCfg={};
+  for(const c of data.catalogo.map(r=>r.campus)){
+    const preGrowth=cagrFromPmp(data,c,"Preparatoria");
+    const profGrowth=cagrFromPmp(data,c,"Profesional");
+    campusCfg[c]={
+      campus:c,include:1,isNew:0,start_year:data.startYear,method:"base",reference:"",
+      continuidad_prof:continuityFromBase(data,c),
+      factor_ri_ni_prepa:avgRINIFactorFromHistorical(data,c,"Preparatoria"),
+      factor_ri_ni_prof:avgRINIFactorFromHistorical(data,c,"Profesional"),
+      prepa_b1:preGrowth,prepa_b2:preGrowth,prepa_b3:preGrowth,
+      profext_b1:profGrowth,profext_b2:profGrowth,profext_b3:profGrowth,
+      base:{Preparatoria:initialBase(data,c,"Preparatoria"),Profesional:initialBase(data,c,"Profesional")},
+      cap:{Preparatoria:capacityFromBase(data,c,"Preparatoria"),Profesional:capacityFromBase(data,c,"Profesional")}
+    };
+  }
+  return {
+    scenarioName:"Escenario usuario",capMode:"freeze",lag:0,campus:campusCfg,programs:[],
+    segments:{Posgrado:initSegmentConfig(data,"Posgrado"),Ejecutivo:initSegmentConfig(data,"Ejecutivo")},
+    international:{include:1,target_2035:14000,factor_ri_ni_b1:0,factor_ri_ni_b2:0,factor_ri_ni_b3:0,paises_2035:8,productos_2035:4,inscritos_producto_pre:250,organico_b2:0.04,organico_b3:0.03,nuevos_productos_b2:1,nuevos_productos_b3:1,inscritos_producto_post:300},
+    global:{}
+  };
+}
+function normalizeConfig(){
+  if(!state.config.segments){state.config.segments={Posgrado:initSegmentConfig(state.data,"Posgrado"),Ejecutivo:initSegmentConfig(state.data,"Ejecutivo")};}
+  for(const nivel of ["Posgrado","Ejecutivo"]){
+    const fresh=initSegmentConfig(state.data,nivel);
+    const old=state.config.segments[nivel]||{};
+    const fallbackFactor=old.factor_ri_ni ?? fresh.factor_ri_ni_b1;
+    state.config.segments[nivel]={...fresh,...old};
+    for(const b of ["b1","b2","b3"]){if(state.config.segments[nivel][`factor_ri_ni_${b}`]===undefined) state.config.segments[nivel][`factor_ri_ni_${b}`]=fallbackFactor;}
+    if(state.config.segments[nivel].ni_por_corporativa===undefined) state.config.segments[nivel].ni_por_corporativa=state.config.segments[nivel].inscritos_corporativa||0;
+  }
+  if(!state.config.international){state.config.international={include:1,target_2035:14000,factor_ri_ni_b1:0,factor_ri_ni_b2:0,factor_ri_ni_b3:0,paises_2035:8,productos_2035:4,inscritos_producto_pre:250,organico_b2:0.04,organico_b3:0.03,nuevos_productos_b2:1,nuevos_productos_b3:1,inscritos_producto_post:300};}
+  const intlFallback=state.config.international.factor_ri_ni ?? 0;
+  for(const b of ["b1","b2","b3"]){if(state.config.international[`factor_ri_ni_${b}`]===undefined) state.config.international[`factor_ri_ni_${b}`]=intlFallback;}
+  if(!state.config.programs) state.config.programs=[];
+}
+function tetraValueForYear(seg,year){
+  if(num(seg.tetra_include,1)===0) return 0;
+  let value=num(seg.ri_tetra_inicial,0);
+  if(year<=state.data.startYear) return value;
+  const elapsedYears=year-state.data.startYear;
+  for(let i=0;i<elapsedYears;i++){
+    if(seg.tetra_metodo==="fijo") value=Math.max(0,value-num(seg.tetra_perdida_fija_periodo,0)*3);
+    else value=value*Math.pow(Math.max(0,1-num(seg.tetra_tasa_perdida_periodo,0)),3);
+  }
+  return Math.max(0,value);
+}
+function computeSegmentLevel(nivel,years,levelSeries,programMaps){
+  const d=state.data;
+  const seg=state.config.segments[nivel]||initSegmentConfig(d,nivel);
+  const base=d.pmpNivel.find(r=>num(r.anio)===d.baseYear&&r.nivel===nivel)||{ni:0,ri:0,mt:0};
+  let prev={ni:num(base.ni),ri:num(base.ri),mt:num(base.mt)};
+  let corporativas=0;
+  for(const y of years){
+    const b=blockFor(y).key;
+    corporativas += num(seg[`nuevas_corporativas_${b}`],0);
+    const organicRate=num(seg[`organico_${b}`],0);
+    const niOrganico=prev.ni*(1+organicRate);
+    const niCorporativas=corporativas*num(seg.ni_por_corporativa,0);
+    const niProgramas=programMaps.level.get(`${nivel}|${y}`)||0;
+    const ni=niOrganico+niCorporativas+niProgramas;
+    const factor=factorByBlock(seg,y);
+    const riNuevo=ni*factor;
+    const riTetra=tetraValueForYear(seg,y);
+    const ri=riNuevo+riTetra;
+    const mt=ni+ri;
+    levelSeries.push({anio:y,nivel,tipo:"Proyección",campus:"Institucional",ni,ri,mt,ni_organico:niOrganico,ni_corporativas:niCorporativas,ni_programas:niProgramas,universidades_corporativas:corporativas,factor_ri_ni:factor,ri_nuevo_ad:riNuevo,ri_tetra_ad:riTetra,ri_total_ad:ri});
+    prev={ni,ri,mt};
+  }
+}
+function computeInternational(years,levelSeries,programMaps){
+  const intl=state.config.international;
+  if(!intl||num(intl.include,1)===0) return;
+  const start=state.data.startYear,targetYear=2035,targetMT=num(intl.target_2035,14000),factor2035=factorByBlock(intl,targetYear),targetNI=targetMT/(1+factor2035);
+  const paisesTarget=num(intl.paises_2035,0),productosTarget=num(intl.productos_2035,0),inscritosProductoPre=num(intl.inscritos_producto_pre,0),prog2035=programMaps.international.get(targetYear)||0;
+  const targetDrivers=Math.max(targetNI-prog2035,0),finalProductContribution=productosTarget*inscritosProductoPre,inscritosPaisCalibrado=paisesTarget>0?Math.max((targetDrivers-finalProductContribution)/paisesTarget,0):0;
+  let prev={ni:0,ri:0,mt:0},productosPost=0;
+  for(const y of years){
+    let niProductos=0,niPaises=0,productos=0,paises=0,ni=0;
+    const niProgramas=programMaps.international.get(y)||0;
+    if(y<=targetYear){
+      const progress=Math.max(0,Math.min(1,(y-start+1)/(targetYear-start+1)));
+      paises=paisesTarget*progress; productos=productosTarget*progress; niPaises=paises*inscritosPaisCalibrado; niProductos=productos*inscritosProductoPre; ni=niPaises+niProductos+niProgramas; if(y===targetYear) ni=targetNI;
+    }else{
+      const b=blockFor(y).key; productosPost += num(intl[`nuevos_productos_${b}`],0); productos=productosTarget+productosPost; paises=paisesTarget; niProductos=productosPost*num(intl.inscritos_producto_post,0); const organic=num(intl[`organico_${b}`],0); ni=prev.ni*(1+organic)+niProductos+niProgramas;
+    }
+    const factor=factorByBlock(intl,y),ri=ni*factor,mt=ni+ri;
+    levelSeries.push({anio:y,nivel:"Internacionalización",tipo:"Proyección",campus:"Institucional",ni,ri,mt,ni_paises:niPaises,ni_productos:niProductos,ni_programas:niProgramas,paises,productos,target_2035:targetMT,factor_ri_ni:factor,ri_nuevo_ad:ri,ri_tetra_ad:0,ri_total_ad:ri});
+    prev={ni,ri,mt};
+  }
+}
+function renderAll(){
+  normalizeConfig(); renderSelectors(); renderKpis(); renderSummary(); renderControls(); renderPEControls(); renderRIADControls(); renderInternationalControls(); renderCapacityControls(); renderNewCampusTable(); renderPrograms(); renderLevelChart(); renderInternationalChart(); renderCampusTable(); renderSaturationYearTable(); renderCapacityResultTable(); renderConfigPreview(); $("modelStatus").innerHTML=buildStatus();
+}
+function renderKpis(){
+  const d=state.data,p=state.projection,baseTotal=sum(d.pmpNivel.filter(r=>num(r.anio)===d.baseYear),"mt"),finalRows=p.levelSeries.filter(r=>r.anio===d.endYear),totalFinal=sum(finalRows,"mt"),intl2035=p.levelSeries.find(r=>r.anio===2035&&r.nivel==="Internacionalización")?.mt||0,tetraFinal=p.levelSeries.filter(r=>r.anio===d.endYear&&["Posgrado","Ejecutivo"].includes(r.nivel)).reduce((a,r)=>a+num(r.ri_tetra_ad),0);
+  const firstSat=new Set(); for(const r of p.capacityRows){if(r.ratio>=1||r.frozen) firstSat.add(`${r.campus}|${r.nivel}`);}
+  $("kpis").innerHTML=[["MT PMP 2029",fmt0.format(baseTotal),"Desde pmp_nivel"],[`MT AD ${d.endYear}`,fmt0.format(totalFinal),state.config.scenarioName],["Δ vs 2029",fmtPct.format(safeDiv(totalFinal-baseTotal,baseTotal)),"Foto AD/agosto"],["Internacionalización AD2035",fmt0.format(intl2035),"Objetivo default 14,000"],[`RI tetra AD ${d.endYear}`,fmt0.format(tetraFinal),"Posgrado + Ejecutivo"],["Campus/nivel topados",fmt0.format(firstSat.size),"Ver tabla de capacidad"]].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="label">${x[2]}</div></div>`).join("");
+}
+function renderSummary(){
+  const d=state.data,p=state.projection,levels=["Preparatoria","Profesional","Posgrado","Ejecutivo","Internacionalización"];
+  const rows=levels.map(nivel=>{const b=d.pmpNivel.find(r=>num(r.anio)===d.baseYear&&r.nivel===nivel),f=p.levelSeries.find(r=>r.anio===d.endYear&&r.nivel===nivel),baseMt=num(b?.mt); return [nivel,fmt0.format(baseMt),fmt0.format(f?.mt||0),baseMt?fmtPct.format(safeDiv((f?.mt||0)-baseMt,baseMt)):"Nuevo",fmt0.format(f?.ni||0),fmt0.format(f?.ri||0)];});
+  $("summaryTable").innerHTML=tableHtml(["Nivel / línea",`MT ${d.baseYear}`,`MT AD ${d.endYear}`,"Δ","NI AD final","RI AD final"],rows,[0]);
+}
+function renderPEControls(){
+  const headers=["Nivel","Org. 30–34","Org. 35–39","Org. 40–45","Nuevas univ. corp. 30–34","Nuevas univ. corp. 35–39","Nuevas univ. corp. 40–45","NI AD por univ. corporativa"];
+  const rows=["Posgrado","Ejecutivo"].map(nivel=>{const s=state.config.segments[nivel]; return `<tr><td class="text">${nivel}</td><td><input data-zone="seg" data-n="${nivel}" data-f="organico_b1" data-type="pct" value="${pctInput(s.organico_b1)}"></td><td><input data-zone="seg" data-n="${nivel}" data-f="organico_b2" data-type="pct" value="${pctInput(s.organico_b2)}"></td><td><input data-zone="seg" data-n="${nivel}" data-f="organico_b3" data-type="pct" value="${pctInput(s.organico_b3)}"></td><td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b1" value="${fmt1.format(s.nuevas_corporativas_b1)}"></td><td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b2" value="${fmt1.format(s.nuevas_corporativas_b2)}"></td><td><input data-zone="seg" data-n="${nivel}" data-f="nuevas_corporativas_b3" value="${fmt1.format(s.nuevas_corporativas_b3)}"></td><td><input data-zone="seg" data-n="${nivel}" data-f="ni_por_corporativa" value="${fmt1.format(s.ni_por_corporativa)}"></td></tr>`;}).join("");
+  $("peControls").innerHTML=`<table><thead><tr>${headers.map((h,i)=>`<th class="${i===0?'text':''}">${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>`;
+  $("peControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{const s=state.config.segments[e.target.dataset.n]; s[e.target.dataset.f]=e.target.dataset.type==="pct"?pctFromInput(e.target.value):num(e.target.value);}));
+}
+function renderRIADControls(){
+  const factorRows=["Posgrado","Ejecutivo","Internacionalización"].map(nivel=>{const source=nivel==="Internacionalización"?state.config.international:state.config.segments[nivel]; return `<tr><td class="text">${nivel}</td><td><input data-zone="rifactor" data-n="${nivel}" data-f="factor_ri_ni_b1" value="${fmt2.format(source.factor_ri_ni_b1)}"></td><td><input data-zone="rifactor" data-n="${nivel}" data-f="factor_ri_ni_b2" value="${fmt2.format(source.factor_ri_ni_b2)}"></td><td><input data-zone="rifactor" data-n="${nivel}" data-f="factor_ri_ni_b3" value="${fmt2.format(source.factor_ri_ni_b3)}"></td></tr>`;}).join("");
+  $("riFactorControls").innerHTML=`<table><thead><tr><th class="text">Nivel</th><th>Factor RI/NI AD 2030–2034</th><th>Factor RI/NI AD 2035–2039</th><th>Factor RI/NI AD 2040–2045</th></tr></thead><tbody>${factorRows}</tbody></table>`;
+  $("riFactorControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{const n=e.target.dataset.n; const target=n==="Internacionalización"?state.config.international:state.config.segments[n]; target[e.target.dataset.f]=num(e.target.value);}));
+  const tetraRows=["Posgrado","Ejecutivo"].map(nivel=>{const s=state.config.segments[nivel]; return `<tr><td class="text">${nivel}</td><td><select data-zone="tetra" data-n="${nivel}" data-f="tetra_include"><option value="1" ${num(s.tetra_include,1)===1?"selected":""}>Sí</option><option value="0" ${num(s.tetra_include,1)===0?"selected":""}>No</option></select></td><td><input data-zone="tetra" data-n="${nivel}" data-f="ri_tetra_inicial" value="${fmt0.format(s.ri_tetra_inicial)}"></td><td><select data-zone="tetra" data-n="${nivel}" data-f="tetra_metodo"><option value="fijo" ${s.tetra_metodo==="fijo"?"selected":""}>Pérdida fija por periodo</option><option value="tasa" ${s.tetra_metodo==="tasa"?"selected":""}>Tasa de pérdida por periodo</option></select></td><td><input data-zone="tetra" data-n="${nivel}" data-f="tetra_perdida_fija_periodo" value="${fmt0.format(s.tetra_perdida_fija_periodo)}"></td><td><input data-zone="tetra" data-n="${nivel}" data-f="tetra_tasa_perdida_periodo" data-type="pct" value="${pctInput(s.tetra_tasa_perdida_periodo)}"></td></tr>`;}).join("");
+  $("tetraControls").innerHTML=`<table><thead><tr><th class="text">Nivel</th><th>Incluir</th><th>RI tetra inicial AD2030</th><th>Método</th><th>Pérdida fija por periodo</th><th>Tasa pérdida por periodo</th></tr></thead><tbody>${tetraRows}</tbody></table>`;
+  $("tetraControls").querySelectorAll("input,select").forEach(inp=>inp.addEventListener("change",e=>{const s=state.config.segments[e.target.dataset.n]; if(e.target.dataset.type==="pct") s[e.target.dataset.f]=pctFromInput(e.target.value); else if(e.target.tagName==="SELECT") s[e.target.dataset.f]=e.target.value; else s[e.target.dataset.f]=num(e.target.value);}));
+  const rows=state.projection.levelSeries.filter(r=>r.tipo==="Proyección"&&["Posgrado","Ejecutivo","Internacionalización"].includes(r.nivel)).map(r=>[r.anio,r.nivel,fmt0.format(r.ni||0),fmt2.format(r.factor_ri_ni||0),fmt0.format(r.ri_nuevo_ad||0),fmt0.format(r.ri_tetra_ad||0),fmt0.format(r.ri_total_ad||r.ri||0),fmt0.format(r.mt||0)]);
+  $("riResultTable").innerHTML=tableHtml(["Año","Nivel","NI AD","Factor RI/NI AD","RI nuevo AD","RI tetra AD","RI total AD","MT AD"],rows,[1]);
+}
+function renderInternationalControls(){
+  const i=state.config.international;
+  const rows=[["Objetivo MT AD2035","target_2035",i.target_2035,"num"],["Factor RI/NI AD 2030–2034","factor_ri_ni_b1",fmt2.format(i.factor_ri_ni_b1),"num"],["Factor RI/NI AD 2035–2039","factor_ri_ni_b2",fmt2.format(i.factor_ri_ni_b2),"num"],["Factor RI/NI AD 2040–2045","factor_ri_ni_b3",fmt2.format(i.factor_ri_ni_b3),"num"],["Países a donde se expandirá a 2035","paises_2035",i.paises_2035,"num"],["Nuevos productos acumulados a 2035","productos_2035",i.productos_2035,"num"],["NI AD promedio por producto antes de 2035","inscritos_producto_pre",i.inscritos_producto_pre,"num"],["Crecimiento orgánico 2036–2039","organico_b2",pctInput(i.organico_b2),"pct"],["Crecimiento orgánico 2040–2045","organico_b3",pctInput(i.organico_b3),"pct"],["Nuevos productos por año 2036–2039","nuevos_productos_b2",i.nuevos_productos_b2,"num"],["Nuevos productos por año 2040–2045","nuevos_productos_b3",i.nuevos_productos_b3,"num"],["NI AD promedio por producto después de 2035","inscritos_producto_post",i.inscritos_producto_post,"num"]];
+  $("intlControls").innerHTML=`<table><thead><tr><th class="text">Variable</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="text">${r[0]}</td><td><input data-zone="intl" data-f="${r[1]}" data-type="${r[3]}" value="${r[2]}"></td></tr>`).join("")}</tbody></table>`;
+  $("intlControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{state.config.international[e.target.dataset.f]=e.target.dataset.type==="pct"?pctFromInput(e.target.value):num(e.target.value);}));
+}
+function renderInternationalChart(){
+  const rows=state.projection.levelSeries.filter(r=>r.nivel==="Internacionalización"&&r.tipo==="Proyección"); if(!rows.length) return; if(state.charts.intl) state.charts.intl.destroy();
+  state.charts.intl=new Chart($("chartInternational"),{type:"line",data:{labels:rows.map(r=>r.anio),datasets:[{label:"MT AD Internacionalización",data:rows.map(r=>Math.round(r.mt)),tension:.25},{label:"NI AD Internacionalización",data:rows.map(r=>Math.round(r.ni)),tension:.25},{label:"RI AD Internacionalización",data:rows.map(r=>Math.round(r.ri)),tension:.25}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt0.format(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt0.format(v)}}}}});
+}
+function downloadProjection(){
+  const capMap=new Map(state.projection.capacityRows.map(r=>[`${r.campus}|${r.nivel}|${r.anio}`,r])); const firstSat=new Map(); for(const r of state.projection.capacityRows){const key=`${r.campus}|${r.nivel}`; if((r.ratio>=1||r.frozen)&&!firstSat.has(key)) firstSat.set(key,r.anio);}
+  const rows=[];
+  for(const r of state.projection.campusSeries){const cap=capMap.get(`${r.campus}|${r.nivel}|${r.anio}`)||{}; rows.push({escenario:state.config.scenarioName,corte:"AD/agosto",anio:r.anio,campus:r.campus,campus_nuevo:num(state.config.campus[r.campus]?.isNew)?1:0,nivel:r.nivel,ni_ad:Math.round(r.ni),ni_externo_ad:Math.round(r.ni_externo),ni_continuidad_ad:Math.round(r.ni_continuidad),ni_programas_ad:Math.round(r.ni_programas),ri_ad:Math.round(r.ri),mt_ad:Math.round(r.mt),factor_ri_ni_ad:r.factor_ri_ni,continuidad_prof:r.continuidad_prof,capacidad:cap.capacity?Math.round(cap.capacity):"",salones_disponibles:cap.rooms?cap.rooms:"",uso_capacidad:cap.ratio??"",primer_anio_topado:firstSat.get(`${r.campus}|${r.nivel}`)||"",congelado:r.frozen?1:0,ri_nuevo_ad:"",ri_tetra_ad:""});}
+  for(const r of state.projection.levelSeries.filter(x=>x.tipo==="Proyección"&&["Posgrado","Ejecutivo","Internacionalización"].includes(x.nivel))){rows.push({escenario:state.config.scenarioName,corte:"AD/agosto",anio:r.anio,campus:"Institucional",campus_nuevo:0,nivel:r.nivel,ni_ad:Math.round(r.ni||0),ni_externo_ad:Math.round(r.ni_organico||r.ni||0),ni_continuidad_ad:"",ni_programas_ad:Math.round(r.ni_programas||0),ri_ad:Math.round(r.ri||0),mt_ad:Math.round(r.mt||0),factor_ri_ni_ad:r.factor_ri_ni??"",continuidad_prof:"",capacidad:"",salones_disponibles:"",uso_capacidad:"",primer_anio_topado:"",congelado:0,ri_nuevo_ad:Math.round(r.ri_nuevo_ad||0),ri_tetra_ad:Math.round(r.ri_tetra_ad||0),universidades_corporativas:r.universidades_corporativas??"",paises:r.paises??"",productos:r.productos??"",ni_corporativas_ad:Math.round(r.ni_corporativas||0),ni_paises_ad:Math.round(r.ni_paises||0),ni_productos_ad:Math.round(r.ni_productos||0)});}
+  downloadCsv(`proyeccion_completa_${slug(state.config.scenarioName)}.csv`,rows);
+}
+
+
+/* ==============================
+   V7 overrides: RI dentro de Posgrado/Ejecutivo e Internacionalización NI+RI
+   ============================== */
+
+function normalizeConfig(){
+  if(!state.config.segments){
+    state.config.segments = {
+      Posgrado:initSegmentConfig(state.data,"Posgrado"),
+      Ejecutivo:initSegmentConfig(state.data,"Ejecutivo")
+    };
+  }
+  for(const nivel of ["Posgrado","Ejecutivo"]){
+    const fresh = initSegmentConfig(state.data,nivel);
+    const old = state.config.segments[nivel] || {};
+    const fallbackFactor = old.factor_ri_ni ?? fresh.factor_ri_ni_b1;
+    state.config.segments[nivel] = {...fresh, ...old};
+    for(const b of ["b1","b2","b3"]){
+      if(state.config.segments[nivel][`factor_ri_ni_${b}`] === undefined) {
+        state.config.segments[nivel][`factor_ri_ni_${b}`] = fallbackFactor;
+      }
+    }
+    if(state.config.segments[nivel].ni_por_corporativa === undefined) {
+      state.config.segments[nivel].ni_por_corporativa = state.config.segments[nivel].inscritos_corporativa || 0;
+    }
+  }
+  if(!state.config.international){
+    state.config.international = {
+      include:1,target_2035:14000,intl_method:"factor",
+      ni_2035:0,ri_2035:0,
+      factor_ri_ni_b1:0,factor_ri_ni_b2:0,factor_ri_ni_b3:0,
+      paises_2035:8,productos_2035:4,inscritos_producto_pre:250,
+      organico_b2:0.04,organico_b3:0.03,nuevos_productos_b2:1,nuevos_productos_b3:1,inscritos_producto_post:300
+    };
+  }
+  if(state.config.international.intl_method === undefined) state.config.international.intl_method = "factor";
+  if(state.config.international.ni_2035 === undefined) state.config.international.ni_2035 = 0;
+  if(state.config.international.ri_2035 === undefined) state.config.international.ri_2035 = 0;
+  const intlFallback = state.config.international.factor_ri_ni ?? 0;
+  for(const b of ["b1","b2","b3"]){
+    if(state.config.international[`factor_ri_ni_${b}`] === undefined) {
+      state.config.international[`factor_ri_ni_${b}`] = intlFallback;
+    }
+  }
+  if(!state.config.programs) state.config.programs = [];
+}
+function getInternational2035Targets(){
+  const intl=state.config.international;
+  const targetMT=num(intl.target_2035,14000);
+  const factor=factorByBlock(intl,2035);
+  let targetNI=targetMT/(1+factor);
+  let targetRI=targetMT-targetNI;
+  if(intl.intl_method === "manual"){
+    const manualNI=num(intl.ni_2035,0);
+    const manualRI=num(intl.ri_2035,0);
+    if(manualNI + manualRI > 0){
+      const scale=targetMT/(manualNI+manualRI);
+      targetNI=manualNI*scale;
+      targetRI=manualRI*scale;
+    }
+  }
+  return {targetMT,targetNI,targetRI,targetFactor:safeDiv(targetRI,targetNI,0)};
+}
+function computeInternational(years, levelSeries, programMaps){
+  const intl=state.config.international;
+  if(!intl || num(intl.include,1)===0) return;
+  const start=state.data.startYear;
+  const targetYear=2035;
+  const targets=getInternational2035Targets();
+  const targetMT=targets.targetMT;
+  const targetNI=targets.targetNI;
+  const targetFactor=targets.targetFactor;
+  const paisesTarget=num(intl.paises_2035,0);
+  const productosTarget=num(intl.productos_2035,0);
+  const inscritosProductoPre=num(intl.inscritos_producto_pre,0);
+  const prog2035=programMaps.international.get(targetYear) || 0;
+  const targetDrivers=Math.max(targetNI-prog2035,0);
+  const finalProductContribution=productosTarget*inscritosProductoPre;
+  const inscritosPaisCalibrado=paisesTarget>0 ? Math.max((targetDrivers-finalProductContribution)/paisesTarget,0) : 0;
+  let prev={ni:0,ri:0,mt:0};
+  let productosPost=0;
+  for(const y of years){
+    let niProductos=0, niPaises=0, productos=0, paises=0, ni=0, factor=factorByBlock(intl,y);
+    const niProgramas=programMaps.international.get(y) || 0;
+    if(y<=targetYear){
+      const progress=Math.max(0, Math.min(1, (y-start+1)/(targetYear-start+1)));
+      paises=paisesTarget*progress;
+      productos=productosTarget*progress;
+      niPaises=paises*inscritosPaisCalibrado;
+      niProductos=productos*inscritosProductoPre;
+      ni=niPaises+niProductos+niProgramas;
+      if(y===targetYear){
+        ni=targetNI;
+        factor=targetFactor;
+      }
+    }else{
+      const b=blockFor(y).key;
+      productosPost += num(intl[`nuevos_productos_${b}`],0);
+      productos=productosTarget+productosPost;
+      paises=paisesTarget;
+      niProductos=productosPost*num(intl.inscritos_producto_post,0);
+      const organic=num(intl[`organico_${b}`],0);
+      ni=prev.ni*(1+organic)+niProductos+niProgramas;
+    }
+    const ri=ni*factor;
+    const mt=ni+ri;
+    const row={
+      anio:y,nivel:"Internacionalización",tipo:"Proyección",campus:"Institucional",
+      ni,ri,mt,
+      ni_paises:niPaises,
+      ni_productos:niProductos,
+      ni_programas:niProgramas,
+      paises,productos,
+      target_2035:targetMT,
+      factor_ri_ni:factor,
+      ri_nuevo_ad:ri,
+      ri_tetra_ad:0,
+      ri_total_ad:ri
+    };
+    levelSeries.push(row);
+    prev={ni,ri,mt};
+  }
+}
+function renderAll(){
+  normalizeConfig();
+  renderSelectors();
+  renderKpis();
+  renderSummary();
+  renderControls();
+  renderPEControls();
+  renderRIADControls();
+  renderInternationalControls();
+  renderCapacityControls();
+  renderNewCampusTable();
+  renderPrograms();
+  renderLevelChart();
+  renderInternationalChart();
+  renderInternationalResultTable();
+  renderCampusTable();
+  renderSaturationYearTable();
+  renderCapacityResultTable();
+  renderConfigPreview();
+  $("modelStatus").innerHTML=buildStatus();
+}
+function renderRIADControls(){
+  const factorRows=["Posgrado","Ejecutivo"].map(nivel=>{
+    const source = state.config.segments[nivel];
+    return `<tr>
+      <td class="text">${nivel}</td>
+      <td><input data-zone="rifactor" data-n="${nivel}" data-f="factor_ri_ni_b1" value="${fmt2.format(source.factor_ri_ni_b1)}"></td>
+      <td><input data-zone="rifactor" data-n="${nivel}" data-f="factor_ri_ni_b2" value="${fmt2.format(source.factor_ri_ni_b2)}"></td>
+      <td><input data-zone="rifactor" data-n="${nivel}" data-f="factor_ri_ni_b3" value="${fmt2.format(source.factor_ri_ni_b3)}"></td>
+    </tr>`;
+  }).join("");
+  $("riFactorControls").innerHTML=`<table><thead><tr><th class="text">Nivel</th><th>Factor RI/NI AD 2030–2034</th><th>Factor RI/NI AD 2035–2039</th><th>Factor RI/NI AD 2040–2045</th></tr></thead><tbody>${factorRows}</tbody></table>`;
+  $("riFactorControls").querySelectorAll("input").forEach(inp=>inp.addEventListener("change",e=>{
+    state.config.segments[e.target.dataset.n][e.target.dataset.f]=num(e.target.value);
+  }));
+
+  const tetraRows=["Posgrado","Ejecutivo"].map(nivel=>{
+    const s=state.config.segments[nivel];
+    return `<tr>
+      <td class="text">${nivel}</td>
+      <td><select data-zone="tetra" data-n="${nivel}" data-f="tetra_include">
+        <option value="1" ${num(s.tetra_include,1)===1?"selected":""}>Sí</option>
+        <option value="0" ${num(s.tetra_include,1)===0?"selected":""}>No</option>
+      </select></td>
+      <td><input data-zone="tetra" data-n="${nivel}" data-f="ri_tetra_inicial" value="${fmt0.format(s.ri_tetra_inicial)}"></td>
+      <td><select data-zone="tetra" data-n="${nivel}" data-f="tetra_metodo">
+        <option value="fijo" ${s.tetra_metodo==="fijo"?"selected":""}>Pérdida fija por periodo</option>
+        <option value="tasa" ${s.tetra_metodo==="tasa"?"selected":""}>Tasa de pérdida por periodo</option>
+      </select></td>
+      <td><input data-zone="tetra" data-n="${nivel}" data-f="tetra_perdida_fija_periodo" value="${fmt0.format(s.tetra_perdida_fija_periodo)}"></td>
+      <td><input data-zone="tetra" data-n="${nivel}" data-f="tetra_tasa_perdida_periodo" data-type="pct" value="${pctInput(s.tetra_tasa_perdida_periodo)}"></td>
+    </tr>`;
+  }).join("");
+  $("tetraControls").innerHTML=`<table><thead><tr><th class="text">Nivel</th><th>Incluir</th><th>RI tetra inicial AD2030</th><th>Método</th><th>Pérdida fija por periodo</th><th>Tasa pérdida por periodo</th></tr></thead><tbody>${tetraRows}</tbody></table>`;
+  $("tetraControls").querySelectorAll("input,select").forEach(inp=>inp.addEventListener("change",e=>{
+    const s=state.config.segments[e.target.dataset.n];
+    if(e.target.dataset.type==="pct") s[e.target.dataset.f]=pctFromInput(e.target.value);
+    else if(e.target.tagName==="SELECT") s[e.target.dataset.f]=e.target.value;
+    else s[e.target.dataset.f]=num(e.target.value);
+  }));
+
+  const rows=state.projection.levelSeries
+    .filter(r=>r.tipo==="Proyección" && ["Posgrado","Ejecutivo"].includes(r.nivel))
+    .map(r=>[
+      r.anio,r.nivel,
+      fmt0.format(r.ni||0),
+      fmt2.format(r.factor_ri_ni||0),
+      fmt0.format(r.ri_nuevo_ad||0),
+      fmt0.format(r.ri_tetra_ad||0),
+      fmt0.format(r.ri_total_ad||r.ri||0),
+      fmt0.format(r.mt||0)
+    ]);
+  $("riResultTable").innerHTML=tableHtml(["Año","Nivel","NI AD","Factor RI/NI AD","RI nuevo AD","RI tetra AD","RI total AD","MT AD"],rows,[1]);
+}
+function renderInternationalControls(){
+  const i=state.config.international;
+  const targets = getInternational2035Targets();
+  const rows=[
+    ["Objetivo MT AD2035","target_2035",i.target_2035,"num","input"],
+    ["Método reparto NI/RI 2035","intl_method",i.intl_method || "factor","text","select"],
+    ["NI AD objetivo 2035 manual","ni_2035",i.ni_2035 || Math.round(targets.targetNI),"num","input"],
+    ["RI AD objetivo 2035 manual","ri_2035",i.ri_2035 || Math.round(targets.targetRI),"num","input"],
+    ["Factor RI/NI AD 2030–2034","factor_ri_ni_b1",fmt2.format(i.factor_ri_ni_b1),"num","input"],
+    ["Factor RI/NI AD 2035–2039","factor_ri_ni_b2",fmt2.format(i.factor_ri_ni_b2),"num","input"],
+    ["Factor RI/NI AD 2040–2045","factor_ri_ni_b3",fmt2.format(i.factor_ri_ni_b3),"num","input"],
+    ["Países a donde se expandirá a 2035","paises_2035",i.paises_2035,"num","input"],
+    ["Nuevos productos acumulados a 2035","productos_2035",i.productos_2035,"num","input"],
+    ["NI AD promedio por producto antes de 2035","inscritos_producto_pre",i.inscritos_producto_pre,"num","input"],
+    ["Crecimiento orgánico 2036–2039","organico_b2",pctInput(i.organico_b2),"pct","input"],
+    ["Crecimiento orgánico 2040–2045","organico_b3",pctInput(i.organico_b3),"pct","input"],
+    ["Nuevos productos por año 2036–2039","nuevos_productos_b2",i.nuevos_productos_b2,"num","input"],
+    ["Nuevos productos por año 2040–2045","nuevos_productos_b3",i.nuevos_productos_b3,"num","input"],
+    ["NI AD promedio por producto después de 2035","inscritos_producto_post",i.inscritos_producto_post,"num","input"]
+  ];
+  $("intlControls").innerHTML=`<table><thead><tr><th class="text">Variable</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>{
+    const control = r[4]==="select"
+      ? `<select data-zone="intl" data-f="${r[1]}" data-type="${r[3]}">
+          <option value="factor" ${r[2]==="factor"?"selected":""}>Por factor RI/NI AD</option>
+          <option value="manual" ${r[2]==="manual"?"selected":""}>Manual NI + RI</option>
+        </select>`
+      : `<input data-zone="intl" data-f="${r[1]}" data-type="${r[3]}" value="${r[2]}">`;
+    return `<tr><td class="text">${r[0]}</td><td>${control}</td></tr>`;
+  }).join("")}</tbody></table>`;
+  $("intlControls").querySelectorAll("input,select").forEach(inp=>inp.addEventListener("change",e=>{
+    state.config.international[e.target.dataset.f]=e.target.dataset.type==="pct" ? pctFromInput(e.target.value) : num(e.target.value, e.target.value);
+  }));
+}
+function renderInternationalResultTable(){
+  const rows=state.projection.levelSeries
+    .filter(r=>r.tipo==="Proyección" && r.nivel==="Internacionalización")
+    .map(r=>[
+      r.anio,
+      fmt0.format(r.ni||0),
+      fmt2.format(r.factor_ri_ni||0),
+      fmt0.format(r.ri||0),
+      fmt0.format(r.mt||0),
+      fmt0.format(r.ni_paises||0),
+      fmt0.format(r.ni_productos||0),
+      fmt0.format(r.ni_programas||0)
+    ]);
+  $("intlResultTable").innerHTML=tableHtml(["Año","NI AD","Factor RI/NI AD","RI AD","MT AD","NI países","NI productos","NI programas"],rows,[]);
+}
+function renderKpis(){
+  const d=state.data,p=state.projection;
+  const baseTotal=sum(d.pmpNivel.filter(r=>num(r.anio)===d.baseYear),"mt");
+  const finalRows=p.levelSeries.filter(r=>r.anio===d.endYear);
+  const totalFinal=sum(finalRows,"mt");
+  const intl2035=p.levelSeries.find(r=>r.anio===2035 && r.nivel==="Internacionalización");
+  const tetraFinal=p.levelSeries.filter(r=>r.anio===d.endYear && ["Posgrado","Ejecutivo"].includes(r.nivel)).reduce((a,r)=>a+num(r.ri_tetra_ad),0);
+  const firstSat = new Set();
+  for(const r of p.capacityRows){ if(r.ratio>=1 || r.frozen) firstSat.add(`${r.campus}|${r.nivel}`); }
+  $("kpis").innerHTML=[
+    ["MT PMP 2029",fmt0.format(baseTotal),"Desde pmp_nivel"],
+    [`MT AD ${d.endYear}`,fmt0.format(totalFinal),state.config.scenarioName],
+    ["Δ vs 2029",fmtPct.format(safeDiv(totalFinal-baseTotal,baseTotal)),"Foto AD/agosto"],
+    ["Inter AD2035 NI + RI",`${fmt0.format(intl2035?.ni||0)} + ${fmt0.format(intl2035?.ri||0)}`,"Suma MT 14,000"],
+    [`RI tetra AD ${d.endYear}`,fmt0.format(tetraFinal),"Posgrado + Ejecutivo"],
+    ["Campus/nivel topados",fmt0.format(firstSat.size),"Ver tabla de capacidad"]
+  ].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="label">${x[2]}</div></div>`).join("");
+}
+
+
+/* ==============================
+   V9 overrides: Internacionalización variable y etiqueta Resultado
+   ============================== */
+
+function normalizeConfig(){
+  if(!state.config.segments){
+    state.config.segments = {
+      Posgrado:initSegmentConfig(state.data,"Posgrado"),
+      Ejecutivo:initSegmentConfig(state.data,"Ejecutivo")
+    };
+  }
+  for(const nivel of ["Posgrado","Ejecutivo"]){
+    const fresh = initSegmentConfig(state.data,nivel);
+    const old = state.config.segments[nivel] || {};
+    const fallbackFactor = old.factor_ri_ni ?? fresh.factor_ri_ni_b1;
+    state.config.segments[nivel] = {...fresh, ...old};
+    for(const b of ["b1","b2","b3"]){
+      if(state.config.segments[nivel][`factor_ri_ni_${b}`] === undefined) {
+        state.config.segments[nivel][`factor_ri_ni_${b}`] = fallbackFactor;
+      }
+    }
+    if(state.config.segments[nivel].ni_por_corporativa === undefined) {
+      state.config.segments[nivel].ni_por_corporativa = state.config.segments[nivel].inscritos_corporativa || 0;
+    }
+  }
+
+  if(!state.config.international){
+    state.config.international = {};
+  }
+  const intl = state.config.international;
+  if(intl.include === undefined) intl.include = 1;
+  if(intl.target_2035 === undefined) intl.target_2035 = 14000;
+  if(intl.intl_method === undefined) intl.intl_method = "variables";
+  if(intl.ni_2035 === undefined) intl.ni_2035 = 5000;
+  if(intl.ri_2035 === undefined) intl.ri_2035 = 9000;
+  if(intl.paises_2035 === undefined) intl.paises_2035 = 8;
+  if(intl.productos_2035 === undefined) intl.productos_2035 = 4;
+  if(intl.inscritos_producto_pre === undefined) intl.inscritos_producto_pre = 250;
+  if(intl.inscritos_pais_ad_2035 === undefined) intl.inscritos_pais_ad_2035 = 500;
+  if(intl.organico_b2 === undefined) intl.organico_b2 = 0.04;
+  if(intl.organico_b3 === undefined) intl.organico_b3 = 0.03;
+  if(intl.nuevos_productos_b2 === undefined) intl.nuevos_productos_b2 = 1;
+  if(intl.nuevos_productos_b3 === undefined) intl.nuevos_productos_b3 = 1;
+  if(intl.inscritos_producto_post === undefined) intl.inscritos_producto_post = 300;
+
+  const legacyFactor = intl.factor_ri_ni ?? 0;
+  for(const b of ["b1","b2","b3"]){
+    if(intl[`factor_ri_ni_${b}`] === undefined) {
+      intl[`factor_ri_ni_${b}`] = legacyFactor;
+    }
+  }
+  // Migración de v7/v6: si todos los factores están en cero, colocar un default razonable
+  // para que la MT 2035 no aparezca como 14,000 NI y 0 RI.
+  if(num(intl.factor_ri_ni_b1)===0 && num(intl.factor_ri_ni_b2)===0 && num(intl.factor_ri_ni_b3)===0){
+    intl.factor_ri_ni_b1 = 1.8;
+    intl.factor_ri_ni_b2 = 1.8;
+    intl.factor_ri_ni_b3 = 1.8;
+  }
+
+  if(!state.config.programs) state.config.programs = [];
+}
+
+function getInternational2035Targets(){
+  const intl=state.config.international;
+  const targetMT=num(intl.target_2035,14000);
+  const method=intl.intl_method || "variables";
+
+  if(method === "manual"){
+    const niManual=num(intl.ni_2035,0);
+    const riManual=num(intl.ri_2035,0);
+    return {
+      targetMT,
+      targetNI:niManual,
+      targetRI:riManual,
+      targetFactor:safeDiv(riManual,niManual,0),
+      computedMT:niManual+riManual,
+      gap:(niManual+riManual)-targetMT
+    };
+  }
+
+  // En modo variables, el target es referencia. No se fuerza la MT.
+  const factor=factorByBlock(intl,2035);
+  const niVars = num(intl.paises_2035,0)*num(intl.inscritos_pais_ad_2035,0)
+              + num(intl.productos_2035,0)*num(intl.inscritos_producto_pre,0);
+  const riVars = niVars*factor;
+  return {
+    targetMT,
+    targetNI:niVars,
+    targetRI:riVars,
+    targetFactor:factor,
+    computedMT:niVars+riVars,
+    gap:(niVars+riVars)-targetMT
+  };
+}
+
+function computeInternational(years, levelSeries, programMaps){
+  const intl=state.config.international;
+  if(!intl || num(intl.include,1)===0) return;
+  const start=state.data.startYear;
+  const targetYear=2035;
+  const targetMT=num(intl.target_2035,14000);
+  const method=intl.intl_method || "variables";
+  const paisesTarget=num(intl.paises_2035,0);
+  const productosTarget=num(intl.productos_2035,0);
+  const niPais=num(intl.inscritos_pais_ad_2035,0);
+  const niProductoPre=num(intl.inscritos_producto_pre,0);
+
+  let prev={ni:0,ri:0,mt:0};
+  let productosPost=0;
+
+  for(const y of years){
+    let niProductos=0, niPaises=0, productos=0, paises=0, ni=0, ri=0, factor=factorByBlock(intl,y);
+    const niProgramas=programMaps.international.get(y) || 0;
+
+    if(y<=targetYear){
+      const progress=Math.max(0, Math.min(1, (y-start+1)/(targetYear-start+1)));
+
+      if(method === "manual"){
+        const niManual=num(intl.ni_2035,0);
+        const riManual=num(intl.ri_2035,0);
+        ni=niManual*progress + niProgramas;
+        ri=riManual*progress;
+        factor=safeDiv(ri,ni,0);
+        paises=paisesTarget*progress;
+        productos=productosTarget*progress;
+      }else{
+        paises=paisesTarget*progress;
+        productos=productosTarget*progress;
+        niPaises=paises*niPais;
+        niProductos=productos*niProductoPre;
+        ni=niPaises+niProductos+niProgramas;
+        ri=ni*factor;
+      }
+    }else{
+      const b=blockFor(y).key;
+      productosPost += num(intl[`nuevos_productos_${b}`],0);
+      productos=productosTarget+productosPost;
+      paises=paisesTarget;
+      niProductos=productosPost*num(intl.inscritos_producto_post,0);
+      const organic=num(intl[`organico_${b}`],0);
+      ni=prev.ni*(1+organic)+niProductos+niProgramas;
+      ri=ni*factor;
+    }
+
+    const mt=ni+ri;
+    const row={
+      anio:y,nivel:"Internacionalización",tipo:"Proyección",campus:"Institucional",
+      ni,ri,mt,
+      ni_paises:niPaises,
+      ni_productos:niProductos,
+      ni_programas:niProgramas,
+      paises,productos,
+      target_2035:targetMT,
+      gap_2035:y===2035 ? mt-targetMT : "",
+      factor_ri_ni:factor,
+      ri_nuevo_ad:ri,
+      ri_tetra_ad:0,
+      ri_total_ad:ri
+    };
+    levelSeries.push(row);
+    prev={ni,ri,mt};
+  }
+}
+
+function renderInternationalControls(){
+  const i=state.config.international;
+  const targets = getInternational2035Targets();
+  const rows=[
+    ["Objetivo MT AD2035","target_2035",i.target_2035,"num","input"],
+    ["Método de cálculo","intl_method",i.intl_method || "variables","text","select"],
+    ["NI AD 2035 manual","ni_2035",i.ni_2035 || 0,"num","input"],
+    ["RI AD 2035 manual","ri_2035",i.ri_2035 || 0,"num","input"],
+    ["Factor RI/NI AD 2030–2034","factor_ri_ni_b1",fmt2.format(i.factor_ri_ni_b1),"num","input"],
+    ["Factor RI/NI AD 2035–2039","factor_ri_ni_b2",fmt2.format(i.factor_ri_ni_b2),"num","input"],
+    ["Factor RI/NI AD 2040–2045","factor_ri_ni_b3",fmt2.format(i.factor_ri_ni_b3),"num","input"],
+    ["Países a donde se expandirá a 2035","paises_2035",i.paises_2035,"num","input"],
+    ["NI AD promedio por país a 2035","inscritos_pais_ad_2035",i.inscritos_pais_ad_2035,"num","input"],
+    ["Nuevos productos acumulados a 2035","productos_2035",i.productos_2035,"num","input"],
+    ["NI AD promedio por producto antes de 2035","inscritos_producto_pre",i.inscritos_producto_pre,"num","input"],
+    ["Crecimiento orgánico 2036–2039","organico_b2",pctInput(i.organico_b2),"pct","input"],
+    ["Crecimiento orgánico 2040–2045","organico_b3",pctInput(i.organico_b3),"pct","input"],
+    ["Nuevos productos por año 2036–2039","nuevos_productos_b2",i.nuevos_productos_b2,"num","input"],
+    ["Nuevos productos por año 2040–2045","nuevos_productos_b3",i.nuevos_productos_b3,"num","input"],
+    ["NI AD promedio por producto después de 2035","inscritos_producto_post",i.inscritos_producto_post,"num","input"],
+    ["MT AD2035 calculada","_computed",fmt0.format(targets.computedMT),"readonly","label"],
+    ["Diferencia vs objetivo","_gap",fmt0.format(targets.gap),"readonly","label"]
+  ];
+  $("intlControls").innerHTML=`<table><thead><tr><th class="text">Variable</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>{
+    let control="";
+    if(r[4]==="select"){
+      control = `<select data-zone="intl" data-f="${r[1]}" data-type="${r[3]}">
+          <option value="variables" ${r[2]==="variables"?"selected":""}>Por variables + factor RI/NI AD</option>
+          <option value="manual" ${r[2]==="manual"?"selected":""}>Manual NI + RI 2035</option>
+        </select>`;
+    }else if(r[4]==="label"){
+      const cls = r[1]==="_gap" && num(targets.gap)!==0 ? "pill warn" : "pill ok";
+      control = `<span class="${cls}">${r[2]}</span>`;
+    }else{
+      control = `<input data-zone="intl" data-f="${r[1]}" data-type="${r[3]}" value="${r[2]}">`;
+    }
+    return `<tr><td class="text">${r[0]}</td><td>${control}</td></tr>`;
+  }).join("")}</tbody></table>`;
+  $("intlControls").querySelectorAll("input,select").forEach(inp=>inp.addEventListener("change",e=>{
+    state.config.international[e.target.dataset.f]=e.target.dataset.type==="pct" ? pctFromInput(e.target.value) : num(e.target.value, e.target.value);
+  }));
+}
+
+function renderInternationalResultTable(){
+  const target=num(state.config.international.target_2035,14000);
+  const rows=state.projection.levelSeries
+    .filter(r=>r.tipo==="Proyección" && r.nivel==="Internacionalización")
+    .map(r=>[
+      r.anio,
+      fmt0.format(r.ni||0),
+      fmt2.format(r.factor_ri_ni||0),
+      fmt0.format(r.ri||0),
+      fmt0.format(r.mt||0),
+      r.anio===2035 ? fmt0.format((r.mt||0)-target) : "",
+      fmt0.format(r.ni_paises||0),
+      fmt0.format(r.ni_productos||0),
+      fmt0.format(r.ni_programas||0)
+    ]);
+  $("intlResultTable").innerHTML=tableHtml(["Año","NI AD","Factor RI/NI AD","RI AD","MT AD","Dif. vs 14,000","NI países","NI productos","NI programas"],rows,[]);
+}
+
+function renderKpis(){
+  const d=state.data,p=state.projection;
+  const baseTotal=sum(d.pmpNivel.filter(r=>num(r.anio)===d.baseYear),"mt");
+  const finalRows=p.levelSeries.filter(r=>r.anio===d.endYear);
+  const totalFinal=sum(finalRows,"mt");
+  const intl2035=p.levelSeries.find(r=>r.anio===2035 && r.nivel==="Internacionalización");
+  const tetraFinal=p.levelSeries.filter(r=>r.anio===d.endYear && ["Posgrado","Ejecutivo"].includes(r.nivel)).reduce((a,r)=>a+num(r.ri_tetra_ad),0);
+  const firstSat = new Set();
+  for(const r of p.capacityRows){ if(r.ratio>=1 || r.frozen) firstSat.add(`${r.campus}|${r.nivel}`); }
+  const gap=(intl2035?.mt||0)-num(state.config.international.target_2035,14000);
+  $("kpis").innerHTML=[
+    ["MT PMP 2029",fmt0.format(baseTotal),"Desde pmp_nivel"],
+    [`MT AD ${d.endYear}`,fmt0.format(totalFinal),state.config.scenarioName],
+    ["Δ vs 2029",fmtPct.format(safeDiv(totalFinal-baseTotal,baseTotal)),"Foto AD/agosto"],
+    ["Inter AD2035 NI + RI",`${fmt0.format(intl2035?.ni||0)} + ${fmt0.format(intl2035?.ri||0)}`,`MT ${fmt0.format(intl2035?.mt||0)} · dif. ${fmt0.format(gap)}`],
+    [`RI tetra AD ${d.endYear}`,fmt0.format(tetraFinal),"Posgrado + Ejecutivo"],
+    ["Campus/nivel topados",fmt0.format(firstSat.size),"Ver tabla de capacidad"]
+  ].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="label">${x[2]}</div></div>`).join("");
+}
+
+$("peControls")?.addEventListener("change",()=>{});
+$("intlControls")?.addEventListener("change",()=>{});
+$("progLevel")?.addEventListener("change",()=>{
+  const lvl=$("progLevel").value;
+  $("progCampus").disabled = lvl !== "Profesional";
+});
+
+
+/* ==============================
+   V10 patch: aplicar cambios automáticamente
+   ============================== */
+
+function attachAutoRecomputeOnce(){
+  if(window.__autoRecomputeAttached) return;
+  window.__autoRecomputeAttached = true;
+
+  document.addEventListener("change", function(e){
+    const target = e.target;
+    if(!target || !target.dataset || !target.dataset.zone) return;
+    window.setTimeout(function(){
+      if(state.data && state.config){
+        recompute();
+      }
+    }, 0);
+  });
+
+  document.addEventListener("click", function(e){
+    if(e.target && e.target.id === "intlRecomputeBtn"){
+      recompute();
+    }
+  });
+}
+
+function renderInternationalControls(){
+  const i=state.config.international;
+  const targets = getInternational2035Targets();
+  const rows=[
+    ["Objetivo MT AD2035","target_2035",i.target_2035,"num","input"],
+    ["Método de cálculo","intl_method",i.intl_method || "variables","text","select"],
+    ["NI AD 2035 manual","ni_2035",i.ni_2035 || 0,"num","input"],
+    ["RI AD 2035 manual","ri_2035",i.ri_2035 || 0,"num","input"],
+    ["Factor RI/NI AD 2030–2034","factor_ri_ni_b1",fmt2.format(i.factor_ri_ni_b1),"num","input"],
+    ["Factor RI/NI AD 2035–2039","factor_ri_ni_b2",fmt2.format(i.factor_ri_ni_b2),"num","input"],
+    ["Factor RI/NI AD 2040–2045","factor_ri_ni_b3",fmt2.format(i.factor_ri_ni_b3),"num","input"],
+    ["Países a donde se expandirá a 2035","paises_2035",i.paises_2035,"num","input"],
+    ["NI AD promedio por país a 2035","inscritos_pais_ad_2035",i.inscritos_pais_ad_2035,"num","input"],
+    ["Nuevos productos acumulados a 2035","productos_2035",i.productos_2035,"num","input"],
+    ["NI AD promedio por producto antes de 2035","inscritos_producto_pre",i.inscritos_producto_pre,"num","input"],
+    ["Crecimiento orgánico 2036–2039","organico_b2",pctInput(i.organico_b2),"pct","input"],
+    ["Crecimiento orgánico 2040–2045","organico_b3",pctInput(i.organico_b3),"pct","input"],
+    ["Nuevos productos por año 2036–2039","nuevos_productos_b2",i.nuevos_productos_b2,"num","input"],
+    ["Nuevos productos por año 2040–2045","nuevos_productos_b3",i.nuevos_productos_b3,"num","input"],
+    ["NI AD promedio por producto después de 2035","inscritos_producto_post",i.inscritos_producto_post,"num","input"],
+    ["MT AD2035 calculada","_computed",fmt0.format(targets.computedMT),"readonly","label"],
+    ["Diferencia vs objetivo","_gap",fmt0.format(targets.gap),"readonly","label"]
+  ];
+  $("intlControls").innerHTML=`<table><thead><tr><th class="text">Variable</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>{
+    let control="";
+    if(r[4]==="select"){
+      control = `<select data-zone="intl" data-f="${r[1]}" data-type="${r[3]}">
+          <option value="variables" ${r[2]==="variables"?"selected":""}>Por variables + factor RI/NI AD</option>
+          <option value="manual" ${r[2]==="manual"?"selected":""}>Manual NI + RI 2035</option>
+        </select>`;
+    }else if(r[4]==="label"){
+      const gapValue = r[1]==="_gap" ? num(targets.gap) : 0;
+      const cls = r[1]==="_gap" && Math.abs(gapValue)>1 ? "pill warn" : "pill ok";
+      control = `<span class="${cls}">${r[2]}</span>`;
+    }else{
+      control = `<input data-zone="intl" data-f="${r[1]}" data-type="${r[3]}" value="${r[2]}">`;
+    }
+    return `<tr><td class="text">${r[0]}</td><td>${control}</td></tr>`;
+  }).join("")}</tbody></table>`;
+  $("intlControls").querySelectorAll("input,select").forEach(inp=>inp.addEventListener("change",e=>{
+    state.config.international[e.target.dataset.f]=e.target.dataset.type==="pct" ? pctFromInput(e.target.value) : num(e.target.value, e.target.value);
+  }));
+}
+
+function renderAll(){
+  normalizeConfig();
+  renderSelectors();
+  renderKpis();
+  renderSummary();
+  renderControls();
+  renderPEControls();
+  renderRIADControls();
+  renderInternationalControls();
+  renderCapacityControls();
+  renderNewCampusTable();
+  renderPrograms();
+  renderLevelChart();
+  renderInternationalChart();
+  renderInternationalResultTable();
+  renderCampusTable();
+  renderSaturationYearTable();
+  renderCapacityResultTable();
+  renderConfigPreview();
+  $("modelStatus").innerHTML=buildStatus();
+  attachAutoRecomputeOnce();
+}
+
+
+/* ==============================
+   V11 patch: leer controles visibles antes de recalcular
+   ============================== */
+
+function setNestedValueFromInput(el){
+  if(!el || !el.dataset || !el.dataset.zone) return;
+  const zone = el.dataset.zone;
+  const f = el.dataset.f;
+  const raw = el.value;
+  const tag = (el.tagName || "").toUpperCase();
+
+  if(zone === "campus"){
+    const c = el.dataset.c;
+    if(!state.config.campus[c]) return;
+    state.config.campus[c][f] = f && f.includes("factor") ? num(raw) : pctFromInput(raw);
+    return;
+  }
+
+  if(zone === "cap"){
+    const c = el.dataset.c, n = el.dataset.n;
+    if(!state.config.campus[c] || !state.config.campus[c].cap[n]) return;
+    state.config.campus[c].cap[n][f] = f === "util" ? pctFromInput(raw) : num(raw);
+    return;
+  }
+
+  if(zone === "seg"){
+    const n = el.dataset.n;
+    if(!state.config.segments || !state.config.segments[n]) return;
+    state.config.segments[n][f] = el.dataset.type === "pct" ? pctFromInput(raw) : num(raw);
+    return;
+  }
+
+  if(zone === "rifactor"){
+    const n = el.dataset.n;
+    const target = n === "Internacionalización" ? state.config.international : state.config.segments[n];
+    if(!target) return;
+    target[f] = num(raw);
+    return;
+  }
+
+  if(zone === "tetra"){
+    const n = el.dataset.n;
+    if(!state.config.segments || !state.config.segments[n]) return;
+    if(tag === "SELECT") state.config.segments[n][f] = raw;
+    else state.config.segments[n][f] = el.dataset.type === "pct" ? pctFromInput(raw) : num(raw);
+    return;
+  }
+
+  if(zone === "intl"){
+    if(!state.config.international) return;
+    if(tag === "SELECT" || el.dataset.type === "text") state.config.international[f] = raw;
+    else state.config.international[f] = el.dataset.type === "pct" ? pctFromInput(raw) : num(raw);
+    return;
+  }
+
+  if(zone === "global"){
+    if(!state.config.global) state.config.global = {};
+    state.config.global[f] = pctFromInput(raw);
+    return;
+  }
+}
+
+function readVisibleControls(){
+  document.querySelectorAll("[data-zone]").forEach(setNestedValueFromInput);
+}
+
+function recompute(){
+  if(!state.data || !state.config) return;
+  readTopInputs();
+  normalizeConfig();
+  readVisibleControls();
+  state.projection = computeProjection();
+  renderAll();
+}
+
+function attachAutoRecomputeOnce(){
+  if(window.__autoRecomputeAttachedV11) return;
+  window.__autoRecomputeAttachedV11 = true;
+
+  document.addEventListener("change", function(e){
+    const target = e.target;
+    if(!target || !target.dataset || !target.dataset.zone) return;
+    setNestedValueFromInput(target);
+    window.setTimeout(function(){
+      if(state.data && state.config){
+        recompute();
+      }
+    }, 0);
+  });
+
+  document.addEventListener("click", function(e){
+    if(e.target && (e.target.id === "intlRecomputeBtn" || e.target.id === "peRecomputeBtn" || e.target.id === "recomputeBtn")){
+      recompute();
+    }
+  });
+}
+
+function renderAll(){
+  normalizeConfig();
+  renderSelectors();
+  renderKpis();
+  renderSummary();
+  renderControls();
+  renderPEControls();
+  renderRIADControls();
+  renderInternationalControls();
+  renderCapacityControls();
+  renderNewCampusTable();
+  renderPrograms();
+  renderLevelChart();
+  renderInternationalChart();
+  renderInternationalResultTable();
+  renderCampusTable();
+  renderSaturationYearTable();
+  renderCapacityResultTable();
+  renderConfigPreview();
+  $("modelStatus").innerHTML=buildStatus();
+  attachAutoRecomputeOnce();
+}
+
+
+/* ==============================
+   V12 patch: quitar tarjeta de campus topados
+   ============================== */
+
+function renderKpis(){
+  const d=state.data,p=state.projection;
+  const baseTotal=sum(d.pmpNivel.filter(r=>num(r.anio)===d.baseYear),"mt");
+  const finalRows=p.levelSeries.filter(r=>r.anio===d.endYear);
+  const totalFinal=sum(finalRows,"mt");
+  const intl2035=p.levelSeries.find(r=>r.anio===2035 && r.nivel==="Internacionalización");
+  const tetraFinal=p.levelSeries.filter(r=>r.anio===d.endYear && ["Posgrado","Ejecutivo"].includes(r.nivel)).reduce((a,r)=>a+num(r.ri_tetra_ad),0);
+  const gap=(intl2035?.mt||0)-num(state.config.international.target_2035,14000);
+
+  $("kpis").innerHTML=[
+    ["MT PMP 2029",fmt0.format(baseTotal),"Desde pmp_nivel"],
+    [`MT AD ${d.endYear}`,fmt0.format(totalFinal),state.config.scenarioName],
+    ["Δ vs 2029",fmtPct.format(safeDiv(totalFinal-baseTotal,baseTotal)),"Foto AD/agosto"],
+    ["Inter AD2035 NI + RI",`${fmt0.format(intl2035?.ni||0)} + ${fmt0.format(intl2035?.ri||0)}`,`MT ${fmt0.format(intl2035?.mt||0)} · dif. ${fmt0.format(gap)}`],
+    [`RI tetra AD ${d.endYear}`,fmt0.format(tetraFinal),"Posgrado + Ejecutivo"],
+    ["NI programas Prof.",fmt0.format(p.campusSeries.filter(r=>r.anio===d.endYear && r.nivel==="Profesional").reduce((a,r)=>a+num(r.ni_programas),0)),`Año ${d.endYear}`]
+  ].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="label">${x[2]}</div></div>`).join("");
+}
+
+loadAuto();
+</script>
+</body>
+</html>
