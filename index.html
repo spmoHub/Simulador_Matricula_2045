@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2030–2045 · v16</title>
+  <title>Simulador matrícula 2030–2045 · v17</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -169,9 +169,9 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2030–2045 · v16</h1>
+  <h1>Simulador de matrícula y salones 2030–2045 · v17</h1>
   <p>
-    Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Todos los bloques de crecimiento NI son editables; el RI/NI se calcula internamente y la capacidad usa salones disponibles y tamaño de grupo.
+    Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Todos los bloques de crecimiento NI son editables; la capacidad usa salones disponibles y tamaño de grupo.
   </p>
 </header>
 
@@ -313,7 +313,7 @@
           <button id="downloadProjectionBtn">Descargar proyección CSV</button>
           <button id="downloadCapacityBtn" class="secondary">Descargar capacidad CSV</button>
           <button id="downloadConfigBtn" class="secondary">Descargar configuración CSV</button>
-          <button id="resetBtn" class="ghost">Restablecer configuración v16</button>
+          <button id="resetBtn" class="ghost">Restablecer configuración v17</button>
         </div>
       </section>
 
@@ -327,7 +327,7 @@
 
 <script>
 const AUTO_FILE = "./modelo_simulador.xlsx";
-const STORAGE_KEY = "simulador_matricula_v16_config";
+const STORAGE_KEY = "simulador_matricula_v17_config";
 const YEARS = Array.from({length:16}, (_,i)=>2030+i);
 const BASE_YEARS = Array.from({length:11}, (_,i)=>2030+i);
 const FUTURE_YEARS = [2041,2042,2043,2044,2045];
@@ -1918,6 +1918,31 @@ function exportCapacity(){
   }
   buildCapacityRows(selectedCampus);
   downloadCsv("capacidad_todos_los_campus_v16.csv", rows);
+}
+
+
+/* ==============================
+   V17 patch: quitar tarjetas RI/NI de Prepa y Profesional
+   ============================== */
+
+function renderKpis(campus){
+  const mt2040 = ["Preparatoria","Profesional"].reduce((a,l)=>a+n(getProjected(campus,l,2040)?.mt),0);
+  const mt2045 = ["Preparatoria","Profesional"].reduce((a,l)=>a+n(getProjected(campus,l,2045)?.mt),0);
+  const ni2045 = ["Preparatoria","Profesional"].reduce((a,l)=>a+n(getProjected(campus,l,2045)?.ni),0);
+  const ri2045 = ["Preparatoria","Profesional"].reduce((a,l)=>a+n(getProjected(campus,l,2045)?.ri),0);
+  const sat = firstOverCapacity(campus);
+  const inst2045 = institutionRows().find(r=>r.anio===2045)?.total || 0;
+
+  $("kpis").innerHTML = [
+    ["MT campus 2040",fmt0.format(mt2040),"Base ajustada"],
+    ["MT campus 2045",fmt0.format(mt2045),"Proyectado"],
+    ["NI campus 2045",fmt0.format(ni2045),"Prepa + Profesional"],
+    ["RI campus 2045",fmt0.format(ri2045),"Prepa + Profesional"],
+    ["Primer año topado",sat ? `${sat.anio}` : "—",sat ? `${sat.nivel}: +${fmt1.format(sat.excedente)} salones` : "Captura salones para evaluar"],
+    ["MT inst. 2045",fmt0.format(inst2045),"Prepa + Prof + Posgrado + Ejecutivo"]
+  ].map(x=>`<div class="kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="sub">${x[2]}</div></div>`).join("");
+
+  document.querySelector(".kpis").style.gridTemplateColumns = "repeat(6,1fr)";
 }
 
 loadAuto();
