@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2030–2045 · v53</title>
+  <title>Simulador matrícula 2030–2045 · v55</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -189,7 +189,7 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2030–2045 · v53</h1>
+  <h1>Simulador de matrícula y salones 2030–2045 · v55</h1>
   <p>
     Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus.
   </p>
@@ -452,11 +452,27 @@
       <section class="card">
         <h2>Exportar resultados</h2>
         <p class="muted">Puedes descargar los resultados calculados para revisión o para armar una presentación.</p>
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <label for="scenarioNameInput">Nombre del escenario</label>
+            <input id="scenarioNameInput" type="text" placeholder="Ej. escenario_base_2045" />
+          </div>
+          <div>
+            <label>Guardar / cargar configuración</label>
+            <div class="footer-actions" style="margin-top:0">
+              <button id="downloadScenarioJsonBtn" class="secondary">Descargar escenario JSON</button>
+              <button id="uploadScenarioJsonBtn" class="secondary">Cargar escenario JSON</button>
+              <input id="uploadScenarioJsonInput" type="file" accept=".json,application/json" style="display:none" />
+            </div>
+          </div>
+        </div>
         <div class="footer-actions">
           <button id="downloadProjectionBtn">Descargar proyección CSV</button>
           <button id="downloadCapacityBtn" class="secondary">Descargar capacidad CSV</button>
+          <button id="downloadMulticampusBtn" class="secondary">Descargar multicampus CSV</button>
+          <button id="downloadDocentesBtn" class="secondary">Descargar docentes CSV</button>
           <button id="downloadConfigBtn" class="secondary">Descargar configuración CSV</button>
-          <button id="resetBtn" class="ghost">Restablecer configuración v53</button>
+          <button id="resetBtn" class="ghost">Restablecer configuración v55</button>
         </div>
       </section>
 
@@ -470,7 +486,7 @@
 
 <script>
 const AUTO_FILE = "./modelo_simulador.xlsx";
-const STORAGE_KEY = "simulador_matricula_v53_config";
+const STORAGE_KEY = "simulador_matricula_v55_config";
 const YEARS = Array.from({length:16}, (_,i)=>2030+i);
 const BASE_YEARS = Array.from({length:11}, (_,i)=>2030+i);
 const FUTURE_YEARS = [2041,2042,2043,2044,2045];
@@ -10133,6 +10149,369 @@ const renderBaseV53 = render;
 render = function(){
   renderBaseV53();
   renderDocenteView();
+};
+
+
+
+/* ==============================
+   V54 patch: cambio de campus refresca vistas completas
+   ============================== */
+
+function renderCampusSensitiveViewsV54(){
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  if(!campus) return;
+
+  // Recalcula proyección y capacidad con el campus actualmente seleccionado.
+  buildProjection();
+  buildCapacityRows(campus);
+
+  // Refresca explícitamente las vistas que dependen del campus.
+  renderKpis(campus);
+  renderGrowthControls(campus);
+  if(typeof renderCampusCapacityMini === "function") renderCampusCapacityMini(campus);
+  renderCampusTable(campus);
+  renderCapacityControls(campus);
+  renderPresenceControls(campus);
+  renderCapacitySummary(campus);
+  renderCapacityTable(campus);
+  renderCharts(campus);
+
+  if(typeof renderMulticampus === "function") renderMulticampus(campus);
+  if(typeof renderCapacityMultiSummary === "function") renderCapacityMultiSummary(campus);
+  if(typeof renderDocenteView === "function") renderDocenteView();
+
+  saveConfig();
+}
+
+// El listener original se registró antes de los parches de Multicampus,
+// entonces conservaba una versión vieja de render(). Este listener final
+// fuerza que el cambio de campus use la versión actual y refresque todo.
+document.addEventListener("change", (e)=>{
+  if(e.target && e.target.id === "campusSelect"){
+    setTimeout(()=>renderCampusSensitiveViewsV54(), 0);
+  }
+});
+
+// También al cambiar de pestaña refresca la vista activa con el campus vigente.
+document.addEventListener("click", (e)=>{
+  if(e.target && e.target.matches(".tab")){
+    setTimeout(()=>renderCampusSensitiveViewsV54(), 0);
+  }
+});
+
+
+
+/* ==============================
+   V55 patch: exportaciones actuales + escenario JSON
+   ============================== */
+
+function deepMergeV55(base, incoming){
+  const out = JSON.parse(JSON.stringify(base || {}));
+  const src = incoming || {};
+  for(const [k,v] of Object.entries(src)){
+    if(v && typeof v === "object" && !Array.isArray(v)){
+      out[k] = deepMergeV55(out[k] || {}, v);
+    }else{
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
+// Reemplaza mergeConfig para no perder secciones agregadas: newCareer, docentes,
+// growthTouched, scenarioName, etc.
+mergeConfig = function(a,b){
+  return deepMergeV55(a || {}, b || {});
+};
+
+function scenarioName(){
+  const cfg = state.config || {};
+  const input = $("scenarioNameInput");
+  const raw = normalize(input?.value || cfg.scenarioName || "escenario");
+  return raw || "escenario";
+}
+
+function setScenarioName(name){
+  if(!state.config) state.config = {};
+  state.config.scenarioName = normalize(name || "escenario");
+  const input = $("scenarioNameInput");
+  if(input && input.value !== state.config.scenarioName) input.value = state.config.scenarioName;
+}
+
+function scenarioSlug(){
+  return scenarioName()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^A-Za-z0-9]+/g,"_")
+    .replace(/^_+|_+$/g,"")
+    .toLowerCase() || "escenario";
+}
+
+function downloadTextV55(filename, content, mime){
+  const blob = new Blob([content], {type:mime || "text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadCsvV55(filename, rows){
+  if(!rows || !rows.length){
+    alert("No hay información para descargar.");
+    return;
+  }
+  const headers = Object.keys(rows[0]);
+  const csv = "\ufeff" + [headers.join(","), ...rows.map(r=>headers.map(h=>csvEscape(r[h])).join(","))].join("\n");
+  downloadTextV55(filename, csv, "text/csv;charset=utf-8");
+}
+
+function round2V55(x){ return Math.round(n(x,0)*100)/100; }
+function round4V55(x){ return Math.round(n(x,0)*10000)/10000; }
+
+function ensureProjectionCurrentV55(){
+  buildProjection();
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  if(campus) buildCapacityRows(campus);
+}
+
+function exportProjectionV55(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = state.projection.map(r=>({
+    escenario:esc,
+    anio:r.anio,
+    periodo:r.periodo,
+    campus:r.campus,
+    nivel:r.nivel,
+    modalidad:r.modalidad || "",
+    tipo:r.tipo || "",
+    ni:round2V55(r.ni),
+    ri:round2V55(r.ri),
+    mt:round2V55(r.mt),
+    factor_ri_ni:round4V55(r.ratio_ri_ni),
+    crecimiento_ni:r.crec_ni ?? "",
+    crecimiento_factor_ri_ni:r.crec_ratio ?? ""
+  }));
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v55.csv`, rows);
+}
+
+function exportCapacityV55(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    const cap = buildCapacityRows(c);
+    for(const r of cap){
+      rows.push({
+        escenario:esc,
+        anio:r.anio,
+        campus:r.campus,
+        nivel:r.nivel,
+        turno:r.turno || "",
+        tipo:r.tipo || "",
+        mt:round2V55(r.mt),
+        alumnos_presenciales:round2V55(r.alumnos_presenciales),
+        salones_requeridos:round2V55(r.salones_requeridos),
+        salones_disponibles:round2V55(r.salones_disponibles),
+        faltante_salones:round2V55(r.faltante),
+        excedente_salones:round2V55(r.excedente)
+      });
+    }
+  }
+
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v55.csv`, rows);
+}
+
+function exportMulticampusV55(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    if($("campusSelect")) $("campusSelect").value = c;
+    const detail = multicampusDetailRows(c);
+    for(const r of detail){
+      rows.push({
+        escenario:esc,
+        anio:r.anio,
+        campus:c,
+        semestre:r.semestre,
+        programa:r.programas || r.programa || "",
+        grupo:r.grupo || "",
+        tipo:r.tipo || "",
+        alumnos:round2V55(r.alumnos),
+        alumnos_programa_semestre:round2V55(r.alumnosProgramaSemestre),
+        rutas:n(r.rutasCount,0) || "",
+        espacios_flex:round2V55(r.salonesFlex),
+        espacios_multicampus:round2V55(r.salonesMulticampus),
+        salones_presenciales:round2V55(r.salonesPresenciales),
+        capacidad:round2V55(r.capacidad),
+        ocioso:round2V55(r.ocioso)
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v55.csv`, rows);
+}
+
+function exportDocentesV55(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const cfg = docenteCfg ? docenteCfg() : {limit:36,tipo:"Todos"};
+  const rows = [];
+
+  for(const y of YEARS){
+    const groups = docenteOperationalGroups ? docenteOperationalGroups(y) : [];
+    for(const g of groups){
+      rows.push({
+        escenario:esc,
+        anio:y,
+        filtro_tipo:cfg.tipo || "Todos",
+        limite_alumnos_docente:cfg.limit || 36,
+        tipo:g.tipo,
+        semestre:g.semestre,
+        programa:g.programa,
+        ruta:g.ruta || "",
+        materia_certificado:g.materia || g.certificado || "",
+        secuencia:g.secuencia || "",
+        grupos_campus:round2V55(g.gruposCampus),
+        campus_participantes:g.campus?.length || 0,
+        alumnos:round2V55(g.alumnos),
+        docentes_operativos:round2V55(g.docentesOperativos),
+        ahorro_operativo:round2V55(g.ahorro),
+        campus:g.campus ? g.campus.join(" | ") : "",
+        detalle:g.campusDetalle ? g.campusDetalle.join(" | ") : ""
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v55.csv`, rows);
+}
+
+function flattenConfigV55(obj, prefix="", out=[]){
+  if(obj && typeof obj === "object" && !Array.isArray(obj)){
+    for(const [k,v] of Object.entries(obj)){
+      flattenConfigV55(v, prefix ? `${prefix}.${k}` : k, out);
+    }
+  }else{
+    out.push({path:prefix, valor:Array.isArray(obj) ? JSON.stringify(obj) : obj});
+  }
+  return out;
+}
+
+function exportConfigV55(){
+  setScenarioName(scenarioName());
+  const esc = scenarioName();
+  const rows = flattenConfigV55(state.config || {}).map(r=>({
+    escenario:esc,
+    ruta:r.path,
+    valor:r.valor
+  }));
+  downloadCsvV55(`configuracion_${scenarioSlug()}_v55.csv`, rows);
+}
+
+function exportScenarioJsonV55(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v55",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v55.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+}
+
+async function importScenarioJsonV55(file){
+  if(!file) return;
+  try{
+    const txt = await file.text();
+    const payload = JSON.parse(txt);
+    const cfg = payload.config || payload.state?.config || payload;
+    const fresh = makeDefaultConfig();
+    state.config = mergeConfig(fresh, cfg);
+    if(payload.scenario_name) setScenarioName(payload.scenario_name);
+    else if(state.config.scenarioName) setScenarioName(state.config.scenarioName);
+
+    if(payload.selected_period && state.periodList.includes(payload.selected_period)){
+      $("periodSelect").value = payload.selected_period;
+    }
+    if(payload.selected_campus && state.campusList.includes(payload.selected_campus)){
+      $("campusSelect").value = payload.selected_campus;
+    }
+
+    saveConfig();
+    render();
+    setStatus([{text:`Configuración JSON cargada: ${scenarioName()}`, cls:"ok"}]);
+  }catch(err){
+    console.error(err);
+    alert("No pude cargar el JSON. Revisa que sea un escenario exportado del simulador.");
+  }finally{
+    if($("uploadScenarioJsonInput")) $("uploadScenarioJsonInput").value = "";
+  }
+}
+
+function renderScenarioControlsV55(){
+  const input = $("scenarioNameInput");
+  if(input && !input.value){
+    input.value = state.config?.scenarioName || "escenario";
+  }
+}
+
+document.addEventListener("input", (e)=>{
+  if(e.target && e.target.id==="scenarioNameInput"){
+    setScenarioName(e.target.value);
+    saveConfig();
+  }
+});
+
+document.addEventListener("click", (e)=>{
+  if(!e.target) return;
+  const id = e.target.id;
+  const handled = [
+    "downloadProjectionBtn",
+    "downloadCapacityBtn",
+    "downloadMulticampusBtn",
+    "downloadDocentesBtn",
+    "downloadConfigBtn",
+    "downloadScenarioJsonBtn",
+    "uploadScenarioJsonBtn"
+  ];
+  if(!handled.includes(id)) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  if(id==="downloadProjectionBtn") exportProjectionV55();
+  if(id==="downloadCapacityBtn") exportCapacityV55();
+  if(id==="downloadMulticampusBtn") exportMulticampusV55();
+  if(id==="downloadDocentesBtn") exportDocentesV55();
+  if(id==="downloadConfigBtn") exportConfigV55();
+  if(id==="downloadScenarioJsonBtn") exportScenarioJsonV55();
+  if(id==="uploadScenarioJsonBtn") $("uploadScenarioJsonInput")?.click();
+}, true);
+
+document.addEventListener("change", (e)=>{
+  if(e.target && e.target.id==="uploadScenarioJsonInput"){
+    importScenarioJsonV55(e.target.files?.[0]);
+  }
+});
+
+const renderBaseV55 = render;
+render = function(){
+  renderBaseV55();
+  renderScenarioControlsV55();
 };
 
 
