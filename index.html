@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2030–2045 · v55</title>
+  <title>Simulador matrícula 2030–2045 · v56</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -189,9 +189,9 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2030–2045 · v55</h1>
+  <h1>Simulador de matrícula y salones 2030–2045 · v56</h1>
   <p>
-    Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus.
+    Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus y exportaciones CSV sin decimales.
   </p>
 </header>
 
@@ -472,7 +472,7 @@
           <button id="downloadMulticampusBtn" class="secondary">Descargar multicampus CSV</button>
           <button id="downloadDocentesBtn" class="secondary">Descargar docentes CSV</button>
           <button id="downloadConfigBtn" class="secondary">Descargar configuración CSV</button>
-          <button id="resetBtn" class="ghost">Restablecer configuración v55</button>
+          <button id="resetBtn" class="ghost">Restablecer configuración v56</button>
         </div>
       </section>
 
@@ -486,7 +486,7 @@
 
 <script>
 const AUTO_FILE = "./modelo_simulador.xlsx";
-const STORAGE_KEY = "simulador_matricula_v55_config";
+const STORAGE_KEY = "simulador_matricula_v56_config";
 const YEARS = Array.from({length:16}, (_,i)=>2030+i);
 const BASE_YEARS = Array.from({length:11}, (_,i)=>2030+i);
 const FUTURE_YEARS = [2041,2042,2043,2044,2045];
@@ -10512,6 +10512,218 @@ const renderBaseV55 = render;
 render = function(){
   renderBaseV55();
   renderScenarioControlsV55();
+};
+
+
+
+/* ==============================
+   V56 patch: CSV enteros + columnas de simulación de salones
+   ============================== */
+
+function intV56(x){
+  return Math.round(n(x,0));
+}
+
+function pctIntV56(x){
+  if(x === "" || x === null || x === undefined) return "";
+  return Math.round(n(x,0)*100);
+}
+
+function configValueForCsvV56(path, value){
+  if(value === null || value === undefined) return "";
+  if(typeof value === "number"){
+    const p = String(path || "").toLowerCase();
+    if(p.includes("growth") || p.includes("presence") || p.includes("pct") || p.includes("ratio")){
+      return Math.round(value*100);
+    }
+    return Math.round(value);
+  }
+  return value;
+}
+
+function capacityAdditionInfoV56(campus, nivel, year){
+  const cap = state.config?.capacity?.[campus] || {};
+  const isPrepa = nivel === "Preparatoria";
+  const prefix = isPrepa ? "prepa" : "prof";
+  const baseField = isPrepa ? "prepaSalones" : "profSalones";
+  const baseInicial = intV56(cap[baseField]);
+
+  const years = [];
+  let acumulado = 0;
+  for(const y of YEARS){
+    const add = intV56(cap[`${prefix}Add_${y}`]);
+    if(add !== 0){
+      years.push({anio:y, salones:add});
+    }
+    if(y <= year){
+      acumulado += add;
+    }
+  }
+
+  const currentAdd = intV56(cap[`${prefix}Add_${year}`]);
+  const activeUpToYear = years.filter(x=>x.anio<=year);
+
+  return {
+    salones_base_iniciales:baseInicial,
+    salones_agregados_en_anio:currentAdd,
+    anio_simulacion_salones:currentAdd !== 0 ? year : "",
+    salones_agregados_acumulados:acumulado,
+    anios_simulacion_salones:activeUpToYear.map(x=>`${x.anio}:${x.salones}`).join(" | ")
+  };
+}
+
+exportProjectionV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = state.projection.map(r=>({
+    escenario:esc,
+    anio:intV56(r.anio),
+    periodo:r.periodo,
+    campus:r.campus,
+    nivel:r.nivel,
+    modalidad:r.modalidad || "",
+    tipo:r.tipo || "",
+    ni:intV56(r.ni),
+    ri:intV56(r.ri),
+    mt:intV56(r.mt),
+    factor_ri_ni_pct:pctIntV56(r.ratio_ri_ni),
+    crecimiento_ni_pct:pctIntV56(r.crec_ni),
+    crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
+  }));
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v56.csv`, rows);
+};
+
+exportCapacityV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    const capRows = buildCapacityRows(c);
+    for(const r of capRows){
+      const addInfo = capacityAdditionInfoV56(c, r.nivel, r.anio);
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:r.campus,
+        nivel:r.nivel,
+        turno:r.turno || "",
+        tipo:r.tipo || "",
+        mt:intV56(r.mt),
+        alumnos_presenciales:intV56(r.alumnos_presenciales),
+        salones_base_iniciales:addInfo.salones_base_iniciales,
+        salones_agregados_en_anio:addInfo.salones_agregados_en_anio,
+        anio_simulacion_salones:addInfo.anio_simulacion_salones,
+        salones_agregados_acumulados:addInfo.salones_agregados_acumulados,
+        anios_simulacion_salones:addInfo.anios_simulacion_salones,
+        salones_requeridos:intV56(r.salones_requeridos),
+        salones_disponibles:intV56(r.salones_disponibles),
+        faltante_salones:intV56(r.faltante),
+        excedente_salones:intV56(r.excedente)
+      });
+    }
+  }
+
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v56.csv`, rows);
+};
+
+exportMulticampusV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    if($("campusSelect")) $("campusSelect").value = c;
+    const detail = multicampusDetailRows(c);
+    for(const r of detail){
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:c,
+        semestre:r.semestre,
+        programa:r.programas || r.programa || "",
+        grupo:r.grupo || "",
+        tipo:r.tipo || "",
+        alumnos:intV56(r.alumnos),
+        alumnos_programa_semestre:intV56(r.alumnosProgramaSemestre),
+        rutas:intV56(r.rutasCount) || "",
+        espacios_flex:intV56(r.salonesFlex),
+        espacios_multicampus:intV56(r.salonesMulticampus),
+        salones_presenciales:intV56(r.salonesPresenciales),
+        capacidad:intV56(r.capacidad),
+        ocioso:intV56(r.ocioso)
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v56.csv`, rows);
+};
+
+exportDocentesV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const cfg = docenteCfg ? docenteCfg() : {limit:36,tipo:"Todos"};
+  const rows = [];
+
+  for(const y of YEARS){
+    const groups = docenteOperationalGroups ? docenteOperationalGroups(y) : [];
+    for(const g of groups){
+      rows.push({
+        escenario:esc,
+        anio:intV56(y),
+        filtro_tipo:cfg.tipo || "Todos",
+        limite_alumnos_docente:intV56(cfg.limit || 36),
+        tipo:g.tipo,
+        semestre:g.semestre,
+        programa:g.programa,
+        ruta:g.ruta || "",
+        materia_certificado:g.materia || g.certificado || "",
+        secuencia:g.secuencia || "",
+        grupos_campus:intV56(g.gruposCampus),
+        campus_participantes:intV56(g.campus?.length || 0),
+        alumnos:intV56(g.alumnos),
+        docentes_operativos:intV56(g.docentesOperativos),
+        ahorro_operativo:intV56(g.ahorro),
+        campus:g.campus ? g.campus.join(" | ") : "",
+        detalle:g.campusDetalle ? g.campusDetalle.join(" | ") : ""
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v56.csv`, rows);
+};
+
+exportConfigV55 = function(){
+  setScenarioName(scenarioName());
+  const esc = scenarioName();
+  const rows = flattenConfigV55(state.config || {}).map(r=>({
+    escenario:esc,
+    ruta:r.path,
+    valor:configValueForCsvV56(r.path, r.valor)
+  }));
+  downloadCsvV55(`configuracion_${scenarioSlug()}_v56.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v56",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v56.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
