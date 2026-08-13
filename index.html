@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2030–2045 · v56</title>
+  <title>Simulador matrícula 2026–2045 · v70</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -185,13 +185,42 @@
       main{padding:16px}
       header{padding:22px 16px}
     }
-  </style>
+  
+/* V62 · inputs más legibles en Inversión */
+#inversion input[data-zone="investmentNiV60"]{
+  min-width:96px !important;
+  width:96px !important;
+  text-align:right;
+}
+#inversion input[data-field="investmentAmount"]{
+  min-width:130px !important;
+  width:130px !important;
+  text-align:right;
+}
+#inversion input[data-field="tuition"],
+#inversion input[data-field="remanentePct"]{
+  min-width:105px !important;
+  width:105px !important;
+  text-align:right;
+}
+#inversion input[data-field="name"],
+#inversion input[data-field="newCampusName"]{
+  min-width:190px !important;
+}
+#investmentNiTable table{
+  min-width:1750px;
+}
+#investmentProjectsTable table{
+  min-width:1700px;
+}
+
+</style>
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2030–2045 · v56</h1>
+  <h1>Simulador de matrícula y salones 2026–2045 · v70</h1>
   <p>
-    Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus y exportaciones CSV sin decimales.
+    Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus, exportaciones CSV sin decimales, capacidad por tipos de espacios y aulas móviles separadas por nivel. Los salones disponibles se calculan desde los tipos capturados. Incluye módulo de inversión y NI por proyecto.
   </p>
 </header>
 
@@ -218,7 +247,7 @@
       </div>
     </div>
     <div class="note">
-      La base 2030–2040 se respeta como trayectoria base. Si agregas PMP 2026–2029 en la hoja base o en una hoja llamada <b>pmp_ni_ri_2026_2029</b>, aparecerá en las gráficas. Para 2041–2045, el simulador calcula crecimiento promedio observado y lo deja editable por bloques.
+      La base 2026–2040 se respeta como trayectoria base. Los años PMP 2026–2029 se leen desde la hoja base y aparecen en tablas, gráficas y exportables. Para 2041–2045, el simulador proyecta desde la base 2040 y lo deja editable por bloques.
     </div>
     <div id="status" class="status"></div>
   </section>
@@ -228,7 +257,9 @@
       <button class="tab active" data-tab="campus">Campus</button>
       <button class="tab" data-tab="capacidad">Salones</button>
       <button class="tab" data-tab="multicampus">Multicampus</button>
+      <button class="tab" data-tab="resumenmc">Resumen MC</button>
       <button class="tab" data-tab="docentes">Docentes MC/Flex</button>
+      <button class="tab" data-tab="inversion">Inversión</button>
       <button class="tab" data-tab="institucion">Institución</button>
       <button class="tab" data-tab="exportar">Exportar / datos</button>
     </div>
@@ -282,8 +313,12 @@
           <h2>Capacidad y presencialidad</h2>
           <p class="muted small">Prepa usa toda su MT en mañana. Profesional separa % mañana y % tarde; la mañana es la capacidad crítica y la tarde se revisa contra salones Prepa + salones Profesional.</p>
 
-          <h3>Capacidad por nivel</h3>
+          <h3>Parámetros por nivel</h3>
           <div id="capacityControls" class="table-wrap"></div>
+
+          <h3>Tipos de salones / espacios disponibles</h3>
+          <p class="muted small">Opcional. Si capturas tipos de salones, aulas móviles o laboratorios, se suman a la capacidad disponible por año. Las aulas móviles pueden dejar de considerarse después del año límite capturado.</p>
+          <div id="roomTypeControlsV57" class="table-wrap"></div>
 
           <h3>Profesional · presencialidad por semestre</h3>
           <div class="row-controls" style="margin-bottom:12px">
@@ -316,6 +351,7 @@
       <section class="card">
         <h2>Demanda de mañana y % de ocupación</h2>
         <p class="muted small">La misma gráfica ejecutiva de la primera pestaña, para revisar capacidad desde la pestaña Salones.</p>
+        <div id="capacityChartControlsV57" class="table-wrap" style="margin-bottom:12px"></div>
         <div class="chartbox"><canvas id="capacityPreviewChartSalones"></canvas></div>
       </section>
 
@@ -352,6 +388,15 @@
         <div id="newCareerControls" class="table-wrap"></div>
       </section>
 
+      <section class="card">
+        <h2>Rutas de enfoque a aperturar</h2>
+        <p class="muted small">
+          Ajusta por campus y carrera cuántas rutas de enfoque realmente se abrirán. Este valor impacta S6/S7, el tamaño por ruta y la clasificación Flex/Multicampus/Presencial.
+          Si dejas el campo vacío, se usa la cantidad base del Excel.
+        </p>
+        <div id="routeOpenControlsV63" class="table-wrap"></div>
+      </section>
+
       <div class="grid2">
         <section class="card">
           <h2>Salones por tipo</h2>
@@ -373,6 +418,37 @@
         <h2>Desglose por semestre de cada carrera</h2>
         <p class="muted small">Tabla de validación para el campus seleccionado y año elegido. En S6 y S7 muestra el total por carrera, número de rutas y tamaño estimado de grupo por ruta redondeado hacia arriba.</p>
         <div id="multiProgramTable" class="table-wrap"></div>
+      </section>
+    </div>
+
+    <div id="resumenmc" class="tabpane">
+      <section class="card">
+        <h2>Resumen Multicampus · todos los campus</h2>
+        <p class="muted small">
+          Vista consolidada por campus y año. Las columnas son los años del simulador y las filas son los campus.
+          Incluye espacios Multicampus, alumnos en modalidad Multicampus y carreras distintas que caen en Multicampus, calculados con el mismo criterio de carrera/semestre/ruta usado en la tabla de Multicampus.
+        </p>
+        <div id="resumenMcKpis" class="kpis" style="margin-top:14px"></div>
+      </section>
+
+      <section class="card">
+        <h2>Espacios Multicampus</h2>
+        <p class="muted small">Suma de espacios/grupos Multicampus por campus y año. En S6/S7 considera las rutas de enfoque aperturadas.</p>
+        <button id="downloadResumenMcEspaciosLocalBtn" class="secondary">Descargar espacios CSV</button>
+        <div id="resumenMcEspaciosTable" class="table-wrap" style="margin-top:10px"></div>
+      </section>
+
+      <section class="card">
+        <h2>Alumnos en Multicampus</h2>
+        <p class="muted small">Suma de alumnos reales que quedan clasificados como Multicampus por campus y año; no usa capacidad ni alumnos redondeados por ruta.</p>
+        <button id="downloadResumenMcAlumnosLocalBtn" class="secondary">Descargar alumnos CSV</button>
+        <div id="resumenMcAlumnosTable" class="table-wrap" style="margin-top:10px"></div>
+      </section>
+
+      <section class="card">
+        <h2>Carreras con Multicampus</h2>
+        <p class="muted small">Número de carreras distintas que tienen al menos un grupo/ruta clasificado como Multicampus en ese campus y año.</p>
+        <div id="resumenMcCarrerasTable" class="table-wrap"></div>
       </section>
     </div>
 
@@ -427,6 +503,68 @@
       </section>
     </div>
 
+    <div id="inversion" class="tabpane">
+      <section class="card">
+        <h2>Inversión · proyectos y recuperación</h2>
+        <p class="muted small">
+          Define proyectos nuevos o existentes, captura los NI que aportan por año y estima cuánto de la inversión se recupera con el remanente.
+          Los NI de proyectos se restan del NI total del campus impactado para mostrar el crecimiento orgánico.
+        </p>
+        <div class="grid3">
+          <div>
+            <label for="investmentProjectCount">Número de proyectos</label>
+            <input id="investmentProjectCount" data-zone="investmentV60" data-field="projectCount" type="number" min="1" step="1" value="1">
+          </div>
+          <div>
+            <label for="investmentSelectedProject">Proyecto para editar NI por año</label>
+            <select id="investmentSelectedProject"></select>
+          </div>
+          <div>
+            <label for="investmentViewTipo">Vista</label>
+            <select id="investmentViewTipo" data-zone="investmentV60" data-field="viewTipo">
+              <option value="Todos">Todos los proyectos</option>
+              <option value="Nuevo campus">Nuevo campus</option>
+              <option value="Edificio / ampliación">Edificio / ampliación</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Definición de proyectos</h2>
+        <p class="muted small">
+          “Campus impactado” indica de dónde se separarán los NI de proyecto para calcular el NI orgánico del campus.
+          Para proyectos de nuevo campus, puedes dejarlo como Nuevo campus o seleccionar un campus si quieres descontarlo de uno existente.
+        </p>
+        <div id="investmentProjectsTable" class="table-wrap"></div>
+      </section>
+
+      <div class="grid2">
+        <section class="card">
+          <h2>NI aportados por año</h2>
+          <p class="muted small">Captura los NI anuales del proyecto seleccionado. Estos NI se separan del total del campus como crecimiento por proyecto.</p>
+          <div id="investmentNiTable" class="table-wrap"></div>
+        </section>
+
+        <section class="card">
+          <h2>Recuperación de inversión</h2>
+          <p class="muted small">Barras: remanente anual. Líneas: remanente acumulado e inversión inicial.</p>
+          <div class="chartbox"><canvas id="investmentChart"></canvas></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <h2>Resumen por proyecto</h2>
+        <div id="investmentSummaryTable" class="table-wrap"></div>
+      </section>
+
+      <section class="card">
+        <h2>NI orgánico vs NI por proyecto</h2>
+        <p class="muted small">Resumen del campus seleccionado en la pestaña principal.</p>
+        <div id="investmentCampusImpactTable" class="table-wrap"></div>
+      </section>
+    </div>
+
     <div id="institucion" class="tabpane">
       <div class="grid2">
         <section class="card">
@@ -470,9 +608,12 @@
           <button id="downloadProjectionBtn">Descargar proyección CSV</button>
           <button id="downloadCapacityBtn" class="secondary">Descargar capacidad CSV</button>
           <button id="downloadMulticampusBtn" class="secondary">Descargar multicampus CSV</button>
+          <button id="downloadResumenMcEspaciosBtn" class="secondary">Descargar resumen MC espacios CSV</button>
+          <button id="downloadResumenMcAlumnosBtn" class="secondary">Descargar resumen MC alumnos CSV</button>
           <button id="downloadDocentesBtn" class="secondary">Descargar docentes CSV</button>
+          <button id="downloadInvestmentBtn" class="secondary">Descargar inversión CSV</button>
           <button id="downloadConfigBtn" class="secondary">Descargar configuración CSV</button>
-          <button id="resetBtn" class="ghost">Restablecer configuración v56</button>
+          <button id="resetBtn" class="ghost">Restablecer configuración v70</button>
         </div>
       </section>
 
@@ -486,9 +627,9 @@
 
 <script>
 const AUTO_FILE = "./modelo_simulador.xlsx";
-const STORAGE_KEY = "simulador_matricula_v56_config";
-const YEARS = Array.from({length:16}, (_,i)=>2030+i);
-const BASE_YEARS = Array.from({length:11}, (_,i)=>2030+i);
+const STORAGE_KEY = "simulador_matricula_v70_config";
+const YEARS = Array.from({length:20}, (_,i)=>2026+i);
+const BASE_YEARS = Array.from({length:15}, (_,i)=>2026+i);
 const FUTURE_YEARS = [2041,2042,2043,2044,2045];
 const SEMS_PROF = ["S1","S2","S3","S4","S5","S6","S7","S8"];
 const MAIN_LEVELS = ["Preparatoria","Profesional"];
@@ -10724,6 +10865,2791 @@ exportScenarioJsonV55 = function(){
     config:state.config
   };
   downloadTextV55(`escenario_${scenarioSlug()}_v56.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V57 patch: capacidad por tipos de espacios + móviles/labs + toggles de gráfica
+   ============================== */
+
+function defaultRoomTypeV57(label, qty, cap){
+  return {nombre:label, cantidad:Math.max(0, Math.round(n(qty,0))), capacidad:Math.max(1, Math.round(n(cap,25)))};
+}
+
+function capCfgV57(campus){
+  if(!state.config) state.config = {};
+  if(!state.config.capacity) state.config.capacity = {};
+  if(!state.config.capacity[campus]) state.config.capacity[campus] = {};
+  const cfg = state.config.capacity[campus];
+
+  if(!cfg.roomTypesV57){
+    cfg.roomTypesV57 = {
+      prepa:[defaultRoomTypeV57("Salón Prepa", n(cfg.prepaSalones,0), n(cfg.prepaGrupo,30))],
+      prof:[defaultRoomTypeV57("Salón Profesional", n(cfg.profSalones,0), n(cfg.profGrupo,25))],
+      mobile:{nivel:"Profesional", nombre:"Aula móvil", cantidad:0, capacidad:n(cfg.profGrupo,25), endYear:2045},
+      labs:{nivel:"Profesional", nombre:"Laboratorio / aula", cantidad:0, capacidad:n(cfg.profGrupo,25)}
+    };
+  }
+
+  if(!Array.isArray(cfg.roomTypesV57.prepa)) cfg.roomTypesV57.prepa = [defaultRoomTypeV57("Salón Prepa", n(cfg.prepaSalones,0), n(cfg.prepaGrupo,30))];
+  if(!Array.isArray(cfg.roomTypesV57.prof)) cfg.roomTypesV57.prof = [defaultRoomTypeV57("Salón Profesional", n(cfg.profSalones,0), n(cfg.profGrupo,25))];
+  if(!cfg.roomTypesV57.mobile) cfg.roomTypesV57.mobile = {nivel:"Profesional", nombre:"Aula móvil", cantidad:0, capacidad:n(cfg.profGrupo,25), endYear:2045};
+  if(!cfg.roomTypesV57.labs) cfg.roomTypesV57.labs = {nivel:"Profesional", nombre:"Laboratorio / aula", cantidad:0, capacidad:n(cfg.profGrupo,25)};
+
+  if(!cfg.chartV57){
+    cfg.chartV57 = {showPrepa:1, showProf:1, includeMobile:1};
+  }
+  if(cfg.chartV57.showPrepa === undefined) cfg.chartV57.showPrepa = 1;
+  if(cfg.chartV57.showProf === undefined) cfg.chartV57.showProf = 1;
+  if(cfg.chartV57.includeMobile === undefined) cfg.chartV57.includeMobile = 1;
+
+  return cfg;
+}
+
+function normalizeRoomArrayV57(arr, kind, cfg){
+  const fallbackCap = kind==="prepa" ? n(cfg.prepaGrupo,30) : n(cfg.profGrupo,25);
+  const fallbackName = kind==="prepa" ? "Salón Prepa" : "Salón Profesional";
+  return (arr || []).map((r,i)=>({
+    nombre:normalize(r.nombre || `${fallbackName} ${i+1}`),
+    cantidad:Math.max(0, Math.round(n(r.cantidad,0))),
+    capacidad:Math.max(1, Math.round(n(r.capacidad,fallbackCap)))
+  })).filter(r=>r.cantidad>0 || r.nombre);
+}
+
+function spacesForLevelV57(campus, nivel, year, includeMobile){
+  const cfg = capCfgV57(campus);
+  const rt = cfg.roomTypesV57;
+  const kind = nivel==="Preparatoria" ? "prepa" : "prof";
+  const prefix = nivel==="Preparatoria" ? "prepa" : "prof";
+  const baseGroup = nivel==="Preparatoria" ? Math.max(1,n(cfg.prepaGrupo,30)) : Math.max(1,n(cfg.profGrupo,25));
+
+  const items = [];
+  for(const r of normalizeRoomArrayV57(rt[kind], kind, cfg)){
+    if(n(r.cantidad,0)>0){
+      items.push({tipo:"Salón", nombre:r.nombre, cantidad:n(r.cantidad,0), capacidad:n(r.capacidad,baseGroup), origen:"base"});
+    }
+  }
+
+  const labs = rt.labs || {};
+  if(normalize(labs.nivel || "Profesional") === nivel && n(labs.cantidad,0)>0){
+    items.push({tipo:"Laboratorio/aula", nombre:normalize(labs.nombre || "Laboratorio / aula"), cantidad:Math.round(n(labs.cantidad,0)), capacidad:Math.max(1,Math.round(n(labs.capacidad,baseGroup))), origen:"laboratorio"});
+  }
+
+  const mobile = rt.mobile || {};
+  const mobileLastYear = Math.floor(n(mobile.endYear,2045));
+  if(includeMobile && normalize(mobile.nivel || "Profesional") === nivel && n(mobile.cantidad,0)>0 && year<=mobileLastYear){
+    items.push({tipo:"Aula móvil", nombre:normalize(mobile.nombre || "Aula móvil"), cantidad:Math.round(n(mobile.cantidad,0)), capacidad:Math.max(1,Math.round(n(mobile.capacidad,baseGroup))), origen:"movil", endYear:mobileLastYear});
+  }
+
+  // Salones agregados por año desde la matriz inferior. Se consideran con la capacidad base del nivel.
+  let addRooms = 0;
+  for(const y of YEARS){
+    if(y<=year) addRooms += Math.max(0, Math.round(n(cfg[`${prefix}Add_${y}`],0)));
+  }
+  if(addRooms>0){
+    items.push({tipo:"Salones agregados", nombre:"Adiciones por año", cantidad:addRooms, capacidad:baseGroup, origen:"adiciones"});
+  }
+
+  const salones = items.reduce((a,r)=>a+n(r.cantidad,0),0);
+  const capacidadAlumnos = items.reduce((a,r)=>a+n(r.cantidad,0)*n(r.capacidad,0),0);
+  const detalle = items.map(r=>`${r.tipo}: ${fmt0.format(r.cantidad)} x ${fmt0.format(r.capacidad)}${r.origen==="movil" ? ` hasta ${r.endYear}` : ""}`).join(" | ");
+
+  return {salones, capacidadAlumnos, detalle, items};
+}
+
+function includeMobileV57(campus){
+  return !!n(capCfgV57(campus).chartV57.includeMobile,1);
+}
+
+buildCapacityRows = function(campus){
+  const cfg = capCfgV57(campus);
+  const dist = getDistribution(campus);
+  const presence = getPresenceObj(campus);
+  const rows = [];
+  const semsCap = SEMS_PROF.filter(s=>s!=="S8");
+  const includeMobile = includeMobileV57(campus);
+
+  for(const y of YEARS){
+    const prepa = getProjected(campus,"Preparatoria",y);
+    const prof = getProjected(campus,"Profesional",y);
+
+    const prepaMt = n(prepa?.mt,0);
+    const prepaGroup = Math.max(1,n(cfg.prepaGrupo,30));
+    const prepaCap = spacesForLevelV57(campus,"Preparatoria",y,includeMobile);
+    const prepaReq = Math.ceil(prepaMt / prepaGroup);
+    const prepaFaltAlumnos = Math.max(0, prepaMt - n(prepaCap.capacidadAlumnos,0));
+    rows.push({
+      anio:y,campus,nivel:"Preparatoria",turno:"Mañana",tipo:"principal",
+      mt:prepaMt,alumnos_presenciales:prepaMt,
+      salones_requeridos:prepaReq,
+      salones_disponibles:n(prepaCap.salones,0),
+      capacidad_alumnos_disponible:n(prepaCap.capacidadAlumnos,0),
+      detalle_capacidad:prepaCap.detalle,
+      faltante_alumnos:prepaFaltAlumnos,
+      faltante:Math.ceil(prepaFaltAlumnos / prepaGroup),
+      excedente:prepaReq - Math.floor(n(prepaCap.capacidadAlumnos,0)/prepaGroup)
+    });
+
+    const profMt = n(prof?.mt,0);
+    let profManana = 0;
+    let profTarde = 0;
+    for(const sem of semsCap){
+      profManana += profMt * n(dist[sem],0) * n(presence[sem].manana,0);
+      profTarde += profMt * n(dist[sem],0) * n(presence[sem].tarde,0);
+    }
+
+    const profGroup = Math.max(1,n(cfg.profGrupo,25));
+    const profCap = spacesForLevelV57(campus,"Profesional",y,includeMobile);
+    const profReqManana = Math.ceil(profManana / profGroup);
+    const profFaltAlumnos = Math.max(0, profManana - n(profCap.capacidadAlumnos,0));
+    rows.push({
+      anio:y,campus,nivel:"Profesional",turno:"Mañana",tipo:"principal",
+      mt:profMt,alumnos_presenciales:profManana,
+      salones_requeridos:profReqManana,
+      salones_disponibles:n(profCap.salones,0),
+      capacidad_alumnos_disponible:n(profCap.capacidadAlumnos,0),
+      detalle_capacidad:profCap.detalle,
+      faltante_alumnos:profFaltAlumnos,
+      faltante:Math.ceil(profFaltAlumnos / profGroup),
+      excedente:profReqManana - Math.floor(n(profCap.capacidadAlumnos,0)/profGroup)
+    });
+
+    const profReqTarde = Math.ceil(profTarde / profGroup);
+    const tardeCapAlumnos = n(prepaCap.capacidadAlumnos,0) + n(profCap.capacidadAlumnos,0);
+    const tardeSalones = n(prepaCap.salones,0) + n(profCap.salones,0);
+    const tardeFaltAlumnos = Math.max(0, profTarde - tardeCapAlumnos);
+    rows.push({
+      anio:y,campus,nivel:"Profesional",turno:"Tarde check",tipo:"check",
+      mt:profMt,alumnos_presenciales:profTarde,
+      salones_requeridos:profReqTarde,
+      salones_disponibles:tardeSalones,
+      capacidad_alumnos_disponible:tardeCapAlumnos,
+      detalle_capacidad:`Prepa + Profesional`,
+      faltante_alumnos:tardeFaltAlumnos,
+      faltante:Math.ceil(tardeFaltAlumnos / profGroup),
+      excedente:profReqTarde - Math.floor(tardeCapAlumnos/profGroup)
+    });
+  }
+
+  state.capacityRows = rows;
+  return rows;
+};
+
+capacityPreviewData = function(campus){
+  buildCapacityRows(campus);
+
+  return YEARS.map(y=>{
+    const prepa = state.capacityRows.find(r=>r.anio===y && r.nivel==="Preparatoria" && r.turno==="Mañana") || {};
+    const profM = state.capacityRows.find(r=>r.anio===y && r.nivel==="Profesional" && r.turno==="Mañana") || {};
+    const profT = state.capacityRows.find(r=>r.anio===y && r.nivel==="Profesional" && r.turno==="Tarde check") || {};
+
+    return {
+      anio:y,
+      demandaPrepa:n(prepa.alumnos_presenciales),
+      demandaProfManana:n(profM.alumnos_presenciales),
+      demandaProfTarde:n(profT.alumnos_presenciales),
+      demandaTotal:n(prepa.alumnos_presenciales)+n(profM.alumnos_presenciales)+n(profT.alumnos_presenciales),
+      demandaManana:n(prepa.alumnos_presenciales)+n(profM.alumnos_presenciales),
+      capPrepaAlumnos:n(prepa.capacidad_alumnos_disponible),
+      capProfAlumnos:n(profM.capacidad_alumnos_disponible),
+      capTotal:n(prepa.capacidad_alumnos_disponible)+n(profM.capacidad_alumnos_disponible),
+      capTotalTarde:n(profT.capacidad_alumnos_disponible)
+    };
+  });
+};
+
+capacityHybridData = function(campus){
+  const raw = capacityPreviewData(campus);
+  const chartCfg = capCfgV57(campus).chartV57 || {};
+  const showPrepa = !!n(chartCfg.showPrepa,1);
+  const showProf = !!n(chartCfg.showProf,1);
+
+  return raw.map(r=>{
+    const demandaPrepa = showPrepa ? n(r.demandaPrepa,0) : 0;
+    const demandaProf = showProf ? n(r.demandaProfManana,0) : 0;
+    const demandaTotalManana = demandaPrepa + demandaProf;
+
+    const capPrepa = showPrepa ? n(r.capPrepaAlumnos,0) : 0;
+    const capProf = showProf ? n(r.capProfAlumnos,0) : 0;
+    const capTotal = capPrepa + capProf;
+
+    const pctPrepa = showPrepa && capPrepa > 0 ? (demandaPrepa / capPrepa) * 100 : 0;
+    const pctProf = showProf && capProf > 0 ? (demandaProf / capProf) * 100 : 0;
+    const pctTotal = capTotal > 0 ? (demandaTotalManana / capTotal) * 100 : 0;
+
+    return {
+      ...r,
+      demandaPrepa,
+      demandaProf,
+      demandaTotalManana,
+      capPrepa,
+      capProf,
+      capTotal,
+      pctPrepa,
+      pctProf,
+      pctTotal,
+      overPrepa: showPrepa && demandaPrepa > capPrepa,
+      overProf: showProf && demandaProf > capProf,
+      overTotal: demandaTotalManana > capTotal,
+      showPrepa,
+      showProf
+    };
+  });
+};
+
+function renderRoomTypeControlsV57(campus){
+  const el = $("roomTypeControlsV57");
+  if(!el) return;
+  const cfg = capCfgV57(campus);
+  const rt = cfg.roomTypesV57;
+
+  const countRows = [
+    ["Tipos Prepa", `<input data-zone="roomCountV57" data-kind="prepa" type="number" step="1" min="1" value="${Math.max(1,rt.prepa.length)}">`, "Número de tipos de salones para Prepa."],
+    ["Tipos Profesional", `<input data-zone="roomCountV57" data-kind="prof" type="number" step="1" min="1" value="${Math.max(1,rt.prof.length)}">`, "Número de tipos de salones para Profesional."]
+  ];
+
+  const roomRows = [];
+  for(const kind of ["prepa","prof"]){
+    const nivel = kind==="prepa" ? "Preparatoria" : "Profesional";
+    const arr = rt[kind] || [];
+    arr.forEach((r,i)=>{
+      roomRows.push([
+        nivel,
+        `<input data-zone="roomTypeV57" data-kind="${kind}" data-index="${i}" data-field="nombre" type="text" value="${escapeHtml(r.nombre || "")}">`,
+        `<input data-zone="roomTypeV57" data-kind="${kind}" data-index="${i}" data-field="cantidad" type="number" step="1" min="0" value="${Math.round(n(r.cantidad,0))}">`,
+        `<input data-zone="roomTypeV57" data-kind="${kind}" data-index="${i}" data-field="capacidad" type="number" step="1" min="1" value="${Math.round(n(r.capacidad,kind==="prepa"?30:25))}">`
+      ]);
+    });
+  }
+
+  const mobile = rt.mobile || {};
+  const labs = rt.labs || {};
+  const extraRows = [
+    ["Aulas móviles",
+      `<select data-zone="specialSpaceV57" data-block="mobile" data-field="nivel"><option value="Preparatoria"${mobile.nivel==="Preparatoria"?" selected":""}>Preparatoria</option><option value="Profesional"${mobile.nivel!=="Preparatoria"?" selected":""}>Profesional</option></select>`,
+      `<input data-zone="specialSpaceV57" data-block="mobile" data-field="cantidad" type="number" step="1" min="0" value="${Math.round(n(mobile.cantidad,0))}">`,
+      `<input data-zone="specialSpaceV57" data-block="mobile" data-field="capacidad" type="number" step="1" min="1" value="${Math.round(n(mobile.capacidad,25))}">`,
+      `<input data-zone="specialSpaceV57" data-block="mobile" data-field="endYear" type="number" step="1" min="2030" max="2045" value="${Math.floor(n(mobile.endYear,2045))}">`,
+      "Se consideran hasta ese año, salvo que apagues móviles en la gráfica."
+    ],
+    ["Laboratorios / aulas",
+      `<select data-zone="specialSpaceV57" data-block="labs" data-field="nivel"><option value="Preparatoria"${labs.nivel==="Preparatoria"?" selected":""}>Preparatoria</option><option value="Profesional"${labs.nivel!=="Preparatoria"?" selected":""}>Profesional</option></select>`,
+      `<input data-zone="specialSpaceV57" data-block="labs" data-field="cantidad" type="number" step="1" min="0" value="${Math.round(n(labs.cantidad,0))}">`,
+      `<input data-zone="specialSpaceV57" data-block="labs" data-field="capacidad" type="number" step="1" min="1" value="${Math.round(n(labs.capacidad,25))}">`,
+      "—",
+      "Se suman a la capacidad del nivel seleccionado."
+    ]
+  ];
+
+  el.innerHTML = `
+    <h4>Cuántos tipos capturar</h4>
+    ${tableHtml(["Control","Valor","Nota"], countRows, [0,2])}
+    <h4 style="margin-top:14px">Detalle por tipo de salón</h4>
+    ${tableHtml(["Nivel","Nombre","Cantidad","Capacidad por salón"], roomRows, [0,1])}
+    <h4 style="margin-top:14px">Espacios especiales</h4>
+    ${tableHtml(["Tipo","Nivel","Cantidad","Capacidad","Último año funcionando","Nota"], extraRows, [0,1,5])}
+  `;
+}
+
+function renderCapacityChartControlsV57(campus){
+  const el = $("capacityChartControlsV57");
+  if(!el) return;
+  const cfg = capCfgV57(campus).chartV57;
+  const rows = [
+    ["Mostrar demanda Prepa", `<input data-zone="chartV57" data-field="showPrepa" type="checkbox" ${n(cfg.showPrepa,1) ? "checked" : ""}>`, "Prende/apaga barras y ocupación de Prepa."],
+    ["Mostrar demanda Profesional", `<input data-zone="chartV57" data-field="showProf" type="checkbox" ${n(cfg.showProf,1) ? "checked" : ""}>`, "Prende/apaga barras y ocupación de Profesional."],
+    ["Considerar aulas móviles", `<input data-zone="chartV57" data-field="includeMobile" type="checkbox" ${n(cfg.includeMobile,1) ? "checked" : ""}>`, "Si se apaga, recalcula la capacidad y ocupación sin aulas móviles."]
+  ];
+  el.innerHTML = tableHtml(["Control","Valor","Uso"], rows, [0,2]);
+}
+
+const renderCapacityControlsBaseV57 = renderCapacityControls;
+renderCapacityControls = function(campus){
+  renderCapacityControlsBaseV57(campus);
+  renderRoomTypeControlsV57(campus);
+  renderCapacityChartControlsV57(campus);
+};
+
+function capacityMatrixHtml(campus, nivel, turno, prefix, canAdd){
+  const rows = state.capacityRows.filter(r=>r.nivel===nivel && r.turno===turno);
+  const get = (year)=>rows.find(r=>r.anio===year) || {};
+  const cap = state.config.capacity[campus] || {};
+  const headers = ["Concepto", ...YEARS.map(String)];
+  const body = [];
+
+  body.push(["Salones / espacios disponibles", ...YEARS.map(y=>fmt0.format(n(get(y).salones_disponibles)))]);
+  body.push(["Capacidad alumnos disponible", ...YEARS.map(y=>fmt0.format(n(get(y).capacidad_alumnos_disponible)))]);
+  body.push(["Salones requeridos", ...YEARS.map(y=>fmt0.format(n(get(y).salones_requeridos)))]);
+  body.push(["Faltante alumnos", ...YEARS.map(y=>{
+    const falt = n(get(y).faltante_alumnos,0);
+    return falt>0 ? `<span class="pill bad">+${fmt0.format(falt)}</span>` : `<span class="pill ok">0</span>`;
+  })]);
+  body.push(["Faltante salones", ...YEARS.map(y=>{
+    const falt = n(get(y).faltante,0);
+    return falt>0 ? `<span class="pill bad">+${fmt0.format(falt)}</span>` : `<span class="pill ok">0</span>`;
+  })]);
+
+  if(canAdd){
+    body.push(["Agregar salones", ...YEARS.map(y=>`<input data-zone="addRooms" data-prefix="${prefix}" data-year="${y}" type="number" step="1" min="0" value="${n(cap[`${prefix}Add_${y}`],0)}">`)]);
+  }else{
+    body.push(["Agregar salones", ...YEARS.map(()=>`<span class="muted small">Se ajusta con Prepa + Prof.</span>`)]);
+  }
+
+  return tableHtml(headers, body, [0]);
+}
+
+drawCapacityHybridChartTo = function(canvasId, summaryId, campus){
+  const canvas = $(canvasId);
+  if(!canvas) return;
+
+  const cfg = capCfgV57(campus).chartV57;
+  const showPrepa = !!n(cfg.showPrepa,1);
+  const showProf = !!n(cfg.showProf,1);
+  const includeMobile = !!n(cfg.includeMobile,1);
+
+  const data = capacityHybridData(campus);
+  if(summaryId) renderCapacityPreviewSummary(data);
+
+  const maxDemand = Math.max(10, ...data.map(r => n(r.demandaTotalManana,0)));
+  const suggestedDemandMax = Math.ceil(maxDemand * 1.15 / 100) * 100;
+
+  const maxPct = Math.max(110, ...data.map(r => n(r.pctPrepa,0)), ...data.map(r => n(r.pctProf,0)), ...data.map(r => n(r.pctTotal,0)));
+  const suggestedPctMax = Math.ceil(maxPct * 1.08 / 10) * 10;
+
+  const datasets = [];
+  if(showPrepa){
+    datasets.push({type:"bar",label:"Demanda Prepa mañana",data:data.map(r=>r.demandaPrepa),stack:"demanda_manana",yAxisID:"y",backgroundColor:"rgba(59, 130, 246, 0.85)",borderColor:"rgba(37, 99, 235, 1)",borderWidth:1,order:3});
+  }
+  if(showProf){
+    datasets.push({type:"bar",label:"Demanda Profesional mañana",data:data.map(r=>r.demandaProf),stack:"demanda_manana",yAxisID:"y",backgroundColor:"rgba(244, 114, 182, 0.85)",borderColor:"rgba(219, 39, 119, 1)",borderWidth:1,order:3});
+  }
+  if(showPrepa){
+    datasets.push({type:"line",label:"% ocupación Prepa",data:data.map(r=>r.pctPrepa),yAxisID:"y2",tension:0.15,borderWidth:2.5,pointRadius:2,borderColor:"rgba(29, 78, 216, 1)",backgroundColor:"rgba(29, 78, 216, 1)",order:1});
+  }
+  if(showProf){
+    datasets.push({type:"line",label:"% ocupación Profesional",data:data.map(r=>r.pctProf),yAxisID:"y2",tension:0.15,borderWidth:2.5,pointRadius:2,borderColor:"rgba(190, 24, 93, 1)",backgroundColor:"rgba(190, 24, 93, 1)",order:1});
+  }
+  datasets.push({type:"line",label:"% ocupación vista seleccionada",data:data.map(r=>r.pctTotal),yAxisID:"y2",tension:0.15,borderWidth:3,pointRadius:2,borderColor:"rgba(17, 24, 39, 1)",backgroundColor:"rgba(17, 24, 39, 1)",order:0});
+  datasets.push({type:"line",label:"100% capacidad",data:data.map(()=>100),yAxisID:"y2",borderDash:[6,6],pointRadius:0,borderWidth:1.5,borderColor:"rgba(107, 114, 128, 1)",backgroundColor:"rgba(107, 114, 128, 1)",order:2});
+
+  drawChart(canvasId, canvas, {
+    type:"bar",
+    data:{labels:data.map(r => r.anio), datasets},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:"index",intersect:false},
+      plugins:{
+        legend:{position:"bottom"},
+        title:{display:true,text:`Demanda y ocupación · ${includeMobile ? "con" : "sin"} aulas móviles`}
+      },
+      scales:{
+        x:{stacked:true,title:{display:true,text:"Año"},grid:{display:false}},
+        y:{stacked:true,beginAtZero:true,suggestedMax:suggestedDemandMax,title:{display:true,text:"Demanda (alumnos)"},ticks:{callback:(v)=>fmt0.format(v)},grid:{color:"#eef2f7"}},
+        y2:{position:"right",beginAtZero:true,suggestedMax:suggestedPctMax,title:{display:true,text:"Ocupación (%)"},ticks:{callback:(v)=>`${fmt0.format(v)}%`},grid:{drawOnChartArea:false}}
+      }
+    }
+  });
+};
+
+document.addEventListener("change", (e)=>{
+  if(!e.target) return;
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  const cfg = capCfgV57(campus);
+
+  if(e.target.matches("[data-zone='roomCountV57']")){
+    const kind = e.target.dataset.kind;
+    const desired = Math.max(1, Math.floor(n(e.target.value,1)));
+    const arr = cfg.roomTypesV57[kind] || [];
+    const fallbackCap = kind==="prepa" ? n(cfg.prepaGrupo,30) : n(cfg.profGrupo,25);
+    const fallbackName = kind==="prepa" ? "Salón Prepa" : "Salón Profesional";
+    while(arr.length < desired) arr.push(defaultRoomTypeV57(`${fallbackName} ${arr.length+1}`,0,fallbackCap));
+    while(arr.length > desired) arr.pop();
+    cfg.roomTypesV57[kind] = arr;
+    saveConfig();
+    render();
+  }
+
+  if(e.target.matches("[data-zone='roomTypeV57']")){
+    const kind = e.target.dataset.kind;
+    const idx = Math.floor(n(e.target.dataset.index,0));
+    const field = e.target.dataset.field;
+    const arr = cfg.roomTypesV57[kind] || [];
+    if(!arr[idx]) arr[idx] = defaultRoomTypeV57(kind==="prepa" ? "Salón Prepa" : "Salón Profesional",0,kind==="prepa"?30:25);
+    if(field==="nombre") arr[idx][field] = e.target.value;
+    else arr[idx][field] = Math.max(field==="capacidad" ? 1 : 0, Math.round(n(e.target.value,0)));
+    saveConfig();
+    render();
+  }
+
+  if(e.target.matches("[data-zone='specialSpaceV57']")){
+    const block = e.target.dataset.block;
+    const field = e.target.dataset.field;
+    if(!cfg.roomTypesV57[block]) cfg.roomTypesV57[block] = {};
+    if(field==="nivel" || field==="nombre") cfg.roomTypesV57[block][field] = e.target.value;
+    else cfg.roomTypesV57[block][field] = Math.round(n(e.target.value, field==="endYear" ? 2045 : 0));
+    saveConfig();
+    render();
+  }
+
+  if(e.target.matches("[data-zone='chartV57']")){
+    const field = e.target.dataset.field;
+    cfg.chartV57[field] = e.target.checked ? 1 : 0;
+    if(!n(cfg.chartV57.showPrepa,0) && !n(cfg.chartV57.showProf,0)){
+      cfg.chartV57.showProf = 1;
+    }
+    saveConfig();
+    render();
+  }
+});
+
+exportCapacityV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    const capRows = buildCapacityRows(c);
+    for(const r of capRows){
+      const addInfo = capacityAdditionInfoV56(c, r.nivel, r.anio);
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:r.campus,
+        nivel:r.nivel,
+        turno:r.turno || "",
+        tipo:r.tipo || "",
+        mt:intV56(r.mt),
+        alumnos_presenciales:intV56(r.alumnos_presenciales),
+        salones_base_iniciales:addInfo.salones_base_iniciales,
+        salones_agregados_en_anio:addInfo.salones_agregados_en_anio,
+        anio_simulacion_salones:addInfo.anio_simulacion_salones,
+        salones_agregados_acumulados:addInfo.salones_agregados_acumulados,
+        anios_simulacion_salones:addInfo.anios_simulacion_salones,
+        salones_requeridos:intV56(r.salones_requeridos),
+        salones_disponibles:intV56(r.salones_disponibles),
+        capacidad_alumnos_disponible:intV56(r.capacidad_alumnos_disponible),
+        faltante_alumnos:intV56(r.faltante_alumnos),
+        faltante_salones:intV56(r.faltante),
+        excedente_salones:intV56(r.excedente),
+        detalle_capacidad:r.detalle_capacidad || ""
+      });
+    }
+  }
+
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v57.csv`, rows);
+};
+
+
+
+/* ==============================
+   V58 patch: aulas móviles por nivel + quitar faltante alumnos de Salones
+   ============================== */
+
+const capCfgV57BaseV58 = capCfgV57;
+capCfgV57 = function(campus){
+  const cfg = capCfgV57BaseV58(campus);
+  const rt = cfg.roomTypesV57 || {};
+
+  // Nueva estructura: móviles separados por nivel.
+  if(!rt.mobileByLevel){
+    const old = rt.mobile || {};
+    rt.mobileByLevel = {
+      prepa:{
+        nombre:"Aula móvil Prepa",
+        cantidad: normalize(old.nivel)==="Preparatoria" ? Math.max(0,Math.round(n(old.cantidad,0))) : 0,
+        capacidad: normalize(old.nivel)==="Preparatoria" ? Math.max(1,Math.round(n(old.capacidad,n(cfg.prepaGrupo,30)))) : Math.max(1,Math.round(n(cfg.prepaGrupo,30))),
+        endYear: normalize(old.nivel)==="Preparatoria" ? Math.floor(n(old.endYear,2045)) : 2045
+      },
+      prof:{
+        nombre:"Aula móvil Profesional",
+        cantidad: normalize(old.nivel)!=="Preparatoria" ? Math.max(0,Math.round(n(old.cantidad,0))) : 0,
+        capacidad: normalize(old.nivel)!=="Preparatoria" ? Math.max(1,Math.round(n(old.capacidad,n(cfg.profGrupo,25)))) : Math.max(1,Math.round(n(cfg.profGrupo,25))),
+        endYear: normalize(old.nivel)!=="Preparatoria" ? Math.floor(n(old.endYear,2045)) : 2045
+      }
+    };
+  }
+
+  if(!rt.mobileByLevel.prepa){
+    rt.mobileByLevel.prepa = {nombre:"Aula móvil Prepa", cantidad:0, capacidad:Math.max(1,Math.round(n(cfg.prepaGrupo,30))), endYear:2045};
+  }
+  if(!rt.mobileByLevel.prof){
+    rt.mobileByLevel.prof = {nombre:"Aula móvil Profesional", cantidad:0, capacidad:Math.max(1,Math.round(n(cfg.profGrupo,25))), endYear:2045};
+  }
+
+  cfg.roomTypesV57 = rt;
+  return cfg;
+};
+
+spacesForLevelV57 = function(campus, nivel, year, includeMobile){
+  const cfg = capCfgV57(campus);
+  const rt = cfg.roomTypesV57;
+  const kind = nivel==="Preparatoria" ? "prepa" : "prof";
+  const prefix = nivel==="Preparatoria" ? "prepa" : "prof";
+  const baseGroup = nivel==="Preparatoria" ? Math.max(1,n(cfg.prepaGrupo,30)) : Math.max(1,n(cfg.profGrupo,25));
+
+  const items = [];
+  for(const r of normalizeRoomArrayV57(rt[kind], kind, cfg)){
+    if(n(r.cantidad,0)>0){
+      items.push({tipo:"Salón", nombre:r.nombre, cantidad:n(r.cantidad,0), capacidad:n(r.capacidad,baseGroup), origen:"base"});
+    }
+  }
+
+  const labs = rt.labs || {};
+  if(normalize(labs.nivel || "Profesional") === nivel && n(labs.cantidad,0)>0){
+    items.push({tipo:"Laboratorio/aula", nombre:normalize(labs.nombre || "Laboratorio / aula"), cantidad:Math.round(n(labs.cantidad,0)), capacidad:Math.max(1,Math.round(n(labs.capacidad,baseGroup))), origen:"laboratorio"});
+  }
+
+  const mobile = rt.mobileByLevel?.[kind] || {};
+  const mobileLastYear = Math.floor(n(mobile.endYear,2045));
+  if(includeMobile && n(mobile.cantidad,0)>0 && year<=mobileLastYear){
+    items.push({
+      tipo:"Aula móvil",
+      nombre:normalize(mobile.nombre || (kind==="prepa" ? "Aula móvil Prepa" : "Aula móvil Profesional")),
+      cantidad:Math.round(n(mobile.cantidad,0)),
+      capacidad:Math.max(1,Math.round(n(mobile.capacidad,baseGroup))),
+      origen:"movil",
+      endYear:mobileLastYear
+    });
+  }
+
+  let addRooms = 0;
+  for(const y of YEARS){
+    if(y<=year) addRooms += Math.max(0, Math.round(n(cfg[`${prefix}Add_${y}`],0)));
+  }
+  if(addRooms>0){
+    items.push({tipo:"Salones agregados", nombre:"Adiciones por año", cantidad:addRooms, capacidad:baseGroup, origen:"adiciones"});
+  }
+
+  const salones = items.reduce((a,r)=>a+n(r.cantidad,0),0);
+  const capacidadAlumnos = items.reduce((a,r)=>a+n(r.cantidad,0)*n(r.capacidad,0),0);
+  const detalle = items.map(r=>`${r.nombre}: ${fmt0.format(r.cantidad)} x ${fmt0.format(r.capacidad)}${r.origen==="movil" ? ` hasta ${r.endYear}` : ""}`).join(" | ");
+
+  return {salones, capacidadAlumnos, detalle, items};
+};
+
+renderRoomTypeControlsV57 = function(campus){
+  const el = $("roomTypeControlsV57");
+  if(!el) return;
+  const cfg = capCfgV57(campus);
+  const rt = cfg.roomTypesV57;
+  const mobilePrepa = rt.mobileByLevel.prepa;
+  const mobileProf = rt.mobileByLevel.prof;
+
+  const countRows = [
+    ["Tipos Prepa", `<input data-zone="roomCountV57" data-kind="prepa" type="number" step="1" min="1" value="${Math.max(1,rt.prepa.length)}">`, "Número de tipos de salones para Prepa."],
+    ["Tipos Profesional", `<input data-zone="roomCountV57" data-kind="prof" type="number" step="1" min="1" value="${Math.max(1,rt.prof.length)}">`, "Número de tipos de salones para Profesional."]
+  ];
+
+  const roomRows = [];
+  for(const kind of ["prepa","prof"]){
+    const nivel = kind==="prepa" ? "Preparatoria" : "Profesional";
+    const arr = rt[kind] || [];
+    arr.forEach((r,i)=>{
+      roomRows.push([
+        nivel,
+        `<input data-zone="roomTypeV57" data-kind="${kind}" data-index="${i}" data-field="nombre" type="text" value="${escapeHtml(r.nombre || "")}">`,
+        `<input data-zone="roomTypeV57" data-kind="${kind}" data-index="${i}" data-field="cantidad" type="number" step="1" min="0" value="${Math.round(n(r.cantidad,0))}">`,
+        `<input data-zone="roomTypeV57" data-kind="${kind}" data-index="${i}" data-field="capacidad" type="number" step="1" min="1" value="${Math.round(n(r.capacidad,kind==="prepa"?30:25))}">`
+      ]);
+    });
+  }
+
+  const mobileRows = [
+    ["Preparatoria",
+      `<input data-zone="mobileByLevelV58" data-kind="prepa" data-field="nombre" type="text" value="${escapeHtml(mobilePrepa.nombre || "Aula móvil Prepa")}">`,
+      `<input data-zone="mobileByLevelV58" data-kind="prepa" data-field="cantidad" type="number" step="1" min="0" value="${Math.round(n(mobilePrepa.cantidad,0))}">`,
+      `<input data-zone="mobileByLevelV58" data-kind="prepa" data-field="capacidad" type="number" step="1" min="1" value="${Math.round(n(mobilePrepa.capacidad,30))}">`,
+      `<input data-zone="mobileByLevelV58" data-kind="prepa" data-field="endYear" type="number" step="1" min="2030" max="2045" value="${Math.floor(n(mobilePrepa.endYear,2045))}">`
+    ],
+    ["Profesional",
+      `<input data-zone="mobileByLevelV58" data-kind="prof" data-field="nombre" type="text" value="${escapeHtml(mobileProf.nombre || "Aula móvil Profesional")}">`,
+      `<input data-zone="mobileByLevelV58" data-kind="prof" data-field="cantidad" type="number" step="1" min="0" value="${Math.round(n(mobileProf.cantidad,0))}">`,
+      `<input data-zone="mobileByLevelV58" data-kind="prof" data-field="capacidad" type="number" step="1" min="1" value="${Math.round(n(mobileProf.capacidad,25))}">`,
+      `<input data-zone="mobileByLevelV58" data-kind="prof" data-field="endYear" type="number" step="1" min="2030" max="2045" value="${Math.floor(n(mobileProf.endYear,2045))}">`
+    ]
+  ];
+
+  const labs = rt.labs || {};
+  const labRows = [
+    ["Laboratorios / aulas",
+      `<select data-zone="specialSpaceV57" data-block="labs" data-field="nivel"><option value="Preparatoria"${labs.nivel==="Preparatoria"?" selected":""}>Preparatoria</option><option value="Profesional"${labs.nivel!=="Preparatoria"?" selected":""}>Profesional</option></select>`,
+      `<input data-zone="specialSpaceV57" data-block="labs" data-field="cantidad" type="number" step="1" min="0" value="${Math.round(n(labs.cantidad,0))}">`,
+      `<input data-zone="specialSpaceV57" data-block="labs" data-field="capacidad" type="number" step="1" min="1" value="${Math.round(n(labs.capacidad,25))}">`,
+      "Se suman a la capacidad del nivel seleccionado."
+    ]
+  ];
+
+  el.innerHTML = `
+    <h4>Cuántos tipos capturar</h4>
+    ${tableHtml(["Control","Valor","Nota"], countRows, [0,2])}
+    <h4 style="margin-top:14px">Detalle por tipo de salón</h4>
+    ${tableHtml(["Nivel","Nombre","Cantidad","Capacidad por salón"], roomRows, [0,1])}
+    <h4 style="margin-top:14px">Aulas móviles</h4>
+    <p class="muted small">Puedes capturar una cantidad distinta para Prepa y para Profesional. Se consideran hasta el último año funcionando.</p>
+    ${tableHtml(["Nivel","Nombre","Cantidad","Capacidad","Último año funcionando"], mobileRows, [0,1])}
+    <h4 style="margin-top:14px">Laboratorios / aulas</h4>
+    ${tableHtml(["Tipo","Nivel","Cantidad","Capacidad","Nota"], labRows, [0,1,4])}
+  `;
+};
+
+capacityMatrixHtml = function(campus, nivel, turno, prefix, canAdd){
+  const rows = state.capacityRows.filter(r=>r.nivel===nivel && r.turno===turno);
+  const get = (year)=>rows.find(r=>r.anio===year) || {};
+  const cap = state.config.capacity[campus] || {};
+  const headers = ["Concepto", ...YEARS.map(String)];
+  const body = [];
+
+  body.push(["Salones / espacios disponibles", ...YEARS.map(y=>fmt0.format(n(get(y).salones_disponibles)))]);
+  body.push(["Capacidad alumnos disponible", ...YEARS.map(y=>fmt0.format(n(get(y).capacidad_alumnos_disponible)))]);
+  body.push(["Salones requeridos", ...YEARS.map(y=>fmt0.format(n(get(y).salones_requeridos)))]);
+  body.push(["Faltante salones", ...YEARS.map(y=>{
+    const falt = n(get(y).faltante,0);
+    return falt>0 ? `<span class="pill bad">+${fmt0.format(falt)}</span>` : `<span class="pill ok">0</span>`;
+  })]);
+
+  if(canAdd){
+    body.push(["Agregar salones", ...YEARS.map(y=>`<input data-zone="addRooms" data-prefix="${prefix}" data-year="${y}" type="number" step="1" min="0" value="${n(cap[`${prefix}Add_${y}`],0)}">`)]);
+  }else{
+    body.push(["Agregar salones", ...YEARS.map(()=>`<span class="muted small">Se ajusta con Prepa + Prof.</span>`)]);
+  }
+
+  return tableHtml(headers, body, [0]);
+};
+
+document.addEventListener("change", (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='mobileByLevelV58']")) return;
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  const cfg = capCfgV57(campus);
+  const kind = e.target.dataset.kind;
+  const field = e.target.dataset.field;
+  if(!cfg.roomTypesV57.mobileByLevel[kind]){
+    cfg.roomTypesV57.mobileByLevel[kind] = {
+      nombre:kind==="prepa" ? "Aula móvil Prepa" : "Aula móvil Profesional",
+      cantidad:0,
+      capacidad:kind==="prepa" ? 30 : 25,
+      endYear:2045
+    };
+  }
+
+  if(field==="nombre"){
+    cfg.roomTypesV57.mobileByLevel[kind][field] = e.target.value;
+  }else{
+    const def = field==="endYear" ? 2045 : field==="capacidad" ? (kind==="prepa" ? 30 : 25) : 0;
+    cfg.roomTypesV57.mobileByLevel[kind][field] = Math.round(n(e.target.value, def));
+    if(field==="capacidad"){
+      cfg.roomTypesV57.mobileByLevel[kind][field] = Math.max(1, cfg.roomTypesV57.mobileByLevel[kind][field]);
+    }
+    if(field==="cantidad"){
+      cfg.roomTypesV57.mobileByLevel[kind][field] = Math.max(0, cfg.roomTypesV57.mobileByLevel[kind][field]);
+    }
+  }
+  saveConfig();
+  render();
+});
+
+exportCapacityV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    const capRows = buildCapacityRows(c);
+    for(const r of capRows){
+      const addInfo = capacityAdditionInfoV56(c, r.nivel, r.anio);
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:r.campus,
+        nivel:r.nivel,
+        turno:r.turno || "",
+        tipo:r.tipo || "",
+        mt:intV56(r.mt),
+        alumnos_presenciales:intV56(r.alumnos_presenciales),
+        salones_base_iniciales:addInfo.salones_base_iniciales,
+        salones_agregados_en_anio:addInfo.salones_agregados_en_anio,
+        anio_simulacion_salones:addInfo.anio_simulacion_salones,
+        salones_agregados_acumulados:addInfo.salones_agregados_acumulados,
+        anios_simulacion_salones:addInfo.anios_simulacion_salones,
+        salones_requeridos:intV56(r.salones_requeridos),
+        salones_disponibles:intV56(r.salones_disponibles),
+        capacidad_alumnos_disponible:intV56(r.capacidad_alumnos_disponible),
+        faltante_salones:intV56(r.faltante),
+        excedente_salones:intV56(r.excedente),
+        detalle_capacidad:r.detalle_capacidad || ""
+      });
+    }
+  }
+
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v58.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v58",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v58.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V59 patch: quitar captura de salones disponibles iniciales
+   Salones disponibles ahora se calculan desde tipos de espacios.
+   ============================== */
+
+function roomBaseSummaryV59(campus, nivel){
+  const cfg = capCfgV57(campus);
+  const rt = cfg.roomTypesV57 || {};
+  const kind = nivel === "Preparatoria" ? "prepa" : "prof";
+  const arr = normalizeRoomArrayV57(rt[kind] || [], kind, cfg);
+
+  const espacios = arr.reduce((a,r)=>a+n(r.cantidad,0),0);
+  const capacidad = arr.reduce((a,r)=>a+n(r.cantidad,0)*n(r.capacidad,0),0);
+  const detalle = arr
+    .filter(r=>n(r.cantidad,0)>0)
+    .map(r=>`${r.nombre}: ${fmt0.format(n(r.cantidad,0))} x ${fmt0.format(n(r.capacidad,0))}`)
+    .join(" | ");
+
+  return {espacios, capacidad, detalle};
+}
+
+function mobileSummaryV59(campus, nivel){
+  const cfg = capCfgV57(campus);
+  const kind = nivel === "Preparatoria" ? "prepa" : "prof";
+  const m = cfg.roomTypesV57?.mobileByLevel?.[kind] || {};
+  return {
+    espacios:Math.max(0,Math.round(n(m.cantidad,0))),
+    capacidad:Math.max(0,Math.round(n(m.cantidad,0))) * Math.max(1,Math.round(n(m.capacidad,kind==="prepa"?30:25))),
+    endYear:Math.floor(n(m.endYear,2045)),
+    detalle:n(m.cantidad,0)>0 ? `${normalize(m.nombre || (kind==="prepa" ? "Aula móvil Prepa" : "Aula móvil Profesional"))}: ${fmt0.format(n(m.cantidad,0))} x ${fmt0.format(n(m.capacidad,kind==="prepa"?30:25))} hasta ${Math.floor(n(m.endYear,2045))}` : ""
+  };
+}
+
+function labSummaryV59(campus, nivel){
+  const cfg = capCfgV57(campus);
+  const labs = cfg.roomTypesV57?.labs || {};
+  if(normalize(labs.nivel || "Profesional") !== nivel) return {espacios:0, capacidad:0, detalle:""};
+  const espacios = Math.max(0,Math.round(n(labs.cantidad,0)));
+  const capUnit = Math.max(1,Math.round(n(labs.capacidad,nivel==="Preparatoria"?30:25)));
+  return {
+    espacios,
+    capacidad:espacios * capUnit,
+    detalle:espacios>0 ? `${normalize(labs.nombre || "Laboratorio / aula")}: ${fmt0.format(espacios)} x ${fmt0.format(capUnit)}` : ""
+  };
+}
+
+renderCapacityControls = function(campus){
+  const cfg = capCfgV57(campus);
+  const prepaBase = roomBaseSummaryV59(campus, "Preparatoria");
+  const profBase = roomBaseSummaryV59(campus, "Profesional");
+
+  const rows = [
+    [
+      "Preparatoria",
+      `<input data-zone="capGroupV59" data-field="prepaGrupo" type="number" step="1" min="1" value="${Math.round(n(cfg.prepaGrupo,30))}">`,
+      fmt0.format(prepaBase.espacios),
+      fmt0.format(prepaBase.capacidad),
+      escapeHtml(prepaBase.detalle || "Captura tipos de salones abajo")
+    ],
+    [
+      "Profesional",
+      `<input data-zone="capGroupV59" data-field="profGrupo" type="number" step="1" min="1" value="${Math.round(n(cfg.profGrupo,25))}">`,
+      fmt0.format(profBase.espacios),
+      fmt0.format(profBase.capacidad),
+      escapeHtml(profBase.detalle || "Captura tipos de salones abajo")
+    ]
+  ];
+
+  $("capacityControls").innerHTML = tableHtml(
+    ["Nivel","Tamaño grupo objetivo","Espacios base calculados","Capacidad base alumnos","Detalle base"],
+    rows,
+    [0,4]
+  );
+
+  renderRoomTypeControlsV57(campus);
+  renderCapacityChartControlsV57(campus);
+};
+
+document.addEventListener("change", (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='capGroupV59']")) return;
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  const cfg = capCfgV57(campus);
+  const field = e.target.dataset.field;
+  cfg[field] = Math.max(1, Math.round(n(e.target.value, field==="prepaGrupo" ? 30 : 25)));
+  saveConfig();
+  render();
+});
+
+capacityAdditionInfoV56 = function(campus, nivel, year){
+  const cfg = capCfgV57(campus);
+  const isPrepa = nivel === "Preparatoria";
+  const prefix = isPrepa ? "prepa" : "prof";
+  const base = roomBaseSummaryV59(campus, nivel);
+  const labs = labSummaryV59(campus, nivel);
+  const mobile = mobileSummaryV59(campus, nivel);
+
+  const years = [];
+  let acumulado = 0;
+  for(const y of YEARS){
+    const add = intV56(cfg[`${prefix}Add_${y}`]);
+    if(add !== 0) years.push({anio:y, salones:add});
+    if(y <= year) acumulado += add;
+  }
+  const currentAdd = intV56(cfg[`${prefix}Add_${year}`]);
+  const activeUpToYear = years.filter(x=>x.anio<=year);
+
+  return {
+    salones_base_iniciales:intV56(base.espacios),
+    capacidad_base_alumnos:intV56(base.capacidad),
+    laboratorios_aulas:intV56(labs.espacios),
+    capacidad_laboratorios_aulas:intV56(labs.capacidad),
+    aulas_moviles_configuradas:intV56(mobile.espacios),
+    capacidad_aulas_moviles:intV56(year <= n(mobile.endYear,2045) ? mobile.capacidad : 0),
+    ultimo_anio_aulas_moviles:mobile.espacios>0 ? intV56(mobile.endYear) : "",
+    salones_agregados_en_anio:currentAdd,
+    anio_simulacion_salones:currentAdd !== 0 ? year : "",
+    salones_agregados_acumulados:acumulado,
+    anios_simulacion_salones:activeUpToYear.map(x=>`${x.anio}:${x.salones}`).join(" | ")
+  };
+};
+
+exportProjectionV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = state.projection.map(r=>({
+    escenario:esc,
+    anio:intV56(r.anio),
+    periodo:r.periodo,
+    campus:r.campus,
+    nivel:r.nivel,
+    modalidad:r.modalidad || "",
+    tipo:r.tipo || "",
+    ni:intV56(r.ni),
+    ri:intV56(r.ri),
+    mt:intV56(r.mt),
+    factor_ri_ni_pct:pctIntV56(r.ratio_ri_ni),
+    crecimiento_ni_pct:pctIntV56(r.crec_ni),
+    crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
+  }));
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportCapacityV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    const capRows = buildCapacityRows(c);
+    for(const r of capRows){
+      const addInfo = capacityAdditionInfoV56(c, r.nivel, r.anio);
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:r.campus,
+        nivel:r.nivel,
+        turno:r.turno || "",
+        tipo:r.tipo || "",
+        mt:intV56(r.mt),
+        alumnos_presenciales:intV56(r.alumnos_presenciales),
+        espacios_base_por_tipos:addInfo.salones_base_iniciales,
+        capacidad_base_alumnos:addInfo.capacidad_base_alumnos,
+        laboratorios_aulas:addInfo.laboratorios_aulas,
+        capacidad_laboratorios_aulas:addInfo.capacidad_laboratorios_aulas,
+        aulas_moviles_configuradas:addInfo.aulas_moviles_configuradas,
+        capacidad_aulas_moviles_vigente:addInfo.capacidad_aulas_moviles,
+        ultimo_anio_aulas_moviles:addInfo.ultimo_anio_aulas_moviles,
+        salones_agregados_en_anio:addInfo.salones_agregados_en_anio,
+        anio_simulacion_salones:addInfo.anio_simulacion_salones,
+        salones_agregados_acumulados:addInfo.salones_agregados_acumulados,
+        anios_simulacion_salones:addInfo.anios_simulacion_salones,
+        salones_requeridos:intV56(r.salones_requeridos),
+        salones_disponibles_calculados:intV56(r.salones_disponibles),
+        capacidad_alumnos_disponible:intV56(r.capacidad_alumnos_disponible),
+        faltante_salones:intV56(r.faltante),
+        excedente_salones:intV56(r.excedente),
+        detalle_capacidad:r.detalle_capacidad || ""
+      });
+    }
+  }
+
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v70.csv`, rows);
+};
+
+exportMulticampusV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    if($("campusSelect")) $("campusSelect").value = c;
+    const detail = multicampusDetailRows(c);
+    for(const r of detail){
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:c,
+        semestre:r.semestre,
+        programa:r.programas || r.programa || "",
+        grupo:r.grupo || "",
+        tipo:r.tipo || "",
+        alumnos:intV56(r.alumnos),
+        alumnos_programa_semestre:intV56(r.alumnosProgramaSemestre),
+        rutas:intV56(r.rutasCount) || "",
+        espacios_flex:intV56(r.salonesFlex),
+        espacios_multicampus:intV56(r.salonesMulticampus),
+        salones_presenciales:intV56(r.salonesPresenciales),
+        capacidad:intV56(r.capacidad),
+        ocioso:intV56(r.ocioso)
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportDocentesV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const cfg = docenteCfg ? docenteCfg() : {limit:36,tipo:"Todos"};
+  const rows = [];
+
+  for(const y of YEARS){
+    const groups = docenteOperationalGroups ? docenteOperationalGroups(y) : [];
+    for(const g of groups){
+      rows.push({
+        escenario:esc,
+        anio:intV56(y),
+        filtro_tipo:cfg.tipo || "Todos",
+        limite_alumnos_docente:intV56(cfg.limit || 36),
+        tipo:g.tipo,
+        semestre:g.semestre,
+        programa:g.programa,
+        ruta:g.ruta || "",
+        materia_certificado:g.materia || g.certificado || "",
+        secuencia:g.secuencia || "",
+        grupos_campus:intV56(g.gruposCampus),
+        campus_participantes:intV56(g.campus?.length || 0),
+        alumnos:intV56(g.alumnos),
+        docentes_operativos:intV56(g.docentesOperativos),
+        ahorro_operativo:intV56(g.ahorro),
+        campus:g.campus ? g.campus.join(" | ") : "",
+        detalle:g.campusDetalle ? g.campusDetalle.join(" | ") : ""
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportConfigV55 = function(){
+  setScenarioName(scenarioName());
+  const esc = scenarioName();
+  const rows = flattenConfigV55(state.config || {}).map(r=>({
+    escenario:esc,
+    ruta:r.path,
+    valor:configValueForCsvV56(r.path, r.valor)
+  }));
+  downloadCsvV55(`configuracion_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V60 patch: módulo Inversión + NI orgánico / NI proyecto
+   ============================== */
+
+function defaultInvestmentProjectV60(i){
+  const campus = state.campusList?.[0] || "";
+  return {
+    active:1,
+    name:`Proyecto ${i+1}`,
+    type:"Edificio / ampliación",
+    impactCampus:campus,
+    newCampusName:"",
+    nivel:"Profesional",
+    startYear:2030,
+    investmentYear:2030,
+    investmentAmount:0,
+    remanentePct:0.15,
+    tuition:0,
+    niByYear:{}
+  };
+}
+
+function investmentCfgV60(){
+  if(!state.config) state.config = {};
+  if(!state.config.investmentV60){
+    state.config.investmentV60 = {
+      selected:0,
+      viewTipo:"Todos",
+      projects:[defaultInvestmentProjectV60(0)]
+    };
+  }
+  const cfg = state.config.investmentV60;
+  if(!Array.isArray(cfg.projects)) cfg.projects = [defaultInvestmentProjectV60(0)];
+  if(!cfg.projects.length) cfg.projects.push(defaultInvestmentProjectV60(0));
+  cfg.projects.forEach((p,i)=>{
+    if(p.active === undefined) p.active = 1;
+    if(!p.name) p.name = `Proyecto ${i+1}`;
+    if(!p.type) p.type = "Edificio / ampliación";
+    if(!p.impactCampus) p.impactCampus = state.campusList?.[0] || "";
+    if(!p.nivel) p.nivel = "Profesional";
+    if(!p.startYear) p.startYear = 2030;
+    if(!p.investmentYear) p.investmentYear = p.startYear || 2030;
+    if(!p.niByYear) p.niByYear = {};
+    p.investmentAmount = n(p.investmentAmount,0);
+    p.remanentePct = n(p.remanentePct,0);
+    p.tuition = n(p.tuition,0);
+  });
+  cfg.selected = Math.min(Math.max(0, Math.floor(n(cfg.selected,0))), cfg.projects.length-1);
+  return cfg;
+}
+
+function projectCampusLabelV60(p){
+  if(p.impactCampus === "__NUEVO__") return normalize(p.newCampusName || "Nuevo campus");
+  return p.impactCampus || "";
+}
+
+function projectNiV60(p, year){
+  return Math.max(0, Math.round(n(p.niByYear?.[year],0)));
+}
+
+function projectAnnualRemanenteV60(p, year){
+  return projectNiV60(p, year) * n(p.tuition,0) * n(p.remanentePct,0);
+}
+
+function projectTimelineV60(p){
+  let cum = 0;
+  return YEARS.map(y=>{
+    const ni = projectNiV60(p,y);
+    const bruto = ni * n(p.tuition,0);
+    const rem = bruto * n(p.remanentePct,0);
+    cum += rem;
+    const inv = n(p.investmentAmount,0);
+    return {
+      anio:y,
+      ni,
+      ingresoBruto:bruto,
+      remanente:rem,
+      remanenteAcumulado:cum,
+      inversion:inv,
+      saldo:Math.max(0, inv-cum),
+      cobertura:inv>0 ? cum/inv : 0
+    };
+  });
+}
+
+function projectPaybackYearV60(p){
+  const inv = n(p.investmentAmount,0);
+  if(inv<=0) return "—";
+  const hit = projectTimelineV60(p).find(r=>r.remanenteAcumulado>=inv);
+  return hit ? hit.anio : "No recupera";
+}
+
+function activeInvestmentProjectsV60(){
+  const cfg = investmentCfgV60();
+  const view = cfg.viewTipo || "Todos";
+  return cfg.projects.filter(p=>{
+    if(!n(p.active,1)) return false;
+    if(view==="Todos") return true;
+    return p.type===view;
+  });
+}
+
+function projectNiForCampusV60(campus, nivel, year){
+  const cfg = investmentCfgV60();
+  return cfg.projects
+    .filter(p=>n(p.active,1) && p.impactCampus === campus && p.nivel === nivel)
+    .reduce((a,p)=>a+projectNiV60(p,year),0);
+}
+
+function campusOrganicNiV60(campus, nivel, year){
+  const total = n(getProjected(campus,nivel,year)?.ni,0);
+  const proj = projectNiForCampusV60(campus,nivel,year);
+  return Math.max(0, Math.round(total - proj));
+}
+
+function campusProjectNiByLevelV60(campus, year){
+  return {
+    prepa:projectNiForCampusV60(campus,"Preparatoria",year),
+    prof:projectNiForCampusV60(campus,"Profesional",year)
+  };
+}
+
+function yearOptionsV60(selected){
+  return YEARS.map(y=>`<option value="${y}"${n(selected,0)===y?" selected":""}>${y}</option>`).join("");
+}
+
+function campusOptionsV60(selected){
+  const opts = [`<option value="__NUEVO__"${selected==="__NUEVO__"?" selected":""}>Nuevo campus</option>`]
+    .concat((state.campusList || []).map(c=>`<option value="${escapeHtml(c)}"${selected===c?" selected":""}>${escapeHtml(c)}</option>`));
+  return opts.join("");
+}
+
+function renderInvestmentProjectsV60(){
+  const el = $("investmentProjectsTable");
+  if(!el) return;
+  const cfg = investmentCfgV60();
+
+  const rows = cfg.projects.map((p,i)=>[
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="active" type="checkbox" ${n(p.active,1) ? "checked" : ""}>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="name" type="text" value="${escapeHtml(p.name || "")}">`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="type">
+      <option value="Edificio / ampliación"${p.type==="Edificio / ampliación"?" selected":""}>Edificio / ampliación</option>
+      <option value="Campus existente"${p.type==="Campus existente"?" selected":""}>Campus existente</option>
+      <option value="Nuevo campus"${p.type==="Nuevo campus"?" selected":""}>Nuevo campus</option>
+    </select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="impactCampus">${campusOptionsV60(p.impactCampus)}</select>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="newCampusName" type="text" placeholder="Nombre nuevo campus" value="${escapeHtml(p.newCampusName || "")}">`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="nivel">
+      <option value="Profesional"${p.nivel==="Profesional"?" selected":""}>Profesional</option>
+      <option value="Preparatoria"${p.nivel==="Preparatoria"?" selected":""}>Preparatoria</option>
+    </select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="startYear">${yearOptionsV60(p.startYear)}</select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="investmentYear">${yearOptionsV60(p.investmentYear)}</select>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="investmentAmount" type="number" step="100000" min="0" value="${Math.round(n(p.investmentAmount,0))}">`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="remanentePct" type="number" step="1" min="0" max="100" value="${pctInput(n(p.remanentePct,0))}">`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="tuition" type="number" step="1000" min="0" value="${Math.round(n(p.tuition,0))}">`
+  ]);
+
+  el.innerHTML = tableHtml(
+    ["Activo","Proyecto","Tipo","Campus impactado","Nombre nuevo campus","Nivel","Empieza a captar","Año inversión","Inversión","% remanente","Colegiatura"],
+    rows,
+    [1,2,3,4,5]
+  );
+}
+
+function renderInvestmentNiV60(){
+  const el = $("investmentNiTable");
+  const sel = $("investmentSelectedProject");
+  if(!el || !sel) return;
+
+  const cfg = investmentCfgV60();
+  sel.innerHTML = cfg.projects.map((p,i)=>`<option value="${i}"${i===cfg.selected?" selected":""}>${escapeHtml(p.name || `Proyecto ${i+1}`)}</option>`).join("");
+  const p = cfg.projects[cfg.selected];
+
+  const headers = ["Concepto", ...YEARS.map(String)];
+  const niRow = ["NI proyecto", ...YEARS.map(y=>`<input data-zone="investmentNiV60" data-year="${y}" type="number" step="1" min="0" value="${projectNiV60(p,y)}">`)];
+  const remRow = ["Remanente anual", ...YEARS.map(y=>fmt0.format(projectAnnualRemanenteV60(p,y)))];
+
+  el.innerHTML = tableHtml(headers, [niRow, remRow], [0]);
+}
+
+function renderInvestmentSummaryV60(){
+  const el = $("investmentSummaryTable");
+  if(!el) return;
+
+  const rows = activeInvestmentProjectsV60().map(p=>{
+    const tl = projectTimelineV60(p);
+    const totalNi = tl.reduce((a,r)=>a+n(r.ni,0),0);
+    const rem = tl.reduce((a,r)=>a+n(r.remanente,0),0);
+    const inv = n(p.investmentAmount,0);
+    return [
+      escapeHtml(p.name),
+      escapeHtml(p.type),
+      escapeHtml(projectCampusLabelV60(p)),
+      p.nivel,
+      fmt0.format(totalNi),
+      fmt0.format(inv),
+      fmt0.format(rem),
+      inv>0 ? fmtPct.format(rem/inv) : "—",
+      projectPaybackYearV60(p)
+    ];
+  });
+
+  el.innerHTML = tableHtml(
+    ["Proyecto","Tipo","Campus impactado","Nivel","NI 2030–2045","Inversión","Remanente acumulado","% cubierto","Año recuperación"],
+    rows,
+    [0,1,2,3,8]
+  );
+}
+
+function renderInvestmentCampusImpactV60(){
+  const el = $("investmentCampusImpactTable");
+  if(!el) return;
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+
+  const rows = YEARS.map(y=>{
+    const p = getProjected(campus,"Preparatoria",y) || {};
+    const pr = getProjected(campus,"Profesional",y) || {};
+    const pp = campusProjectNiByLevelV60(campus,y);
+    return [
+      y,
+      fmt0.format(n(p.ni)),
+      fmt0.format(pp.prepa),
+      fmt0.format(campusOrganicNiV60(campus,"Preparatoria",y)),
+      fmt0.format(n(pr.ni)),
+      fmt0.format(pp.prof),
+      fmt0.format(campusOrganicNiV60(campus,"Profesional",y))
+    ];
+  });
+
+  el.innerHTML = tableHtml(
+    ["Año","NI Prepa total","NI Prepa proyecto","NI Prepa orgánico","NI Prof total","NI Prof proyecto","NI Prof orgánico"],
+    rows,
+    []
+  );
+}
+
+function drawInvestmentChartV60(){
+  const canvas = $("investmentChart");
+  if(!canvas) return;
+  const cfg = investmentCfgV60();
+  const p = cfg.projects[cfg.selected];
+  const tl = projectTimelineV60(p);
+
+  const maxMoney = Math.max(1, ...tl.map(r=>n(r.inversion,0)), ...tl.map(r=>n(r.remanenteAcumulado,0)), ...tl.map(r=>n(r.remanente,0)));
+  const suggested = Math.ceil(maxMoney*1.15/100000)*100000;
+
+  drawChart("investmentChart", canvas, {
+    type:"bar",
+    data:{
+      labels:tl.map(r=>r.anio),
+      datasets:[
+        {type:"bar", label:"Remanente anual", data:tl.map(r=>Math.round(n(r.remanente,0))), yAxisID:"y", order:3},
+        {type:"line", label:"Remanente acumulado", data:tl.map(r=>Math.round(n(r.remanenteAcumulado,0))), yAxisID:"y", borderWidth:3, pointRadius:2, tension:0.15, order:1},
+        {type:"line", label:"Inversión", data:tl.map(r=>Math.round(n(r.inversion,0))), yAxisID:"y", borderDash:[6,6], borderWidth:2, pointRadius:0, order:2}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:"index",intersect:false},
+      plugins:{
+        legend:{position:"bottom"},
+        title:{display:true,text:`Recuperación · ${p?.name || "Proyecto"}`}
+      },
+      scales:{
+        x:{title:{display:true,text:"Año"},grid:{display:false}},
+        y:{beginAtZero:true,suggestedMax:suggested,title:{display:true,text:"Monto"},ticks:{callback:(v)=>"$"+fmt0.format(v)},grid:{color:"#eef2f7"}}
+      }
+    }
+  });
+}
+
+function renderInvestmentView(){
+  if(!$("inversion")) return;
+  const cfg = investmentCfgV60();
+  if($("investmentProjectCount")) $("investmentProjectCount").value = cfg.projects.length;
+  if($("investmentViewTipo")) $("investmentViewTipo").value = cfg.viewTipo || "Todos";
+  renderInvestmentProjectsV60();
+  renderInvestmentNiV60();
+  renderInvestmentSummaryV60();
+  renderInvestmentCampusImpactV60();
+  drawInvestmentChartV60();
+}
+
+document.addEventListener("change", (e)=>{
+  if(!e.target) return;
+
+  if(e.target.id==="investmentSelectedProject"){
+    const cfg = investmentCfgV60();
+    cfg.selected = Math.min(Math.max(0, Math.floor(n(e.target.value,0))), cfg.projects.length-1);
+    saveConfig();
+    renderInvestmentView();
+    return;
+  }
+
+  if(e.target.matches("[data-zone='investmentV60']")){
+    const cfg = investmentCfgV60();
+    const field = e.target.dataset.field;
+    if(field==="projectCount"){
+      const desired = Math.max(1, Math.floor(n(e.target.value,1)));
+      while(cfg.projects.length < desired) cfg.projects.push(defaultInvestmentProjectV60(cfg.projects.length));
+      while(cfg.projects.length > desired) cfg.projects.pop();
+      cfg.selected = Math.min(cfg.selected, cfg.projects.length-1);
+    }
+    if(field==="viewTipo"){
+      cfg.viewTipo = e.target.value || "Todos";
+    }
+    saveConfig();
+    render();
+    return;
+  }
+
+  if(e.target.matches("[data-zone='investmentProjectV60']")){
+    const cfg = investmentCfgV60();
+    const idx = Math.floor(n(e.target.dataset.index,0));
+    const field = e.target.dataset.field;
+    const p = cfg.projects[idx];
+    if(!p) return;
+
+    if(field==="active"){
+      p.active = e.target.checked ? 1 : 0;
+    }else if(field==="investmentAmount" || field==="tuition"){
+      p[field] = Math.max(0, Math.round(n(e.target.value,0)));
+    }else if(field==="remanentePct"){
+      p[field] = pctFromInput(e.target.value);
+    }else if(field==="startYear" || field==="investmentYear"){
+      p[field] = Math.floor(n(e.target.value,2030));
+    }else{
+      p[field] = e.target.value;
+    }
+    saveConfig();
+    render();
+    return;
+  }
+
+  if(e.target.matches("[data-zone='investmentNiV60']")){
+    const cfg = investmentCfgV60();
+    const p = cfg.projects[cfg.selected];
+    if(!p) return;
+    const y = e.target.dataset.year;
+    if(!p.niByYear) p.niByYear = {};
+    p.niByYear[y] = Math.max(0, Math.round(n(e.target.value,0)));
+    saveConfig();
+    render();
+    return;
+  }
+});
+
+const renderCampusTableBaseV60 = renderCampusTable;
+renderCampusTable = function(campus){
+  const rows = YEARS.map(y=>{
+    const p = getProjected(campus,"Preparatoria",y) || {};
+    const pr = getProjected(campus,"Profesional",y) || {};
+    const proj = campusProjectNiByLevelV60(campus,y);
+    return [
+      y,
+      p.tipo || "",
+      fmt0.format(n(p.ni)),
+      fmt0.format(proj.prepa),
+      fmt0.format(campusOrganicNiV60(campus,"Preparatoria",y)),
+      fmt0.format(n(p.ri)),
+      fmt0.format(n(p.mt)),
+      fmtPct.format(n(p.ratio_ri_ni)),
+      fmt0.format(n(pr.ni)),
+      fmt0.format(proj.prof),
+      fmt0.format(campusOrganicNiV60(campus,"Profesional",y)),
+      fmt0.format(n(pr.ri)),
+      fmt0.format(n(pr.mt)),
+      fmtPct.format(n(pr.ratio_ri_ni)),
+      fmt0.format(n(p.mt)+n(pr.mt))
+    ];
+  });
+
+  $("campusTable").innerHTML = tableHtml(
+    ["Año","Tipo","NI Prepa total","NI Prepa proyecto","NI Prepa orgánico","RI Prepa","MT Prepa","RI/NI Prepa","NI Prof total","NI Prof proyecto","NI Prof orgánico","RI Prof","MT Prof","RI/NI Prof","MT Campus"],
+    rows,
+    [1]
+  );
+};
+
+function exportInvestmentV60(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = [];
+  const cfg = investmentCfgV60();
+
+  cfg.projects.forEach((p,idx)=>{
+    const tl = projectTimelineV60(p);
+    tl.forEach(r=>{
+      rows.push({
+        escenario:esc,
+        proyecto:p.name,
+        proyecto_index:idx+1,
+        activo:intV56(p.active),
+        tipo:p.type,
+        campus_impactado:projectCampusLabelV60(p),
+        campus_para_descontar:p.impactCampus==="__NUEVO__" ? "" : p.impactCampus,
+        nivel:p.nivel,
+        anio:r.anio,
+        anio_inicio_captacion:intV56(p.startYear),
+        anio_inversion:intV56(p.investmentYear),
+        ni_proyecto:intV56(r.ni),
+        colegiatura_anual:intV56(p.tuition),
+        remanente_pct:pctIntV56(p.remanentePct),
+        ingreso_bruto:intV56(r.ingresoBruto),
+        remanente_anual:intV56(r.remanente),
+        remanente_acumulado:intV56(r.remanenteAcumulado),
+        inversion:intV56(p.investmentAmount),
+        saldo_por_recuperar:intV56(r.saldo),
+        cobertura_pct:pctIntV56(r.cobertura),
+        anio_recuperacion:projectPaybackYearV60(p)
+      });
+    });
+  });
+
+  downloadCsvV55(`inversion_${scenarioSlug()}_v70.csv`, rows);
+}
+
+exportProjectionV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = state.projection.map(r=>{
+    const projectNi = (r.campus && r.nivel) ? projectNiForCampusV60(r.campus,r.nivel,r.anio) : 0;
+    return {
+      escenario:esc,
+      anio:intV56(r.anio),
+      periodo:r.periodo,
+      campus:r.campus,
+      nivel:r.nivel,
+      modalidad:r.modalidad || "",
+      tipo:r.tipo || "",
+      ni_total:intV56(r.ni),
+      ni_proyecto:intV56(projectNi),
+      ni_organico:intV56(Math.max(0,n(r.ni,0)-projectNi)),
+      ri:intV56(r.ri),
+      mt:intV56(r.mt),
+      factor_ri_ni_pct:pctIntV56(r.ratio_ri_ni),
+      crecimiento_ni_pct:pctIntV56(r.crec_ni),
+      crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
+    };
+  });
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+document.addEventListener("click", (e)=>{
+  if(e.target && e.target.id==="downloadInvestmentBtn"){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    exportInvestmentV60();
+  }
+}, true);
+
+const renderBaseV60 = render;
+render = function(){
+  renderBaseV60();
+  renderInvestmentView();
+};
+
+
+
+/* ==============================
+   V61 patch: simplificar tipo de proyecto + Colegiatura
+   ============================== */
+
+function normalizeProjectTypeV61(t){
+  if(t === "Campus existente") return "Edificio / ampliación";
+  return t || "Edificio / ampliación";
+}
+
+const investmentCfgV60BaseV61 = investmentCfgV60;
+investmentCfgV60 = function(){
+  const cfg = investmentCfgV60BaseV61();
+  if(cfg.viewTipo === "Campus existente") cfg.viewTipo = "Edificio / ampliación";
+  (cfg.projects || []).forEach(p=>{
+    p.type = normalizeProjectTypeV61(p.type);
+  });
+  return cfg;
+};
+
+renderInvestmentProjectsV60 = function(){
+  const el = $("investmentProjectsTable");
+  if(!el) return;
+  const cfg = investmentCfgV60();
+
+  const rows = cfg.projects.map((p,i)=>[
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="active" type="checkbox" ${n(p.active,1) ? "checked" : ""}>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="name" type="text" value="${escapeHtml(p.name || "")}">`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="type">
+      <option value="Edificio / ampliación"${normalizeProjectTypeV61(p.type)==="Edificio / ampliación"?" selected":""}>Edificio / ampliación</option>
+      <option value="Nuevo campus"${normalizeProjectTypeV61(p.type)==="Nuevo campus"?" selected":""}>Nuevo campus</option>
+    </select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="impactCampus">${campusOptionsV60(p.impactCampus)}</select>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="newCampusName" type="text" placeholder="Nombre nuevo campus" value="${escapeHtml(p.newCampusName || "")}">`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="nivel">
+      <option value="Profesional"${p.nivel==="Profesional"?" selected":""}>Profesional</option>
+      <option value="Preparatoria"${p.nivel==="Preparatoria"?" selected":""}>Preparatoria</option>
+    </select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="startYear">${yearOptionsV60(p.startYear)}</select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="investmentYear">${yearOptionsV60(p.investmentYear)}</select>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="investmentAmount" type="number" step="100000" min="0" value="${Math.round(n(p.investmentAmount,0))}">`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="remanentePct" type="number" step="1" min="0" max="100" value="${pctInput(n(p.remanentePct,0))}">`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="tuition" type="number" step="1000" min="0" value="${Math.round(n(p.tuition,0))}">`
+  ]);
+
+  el.innerHTML = tableHtml(
+    ["Activo","Proyecto","Tipo","Campus impactado","Nombre nuevo campus","Nivel","Empieza a captar","Año inversión","Inversión","% remanente","Colegiatura"],
+    rows,
+    [1,2,3,4,5]
+  );
+};
+
+renderInvestmentView = function(){
+  if(!$("inversion")) return;
+  const cfg = investmentCfgV60();
+  if($("investmentProjectCount")) $("investmentProjectCount").value = cfg.projects.length;
+  if($("investmentViewTipo")){
+    $("investmentViewTipo").innerHTML = `
+      <option value="Todos">Todos los proyectos</option>
+      <option value="Edificio / ampliación">Edificio / ampliación</option>
+      <option value="Nuevo campus">Nuevo campus</option>
+    `;
+    $("investmentViewTipo").value = cfg.viewTipo || "Todos";
+  }
+  renderInvestmentProjectsV60();
+  renderInvestmentNiV60();
+  renderInvestmentSummaryV60();
+  renderInvestmentCampusImpactV60();
+  drawInvestmentChartV60();
+};
+
+exportInvestmentV60 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = [];
+  const cfg = investmentCfgV60();
+
+  cfg.projects.forEach((p,idx)=>{
+    const tl = projectTimelineV60(p);
+    tl.forEach(r=>{
+      rows.push({
+        escenario:esc,
+        proyecto:p.name,
+        proyecto_index:idx+1,
+        activo:intV56(p.active),
+        tipo:normalizeProjectTypeV61(p.type),
+        campus_impactado:projectCampusLabelV60(p),
+        campus_para_descontar:p.impactCampus==="__NUEVO__" ? "" : p.impactCampus,
+        nivel:p.nivel,
+        anio:r.anio,
+        anio_inicio_captacion:intV56(p.startYear),
+        anio_inversion:intV56(p.investmentYear),
+        ni_proyecto:intV56(r.ni),
+        colegiatura:intV56(p.tuition),
+        remanente_pct:pctIntV56(p.remanentePct),
+        ingreso_bruto:intV56(r.ingresoBruto),
+        remanente_anual:intV56(r.remanente),
+        remanente_acumulado:intV56(r.remanenteAcumulado),
+        inversion:intV56(p.investmentAmount),
+        saldo_por_recuperar:intV56(r.saldo),
+        cobertura_pct:pctIntV56(r.cobertura),
+        anio_recuperacion:projectPaybackYearV60(p)
+      });
+    });
+  });
+
+  downloadCsvV55(`inversion_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V62 patch: inputs NI más anchos + inversión en millones
+   ============================== */
+
+function moneyMillionsV62(valuePesos){
+  const v = n(valuePesos,0) / 1000000;
+  if(Math.abs(v - Math.round(v)) < 0.000001) return String(Math.round(v));
+  return String(Math.round(v*10)/10);
+}
+
+function parseMillionsToPesosV62(value){
+  return Math.max(0, Math.round(n(value,0) * 1000000));
+}
+
+renderInvestmentProjectsV60 = function(){
+  const el = $("investmentProjectsTable");
+  if(!el) return;
+  const cfg = investmentCfgV60();
+
+  const rows = cfg.projects.map((p,i)=>[
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="active" type="checkbox" ${n(p.active,1) ? "checked" : ""}>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="name" type="text" value="${escapeHtml(p.name || "")}">`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="type">
+      <option value="Edificio / ampliación"${normalizeProjectTypeV61(p.type)==="Edificio / ampliación"?" selected":""}>Edificio / ampliación</option>
+      <option value="Nuevo campus"${normalizeProjectTypeV61(p.type)==="Nuevo campus"?" selected":""}>Nuevo campus</option>
+    </select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="impactCampus">${campusOptionsV60(p.impactCampus)}</select>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="newCampusName" type="text" placeholder="Nombre nuevo campus" value="${escapeHtml(p.newCampusName || "")}">`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="nivel">
+      <option value="Profesional"${p.nivel==="Profesional"?" selected":""}>Profesional</option>
+      <option value="Preparatoria"${p.nivel==="Preparatoria"?" selected":""}>Preparatoria</option>
+    </select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="startYear">${yearOptionsV60(p.startYear)}</select>`,
+    `<select data-zone="investmentProjectV60" data-index="${i}" data-field="investmentYear">${yearOptionsV60(p.investmentYear)}</select>`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="investmentAmount" type="number" step="0.1" min="0" value="${moneyMillionsV62(p.investmentAmount)}">`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="remanentePct" type="number" step="1" min="0" max="100" value="${pctInput(n(p.remanentePct,0))}">`,
+    `<input data-zone="investmentProjectV60" data-index="${i}" data-field="tuition" type="number" step="1000" min="0" value="${Math.round(n(p.tuition,0))}">`
+  ]);
+
+  el.innerHTML = tableHtml(
+    ["Activo","Proyecto","Tipo","Campus impactado","Nombre nuevo campus","Nivel","Empieza a captar","Año inversión","Inversión (millones)","% remanente","Colegiatura"],
+    rows,
+    [1,2,3,4,5]
+  );
+};
+
+renderInvestmentNiV60 = function(){
+  const el = $("investmentNiTable");
+  const sel = $("investmentSelectedProject");
+  if(!el || !sel) return;
+
+  const cfg = investmentCfgV60();
+  sel.innerHTML = cfg.projects.map((p,i)=>`<option value="${i}"${i===cfg.selected?" selected":""}>${escapeHtml(p.name || `Proyecto ${i+1}`)}</option>`).join("");
+  const p = cfg.projects[cfg.selected];
+
+  const headers = ["Concepto", ...YEARS.map(String)];
+  const niRow = ["NI proyecto", ...YEARS.map(y=>`<input data-zone="investmentNiV60" data-year="${y}" type="number" step="1" min="0" value="${projectNiV60(p,y)}">`)];
+  const remRow = ["Remanente anual", ...YEARS.map(y=>fmt0.format(projectAnnualRemanenteV60(p,y)))];
+
+  el.innerHTML = tableHtml(headers, [niRow, remRow], [0]);
+};
+
+// Captura inversión como millones antes del listener anterior.
+document.addEventListener("change", (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='investmentProjectV60'][data-field='investmentAmount']")) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  const cfg = investmentCfgV60();
+  const idx = Math.floor(n(e.target.dataset.index,0));
+  const p = cfg.projects[idx];
+  if(!p) return;
+  p.investmentAmount = parseMillionsToPesosV62(e.target.value);
+  saveConfig();
+  render();
+}, true);
+
+exportInvestmentV60 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = [];
+  const cfg = investmentCfgV60();
+
+  cfg.projects.forEach((p,idx)=>{
+    const tl = projectTimelineV60(p);
+    tl.forEach(r=>{
+      rows.push({
+        escenario:esc,
+        proyecto:p.name,
+        proyecto_index:idx+1,
+        activo:intV56(p.active),
+        tipo:normalizeProjectTypeV61(p.type),
+        campus_impactado:projectCampusLabelV60(p),
+        campus_para_descontar:p.impactCampus==="__NUEVO__" ? "" : p.impactCampus,
+        nivel:p.nivel,
+        anio:r.anio,
+        anio_inicio_captacion:intV56(p.startYear),
+        anio_inversion:intV56(p.investmentYear),
+        ni_proyecto:intV56(r.ni),
+        colegiatura:intV56(p.tuition),
+        remanente_pct:pctIntV56(p.remanentePct),
+        ingreso_bruto:intV56(r.ingresoBruto),
+        remanente_anual:intV56(r.remanente),
+        remanente_acumulado:intV56(r.remanenteAcumulado),
+        inversion_millones:Math.round(n(p.investmentAmount,0)/1000000),
+        inversion:intV56(p.investmentAmount),
+        saldo_por_recuperar:intV56(r.saldo),
+        cobertura_pct:pctIntV56(r.cobertura),
+        anio_recuperacion:projectPaybackYearV60(p)
+      });
+    });
+  });
+
+  downloadCsvV55(`inversion_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V63 patch: rutas de enfoque a aperturar por campus-carrera
+   ============================== */
+
+let CURRENT_ROUTE_CAMPUS_V63 = "";
+
+function routeOverrideMapV63(campus){
+  if(!state.config) state.config = {};
+  if(!state.config.routeOpenV63) state.config.routeOpenV63 = {};
+  if(!state.config.routeOpenV63[campus]) state.config.routeOpenV63[campus] = {};
+  return state.config.routeOpenV63[campus];
+}
+
+function detailedRoutesOnlyV63(programa){
+  const rows = (state.multicampus?.rutas || []).filter(r=>r.programa===programa);
+  const byRoute = {};
+  for(const r of rows){
+    const ruta = normalize(r.ruta || "");
+    if(!ruta) continue;
+    if(!byRoute[ruta]){
+      byRoute[ruta] = {
+        ruta,
+        certificados:[],
+        certificadoPrincipal:normalize(r.certificado || "")
+      };
+    }
+    const cert = normalize(r.certificado || "");
+    if(cert && !byRoute[ruta].certificados.includes(cert)) byRoute[ruta].certificados.push(cert);
+    if(!byRoute[ruta].certificadoPrincipal && cert) byRoute[ruta].certificadoPrincipal = cert;
+  }
+  return Object.values(byRoute).sort((a,b)=>a.ruta.localeCompare(b.ruta));
+}
+
+function baseRouteCountV63(programa){
+  const rp = (state.multicampus?.rutasPrograma || []).find(r=>r.programa===programa && n(r.cantidad_rutas,0)>0);
+  if(rp) return Math.max(1, Math.round(n(rp.cantidad_rutas,1)));
+  return detailedRoutesOnlyV63(programa).length || 0;
+}
+
+function getRouteCampusV63(){
+  return CURRENT_ROUTE_CAMPUS_V63 || $("campusSelect")?.value || state.campusList?.[0] || "";
+}
+
+function routeCountEffectiveV63(campus, programa){
+  const map = routeOverrideMapV63(campus);
+  if(Object.prototype.hasOwnProperty.call(map, programa)){
+    return Math.max(0, Math.round(n(map[programa],0)));
+  }
+
+  const nc = getNewCareerConfig ? getNewCareerConfig(campus) : {};
+  if(n(nc.active,0) && normalize(nc.programa || "")===programa){
+    return Math.max(1, Math.round(n(nc.rutas,1)));
+  }
+
+  return baseRouteCountV63(programa);
+}
+
+routeCountForProgram = function(programa){
+  const campus = getRouteCampusV63();
+  return routeCountEffectiveV63(campus, programa);
+};
+
+rutasForProgram = function(programa){
+  const campus = getRouteCampusV63();
+  const count = routeCountEffectiveV63(campus, programa);
+  const detailed = detailedRoutesOnlyV63(programa);
+
+  if(count > 0){
+    const out = [];
+    for(let i=0; i<count; i++){
+      if(detailed[i]){
+        out.push(detailed[i]);
+      }else{
+        out.push({
+          ruta:`Ruta ${i+1}`,
+          certificados:[],
+          certificadoPrincipal:""
+        });
+      }
+    }
+    return out;
+  }
+
+  return [];
+};
+
+const programSemesterRowsBaseV63 = programSemesterRows;
+programSemesterRows = function(campus){
+  CURRENT_ROUTE_CAMPUS_V63 = campus;
+  try{
+    return programSemesterRowsBaseV63(campus);
+  }finally{
+    CURRENT_ROUTE_CAMPUS_V63 = "";
+  }
+};
+
+if(typeof buildAcademicUnits === "function"){
+  const buildAcademicUnitsBaseV63 = buildAcademicUnits;
+  buildAcademicUnits = function(campus){
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+    try{
+      return buildAcademicUnitsBaseV63(campus);
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = "";
+    }
+  };
+}
+
+if(typeof docenteOperationalUnitsForCampus === "function"){
+  const docenteOperationalUnitsForCampusBaseV63 = docenteOperationalUnitsForCampus;
+  docenteOperationalUnitsForCampus = function(campus, year){
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+    try{
+      return docenteOperationalUnitsForCampusBaseV63(campus, year);
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = "";
+    }
+  };
+}
+
+function programsForRouteControlV63(campus){
+  const fromPortfolio = getProgramsForCampus ? getProgramsForCampus(campus) : [];
+  const fromAportacion = [...new Set((state.multicampus?.aportacion || [])
+    .filter(r=>r.campus===campus && r.nivel==="Profesional")
+    .map(r=>r.programa)
+    .filter(Boolean))];
+
+  return [...new Set([...fromPortfolio, ...fromAportacion])]
+    .filter(Boolean)
+    .sort((a,b)=>a.localeCompare(b,"es"));
+}
+
+function renderRouteOpenControlsV63(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+
+  const programs = programsForRouteControlV63(campus);
+  if(!programs.length){
+    el.innerHTML = tableHtml(["Mensaje"], [["No hay carreras activas para este campus en Portafolio/Aportación NI."]], [0]);
+    return;
+  }
+
+  const map = routeOverrideMapV63(campus);
+  const rows = programs.map(prog=>{
+    const base = baseRouteCountV63(prog);
+    const hasOverride = Object.prototype.hasOwnProperty.call(map, prog);
+    const effective = routeCountEffectiveV63(campus, prog);
+    const note = hasOverride
+      ? `Manual para ${campus}`
+      : (base>0 ? "Base del Excel" : "Sin rutas base");
+    return [
+      escapeHtml(prog),
+      fmt0.format(base),
+      `<input data-zone="routeOpenV63" data-program="${escapeHtml(prog)}" type="number" step="1" min="0" value="${hasOverride ? Math.round(n(map[prog],0)) : effective}" placeholder="${base}">`,
+      fmt0.format(effective),
+      escapeHtml(note)
+    ];
+  });
+
+  el.innerHTML = tableHtml(
+    ["Carrera","Rutas base Excel","Rutas a aperturar","Rutas usadas","Origen"],
+    rows,
+    [0,4]
+  );
+}
+
+const renderMulticampusBaseV63 = renderMulticampus;
+renderMulticampus = function(campus){
+  renderMulticampusBaseV63(campus);
+  renderRouteOpenControlsV63(campus);
+};
+
+document.addEventListener("change", (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='routeOpenV63']")) return;
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  const prog = e.target.dataset.program || "";
+  const map = routeOverrideMapV63(campus);
+
+  if(e.target.value === ""){
+    delete map[prog];
+  }else{
+    map[prog] = Math.max(0, Math.round(n(e.target.value,0)));
+  }
+
+  saveConfig();
+  render();
+});
+
+exportMulticampusV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    if($("campusSelect")) $("campusSelect").value = c;
+    CURRENT_ROUTE_CAMPUS_V63 = c;
+    const detail = multicampusDetailRows(c);
+    CURRENT_ROUTE_CAMPUS_V63 = "";
+    for(const r of detail){
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:c,
+        semestre:r.semestre,
+        programa:r.programas || r.programa || "",
+        grupo:r.grupo || "",
+        tipo:r.tipo || "",
+        alumnos:intV56(r.alumnos),
+        alumnos_programa_semestre:intV56(r.alumnosProgramaSemestre),
+        rutas_base_excel:intV56(baseRouteCountV63(r.programa || r.programas || "")) || "",
+        rutas_a_aperturar:intV56(r.rutasCount) || "",
+        espacios_flex:intV56(r.salonesFlex),
+        espacios_multicampus:intV56(r.salonesMulticampus),
+        salones_presenciales:intV56(r.salonesPresenciales),
+        capacidad:intV56(r.capacidad),
+        ocioso:intV56(r.ocioso)
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V64 patch: tabla de rutas más simple
+   ============================== */
+
+renderRouteOpenControlsV63 = function(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+
+  const programs = programsForRouteControlV63(campus);
+  if(!programs.length){
+    el.innerHTML = tableHtml(["Mensaje"], [["No hay carreras activas para este campus en Portafolio/Aportación NI."]], [0]);
+    return;
+  }
+
+  const map = routeOverrideMapV63(campus);
+  const rows = programs.map(prog=>{
+    const base = baseRouteCountV63(prog);
+    const hasOverride = Object.prototype.hasOwnProperty.call(map, prog);
+    const effective = routeCountEffectiveV63(campus, prog);
+    const note = hasOverride ? "Manual" : "Excel";
+    return [
+      escapeHtml(prog),
+      fmt0.format(base),
+      `<input data-zone="routeOpenV63" data-program="${escapeHtml(prog)}" type="number" step="1" min="0" value="${hasOverride ? Math.round(n(map[prog],0)) : effective}" placeholder="${base}">`,
+      escapeHtml(note)
+    ];
+  });
+
+  el.innerHTML = tableHtml(
+    ["Carrera","Rutas base","Rutas a aperturar","Origen"],
+    rows,
+    [0,3]
+  );
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V65 patch: quitar columna Origen en rutas
+   ============================== */
+
+renderRouteOpenControlsV63 = function(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+
+  const programs = programsForRouteControlV63(campus);
+  if(!programs.length){
+    el.innerHTML = tableHtml(["Mensaje"], [["No hay carreras activas para este campus en Portafolio/Aportación NI."]], [0]);
+    return;
+  }
+
+  const map = routeOverrideMapV63(campus);
+  const rows = programs.map(prog=>{
+    const base = baseRouteCountV63(prog);
+    const hasOverride = Object.prototype.hasOwnProperty.call(map, prog);
+    const effective = routeCountEffectiveV63(campus, prog);
+    return [
+      escapeHtml(prog),
+      fmt0.format(base),
+      `<input data-zone="routeOpenV63" data-program="${escapeHtml(prog)}" type="number" step="1" min="0" value="${hasOverride ? Math.round(n(map[prog],0)) : effective}" placeholder="${base}">`
+    ];
+  });
+
+  el.innerHTML = tableHtml(
+    ["Carrera","Rutas base","Rutas a aperturar"],
+    rows,
+    [0]
+  );
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V66 patch: años 2026-2045 + hoja carreras_nuevas_2027
+   ============================== */
+
+function readRowsTryV66(wb, sheetNames){
+  const sheetName = sheetNames.find(s=>wb.Sheets[s]);
+  if(!sheetName) return {sheetName:"", rows:[]};
+  // La plantilla queda con encabezados en fila 3, igual que las hojas multicampus.
+  let rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:2, defval:null, raw:true});
+  if(!rows.length){
+    rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:0, defval:null, raw:true});
+  }
+  return {sheetName, rows};
+}
+
+function activeFlagV66(v){
+  const txt = normalize(v === null || v === undefined ? "SI" : v).toLowerCase();
+  return !(txt==="no" || txt==="0" || txt==="false" || txt==="falso" || txt==="inactivo");
+}
+
+function parseCarrerasNuevas2027V66(wb){
+  const res = readRowsTryV66(wb, [
+    "carreras_nuevas_2027",
+    "Carreras nuevas 2027",
+    "carreras nuevas 2027",
+    "carreras_nuevas_campus"
+  ]);
+
+  const rows = (res.rows || []).map(r=>{
+    const campus = normalize(cleanHeaderValue(r, ["Campus","campus"]));
+    const nivel = normalize(cleanHeaderValue(r, ["Nivel","nivel"]) || "Profesional");
+    const programa = normalize(cleanHeaderValue(r, ["Programa","programa","Carrera","carrera"]));
+    const periodo = normalize(cleanHeaderValue(r, ["Periodo","periodo"]) || "AD");
+    const modalidad = normalize(cleanHeaderValue(r, ["Modalidad","modalidad"]) || "Presencial");
+    const active = activeFlagV66(cleanHeaderValue(r, ["Activo","activo","Abrir","abrir"]));
+    const startYear = Math.floor(n(cleanHeaderValue(r, ["Año inicio","Anio inicio","anio_inicio","Año de apertura","Anio de apertura"]), 2027));
+    const ni2027 = n(cleanHeaderValue(r, ["NI 2027","NI_2027","NI","NI_programa","Inscritos 2027","Inscritos"]), 0);
+    const rutas = n(cleanHeaderValue(r, [
+      "Cantidad de rutas de enfoque",
+      "Rutas enfoque",
+      "Rutas",
+      "cantidad_rutas",
+      "rutas"
+    ]), 0);
+    return {campus,nivel,programa,periodo,modalidad,activo:active,startYear,ni2027,rutas};
+  }).filter(r=>r.activo && r.campus && r.programa && r.startYear===2027);
+
+  state.multicampus = {...(state.multicampus || {}), carrerasNuevas2027:rows};
+  return rows;
+}
+
+function enrichCarrerasNuevas2027V66(){
+  const m = state.multicampus || {};
+  const careers = m.carrerasNuevas2027 || [];
+  if(!careers.length) return;
+
+  m.portafolio = [...(m.portafolio || [])];
+  m.aportacion = [...(m.aportacion || [])];
+
+  for(const c of careers){
+    if(c.nivel==="Profesional"){
+      const exists = m.portafolio.some(r=>r.campus===c.campus && r.nivel==="Profesional" && r.programa===c.programa);
+      if(!exists){
+        m.portafolio.push({
+          campus:c.campus,
+          nivel:"Profesional",
+          programa:c.programa,
+          modalidad:c.modalidad || "Presencial",
+          activo:"SI"
+        });
+      }
+    }
+  }
+
+  // Para 2027 se arma una mezcla completa: carreras base + carreras nuevas.
+  // Así no se pierde el portafolio existente cuando hay filas de carreras nuevas 2027.
+  const groups = {};
+  for(const c of careers.filter(x=>x.nivel==="Profesional")){
+    const k = `${c.campus}|${c.periodo || "AD"}`;
+    if(!groups[k]) groups[k] = [];
+    groups[k].push(c);
+  }
+
+  for(const [k, news] of Object.entries(groups)){
+    const [campus, periodo] = k.split("|");
+    const alreadyHas2027News = m.aportacion.some(r=>r.campus===campus && r.periodo===periodo && r.anio===2027 && news.some(nw=>nw.programa===r.programa));
+    if(alreadyHas2027News) continue;
+
+    const baseYears = [...new Set(m.aportacion
+      .filter(r=>r.campus===campus && r.periodo===periodo && r.nivel==="Profesional" && n(r.anio,0)<2027)
+      .map(r=>n(r.anio,0))
+      .filter(y=>y>0)
+    )].sort((a,b)=>b-a);
+
+    const baseYear = baseYears[0] || null;
+    const baseRows = baseYear
+      ? m.aportacion.filter(r=>r.campus===campus && r.periodo===periodo && r.nivel==="Profesional" && n(r.anio,0)===baseYear)
+      : [];
+
+    const baseNi = baseRows.reduce((a,r)=>a+n(r.ni_programa,0),0);
+    const newNi = news.reduce((a,r)=>a+n(r.ni2027,0),0);
+    const total = baseNi + newNi;
+
+    for(const r of baseRows){
+      m.aportacion.push({
+        campus:r.campus,
+        periodo:r.periodo,
+        nivel:r.nivel,
+        programa:r.programa,
+        anio:2027,
+        ni_programa:n(r.ni_programa,0),
+        ni_total_campus:total,
+        pct_aportacion:null
+      });
+    }
+
+    for(const c of news){
+      m.aportacion.push({
+        campus:c.campus,
+        periodo:c.periodo || "AD",
+        nivel:"Profesional",
+        programa:c.programa,
+        anio:2027,
+        ni_programa:n(c.ni2027,0),
+        ni_total_campus:total,
+        pct_aportacion:null
+      });
+    }
+  }
+
+  state.multicampus = m;
+}
+
+const loadWorkbookBaseV66 = loadWorkbook;
+loadWorkbook = async function(buffer, name){
+  const wb = XLSX.read(buffer, {type:"array", cellDates:false});
+  await loadWorkbookBaseV66(buffer, name);
+  const rows = parseCarrerasNuevas2027V66(wb);
+  enrichCarrerasNuevas2027V66();
+  if(rows.length){
+    setStatus([
+      {text:`Archivo cargado: ${state.workbookName}`,cls:"ok"},
+      {text:`Filas base: ${fmt0.format(state.base.length)}`},
+      {text:`Campus: ${fmt0.format(state.campusList.length)}`},
+      {text:`Carreras nuevas 2027: ${fmt0.format(rows.length)}`,cls:"ok"}
+    ]);
+  }
+  render();
+};
+
+const getProgramsForCampusBaseV66 = getProgramsForCampus;
+getProgramsForCampus = function(campus){
+  const base = getProgramsForCampusBaseV66(campus) || [];
+  const news = (state.multicampus?.carrerasNuevas2027 || [])
+    .filter(r=>r.campus===campus && r.nivel==="Profesional")
+    .map(r=>r.programa);
+  return [...new Set([...base, ...news])].filter(Boolean).sort((a,b)=>a.localeCompare(b,"es"));
+};
+
+function newCareerRouteCount2027V66(campus, programa){
+  const row = (state.multicampus?.carrerasNuevas2027 || [])
+    .find(r=>r.campus===campus && r.programa===programa && n(r.rutas,0)>0);
+  return row ? Math.max(0, Math.round(n(row.rutas,0))) : null;
+}
+
+const baseRouteCountV63BaseV66 = baseRouteCountV63;
+baseRouteCountV63 = function(programa){
+  const campus = (typeof getRouteCampusV63 === "function" ? getRouteCampusV63() : ($("campusSelect")?.value || ""));
+  const custom = newCareerRouteCount2027V66(campus, programa);
+  if(custom !== null) return custom;
+  return baseRouteCountV63BaseV66(programa);
+};
+
+const renderRouteOpenControlsV63BaseV66 = renderRouteOpenControlsV63;
+renderRouteOpenControlsV63 = function(campus){
+  const prev = CURRENT_ROUTE_CAMPUS_V63;
+  CURRENT_ROUTE_CAMPUS_V63 = campus;
+  try{
+    renderRouteOpenControlsV63BaseV66(campus);
+  }finally{
+    CURRENT_ROUTE_CAMPUS_V63 = prev;
+  }
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V67 patch: pestaña Resumen MC campus x año
+   ============================== */
+
+function resumenMcMetricsForCampusYearV67(campus, year){
+  CURRENT_ROUTE_CAMPUS_V63 = campus;
+  let rows = [];
+  try{
+    rows = multicampusDetailRows(campus).filter(r=>r.anio===year && r.tipo==="Multicampus");
+  }finally{
+    CURRENT_ROUTE_CAMPUS_V63 = "";
+  }
+
+  const carreras = new Set(rows.map(r=>r.programa || r.programas || "").filter(Boolean));
+  return {
+    campus,
+    anio:year,
+    espacios:rows.reduce((a,r)=>a+n(r.salonesMulticampus,0),0),
+    alumnos:rows.reduce((a,r)=>a+n(r.alumnos,0),0),
+    carreras:carreras.size,
+    grupos:rows.length
+  };
+}
+
+function resumenMcAllV67(){
+  const out = [];
+  for(const campus of state.campusList || []){
+    for(const y of YEARS){
+      out.push(resumenMcMetricsForCampusYearV67(campus,y));
+    }
+  }
+  return out;
+}
+
+function pivotResumenMcV67(rows, metric){
+  const byCampus = {};
+  for(const r of rows){
+    if(!byCampus[r.campus]) byCampus[r.campus] = {};
+    byCampus[r.campus][r.anio] = n(r[metric],0);
+  }
+
+  return (state.campusList || []).map(campus=>[
+    escapeHtml(campus),
+    ...YEARS.map(y=>fmt0.format(n(byCampus[campus]?.[y],0)))
+  ]);
+}
+
+function renderResumenMcTableV67(elId, rows, metric){
+  const el = $(elId);
+  if(!el) return;
+  el.innerHTML = tableHtml(["Campus", ...YEARS.map(String)], pivotResumenMcV67(rows, metric), [0]);
+}
+
+function renderResumenMcViewV67(){
+  if(!$("resumenmc")) return;
+  const rows = resumenMcAllV67();
+
+  const totalEspacios = rows.reduce((a,r)=>a+n(r.espacios,0),0);
+  const totalAlumnos = rows.reduce((a,r)=>a+n(r.alumnos,0),0);
+  const maxYear = YEARS.map(y=>({
+    anio:y,
+    espacios:rows.filter(r=>r.anio===y).reduce((a,r)=>a+n(r.espacios,0),0),
+    alumnos:rows.filter(r=>r.anio===y).reduce((a,r)=>a+n(r.alumnos,0),0)
+  })).sort((a,b)=>b.espacios-a.espacios)[0] || {};
+
+  if($("resumenMcKpis")){
+    $("resumenMcKpis").innerHTML = [
+      ["Espacios acumulados",fmt0.format(totalEspacios),"Suma 2026–2045"],
+      ["Alumnos acumulados",fmt0.format(totalAlumnos),"Suma 2026–2045"],
+      ["Año con más espacios",maxYear.anio || "—",maxYear.anio ? `${fmt0.format(maxYear.espacios)} espacios` : "—"],
+      ["Campus incluidos",fmt0.format((state.campusList || []).length),"Todos los campus"]
+    ].map(([a,b,c])=>`<div class="kpi"><div class="label">${a}</div><div class="value">${b}</div><div class="sub">${c}</div></div>`).join("");
+  }
+
+  renderResumenMcTableV67("resumenMcEspaciosTable", rows, "espacios");
+  renderResumenMcTableV67("resumenMcAlumnosTable", rows, "alumnos");
+  renderResumenMcTableV67("resumenMcCarrerasTable", rows, "carreras");
+}
+
+function exportResumenMcV67(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = resumenMcAllV67().map(r=>({
+    escenario:esc,
+    anio:intV56(r.anio),
+    campus:r.campus,
+    espacios_multicampus:intV56(r.espacios),
+    alumnos_multicampus:intV56(r.alumnos),
+    carreras_multicampus:intV56(r.carreras),
+    grupos_multicampus:intV56(r.grupos)
+  }));
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v70.csv`, rows);
+}
+
+document.addEventListener("click", (e)=>{
+  if(e.target && e.target.id==="downloadResumenMcBtn"){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    exportResumenMcV67();
+  }
+}, true);
+
+const renderBaseV67 = render;
+render = function(){
+  renderBaseV67();
+  renderResumenMcViewV67();
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V68 patch: Resumen MC desde carrera/semestre/ruta, no desde filas consolidadas
+   ============================== */
+
+function resumenMcMetricsForCampusYearV68(campus, year){
+  const cfg = getMultiCfg();
+  const capMulti = Math.max(1, n(cfg.salonMulticampus, 12));
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(), 7);
+
+  let espacios = 0;
+  let alumnos = 0;
+  let grupos = 0;
+  const carreras = new Set();
+
+  const prevCampus = CURRENT_ROUTE_CAMPUS_V63;
+  CURRENT_ROUTE_CAMPUS_V63 = campus;
+
+  try{
+    const rows = baseProgramSemesterRows(campus)
+      .filter(r=>r.anio===year && n(r.semestreNum,0)<=7 && n(r.alumnos,0)>0);
+
+    for(const r of rows){
+      const totalAlumnos = Math.round(n(r.alumnos,0));
+      const semNum = n(r.semestreNum,0);
+      const inRouteSem = semNum>=rMin && semNum<=rMax;
+      const routeRows = inRouteSem ? rutasForProgram(r.programa) : [];
+
+      if(routeRows.length){
+        const routeCount = routeRows.length;
+        const alumnosPorRuta = routeGroupSize(totalAlumnos, routeCount);
+        const tipoRuta = classifyProgramSem(alumnosPorRuta, cfg);
+
+        if(tipoRuta === "Multicampus"){
+          alumnos += totalAlumnos; // alumnos reales del programa-semestre, sin multiplicar redondeos por ruta
+          espacios += routeCount * Math.max(1, Math.ceil(alumnosPorRuta / capMulti));
+          grupos += routeCount;
+          carreras.add(r.programa);
+        }
+        continue;
+      }
+
+      const tipo = classifyProgramSem(totalAlumnos, cfg);
+      if(tipo === "Multicampus"){
+        alumnos += totalAlumnos;
+        espacios += Math.max(1, Math.ceil(totalAlumnos / capMulti));
+        grupos += 1;
+        carreras.add(r.programa);
+      }
+    }
+  }finally{
+    CURRENT_ROUTE_CAMPUS_V63 = prevCampus || "";
+  }
+
+  return {
+    campus,
+    anio:year,
+    espacios,
+    alumnos,
+    carreras:carreras.size,
+    grupos
+  };
+}
+
+resumenMcMetricsForCampusYearV67 = function(campus, year){
+  return resumenMcMetricsForCampusYearV68(campus, year);
+};
+
+resumenMcAllV67 = function(){
+  const out = [];
+  for(const campus of state.campusList || []){
+    for(const y of YEARS){
+      out.push(resumenMcMetricsForCampusYearV68(campus, y));
+    }
+  }
+  return out;
+};
+
+exportResumenMcV67 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = resumenMcAllV67().map(r=>({
+    escenario:esc,
+    anio:intV56(r.anio),
+    campus:r.campus,
+    espacios_multicampus:intV56(r.espacios),
+    alumnos_multicampus:intV56(r.alumnos),
+    carreras_multicampus:intV56(r.carreras),
+    grupos_multicampus:intV56(r.grupos)
+  }));
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V69 patch: madurez de campus por año de primera captación
+   ============================== */
+
+function campusProfessionalStartInfoV69(campus){
+  const period = $("periodSelect")?.value || "AD";
+  const years = YEARS.filter(y=>y<=2040).sort((a,b)=>a-b);
+  let firstYear = null;
+  let firstRow = null;
+
+  for(const y of years){
+    const row = getProjected(campus, "Profesional", y) || baseRow(campus, "Profesional", y, period);
+    if(row && (n(row.ni,0)>0 || n(row.ri,0)>0 || n(row.mt,0)>0)){
+      firstYear = y;
+      firstRow = row;
+      break;
+    }
+  }
+
+  if(firstYear === null){
+    return {firstYear:null, mature:true, reason:"Sin datos"};
+  }
+
+  // Si en el primer año ya hay RI, el campus ya traía generaciones anteriores.
+  // Si no hay RI, se considera campus/captación nueva y se limita el semestre máximo posible.
+  const mature = n(firstRow?.ri,0) > 0;
+
+  return {
+    firstYear,
+    mature,
+    reason:mature ? "Con RI inicial" : "Nueva captación"
+  };
+}
+
+function maxProfessionalSemesterByMaturityV69(campus, year){
+  const info = campusProfessionalStartInfoV69(campus);
+  if(info.mature || !info.firstYear) return 8;
+
+  const yearsSinceStart = Math.max(0, year - info.firstYear);
+  // El año del simulador representa el ciclo AD-EM.
+  // Si inició en AD26:
+  // 2026 permite hasta S2, 2027 hasta S4, 2028 hasta S6, 2029 hasta S8.
+  return Math.max(1, Math.min(8, 2 * (yearsSinceStart + 1)));
+}
+
+V49.semesterAllocationMapForProfessional = function(campus, year, dist){
+  const prof = getProjected(campus, "Profesional", year) || {};
+  const ni = Math.round(n(prof.ni,0));
+  const ri = Math.round(n(prof.ri,0));
+  const maxSem = maxProfessionalSemesterByMaturityV69(campus, year);
+
+  const semsRI = SEMS_PROF.filter(s=>{
+    if(s==="S1") return false;
+    const semNum = n(String(s).replace("S",""),0);
+    return semNum <= maxSem;
+  });
+
+  const semWeights = {};
+  semsRI.forEach(s=>semWeights[s] = n(dist[s],0));
+
+  const riAlloc = V49.allocateByWeights(ri, semsRI, semWeights);
+  const out = {S1:ni};
+
+  for(const s of SEMS_PROF){
+    if(s==="S1") continue;
+    out[s] = semsRI.includes(s) ? n(riAlloc[s],0) : 0;
+  }
+
+  return out;
+};
+
+baseProgramSemesterRows = function(campus){
+  const dist = getDistribution(campus);
+  const rows = [];
+
+  for(const y of YEARS){
+    const prof = getProjected(campus, "Profesional", y) || {};
+    const profMt = n(prof.mt,0);
+    const profNi = Math.round(n(prof.ni,0));
+    const profRi = Math.round(n(prof.ri,0));
+    const contrib = contributionByProgram(campus, y);
+    const programs = Object.keys(contrib).sort();
+    const semTotals = V49.semesterAllocationMapForProfessional(campus, y, dist);
+    const maxSemCampus = maxProfessionalSemesterByMaturityV69(campus, y);
+
+    for(const sem of SEMS_PROF){
+      const semNum = n(String(sem).replace("S",""),0);
+      if(semNum > maxSemCampus) continue;
+
+      const baseSem = n(semTotals[sem],0);
+      if(baseSem <= 0) continue;
+
+      const alloc = V49.allocateByWeights(baseSem, programs, contrib);
+      const pctSem = sem==="S1" ? 1 : (profRi>0 ? baseSem/profRi : 0);
+
+      for(const prog of programs){
+        const alumnos = n(alloc[prog],0);
+        if(alumnos <= 0) continue;
+        const pctProg = n(contrib[prog],0);
+
+        rows.push({
+          anio:y,
+          semestre:sem,
+          semestreNum:semNum,
+          programa:prog,
+          pctProg,
+          profMt,
+          profNi,
+          profRi,
+          baseSem,
+          pctSem,
+          alumnosRaw:baseSem*pctProg,
+          alumnos,
+          maxSemCampus,
+          evaluaEspacio:semNum<=7,
+          clasificacion:semNum<=7 ? classifyProgramSem(alumnos, getMultiCfg()) : "No presencial"
+        });
+      }
+    }
+  }
+
+  return rows.sort((a,b)=>a.anio-b.anio || a.semestreNum-b.semestreNum || a.programa.localeCompare(b.programa));
+};
+
+function renderCampusMaturityNoteV69(campus, selectedYear){
+  const info = campusProfessionalStartInfoV69(campus);
+  if(!info || info.mature || !info.firstYear) return "";
+  const maxSem = maxProfessionalSemesterByMaturityV69(campus, selectedYear);
+  return `<div class="muted small" style="margin:8px 0 0 0;">
+    Nota de madurez: ${escapeHtml(campus)} inicia captación profesional en ${info.firstYear}; para ${selectedYear} se limita la distribución hasta S${maxSem}.
+  </div>`;
+}
+
+const renderMulticampusBaseV69 = renderMulticampus;
+renderMulticampus = function(campus){
+  renderMulticampusBaseV69(campus);
+  const selectedYear = n(state.config?.multiYear, YEARS[YEARS.length-1]);
+  const el = $("multiProgramTable");
+  if(el){
+    const note = renderCampusMaturityNoteV69(campus, selectedYear);
+    if(note && !el.innerHTML.includes("Nota de madurez:")){
+      el.innerHTML = note + el.innerHTML;
+    }
+  }
+};
+
+exportResumenMcV67 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = resumenMcAllV67().map(r=>({
+    escenario:esc,
+    anio:intV56(r.anio),
+    campus:r.campus,
+    espacios_multicampus:intV56(r.espacios),
+    alumnos_multicampus:intV56(r.alumnos),
+    carreras_multicampus:intV56(r.carreras),
+    grupos_multicampus:intV56(r.grupos)
+  }));
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v70.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V70 patch: descargas separadas de Resumen MC
+   ============================== */
+
+function resumenMcPivotRowsForMetricV70(metric){
+  ensureProjectionCurrentV55();
+  const rows = resumenMcAllV67();
+  const byCampus = {};
+
+  for(const r of rows){
+    if(!byCampus[r.campus]) byCampus[r.campus] = {};
+    byCampus[r.campus][r.anio] = n(r[metric],0);
+  }
+
+  return (state.campusList || []).map(campus=>{
+    const out = {
+      escenario:scenarioName(),
+      campus
+    };
+    for(const y of YEARS){
+      out[String(y)] = intV56(byCampus[campus]?.[y] || 0);
+    }
+    return out;
+  });
+}
+
+function exportResumenMcMetricV70(metric){
+  const label = metric === "alumnos" ? "alumnos" : "espacios";
+  const rows = resumenMcPivotRowsForMetricV70(metric);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v70.csv`, rows);
+}
+
+document.addEventListener("click", (e)=>{
+  if(!e.target) return;
+
+  if(e.target.id==="downloadResumenMcAlumnosBtn" || e.target.id==="downloadResumenMcAlumnosLocalBtn"){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    exportResumenMcMetricV70("alumnos");
+  }
+
+  if(e.target.id==="downloadResumenMcEspaciosBtn" || e.target.id==="downloadResumenMcEspaciosLocalBtn"){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    exportResumenMcMetricV70("espacios");
+  }
+}, true);
+
+// Se conserva la función anterior por compatibilidad, pero ya no exporta carreras.
+exportResumenMcV67 = function(){
+  exportResumenMcMetricV70("espacios");
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v70",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
