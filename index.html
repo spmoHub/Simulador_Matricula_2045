@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2026–2045 · v70</title>
+  <title>Simulador matrícula 2026–2045 · v81</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -218,7 +218,7 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2026–2045 · v70</h1>
+  <h1>Simulador de matrícula y salones 2026–2045 · v81</h1>
   <p>
     Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus, exportaciones CSV sin decimales, capacidad por tipos de espacios y aulas móviles separadas por nivel. Los salones disponibles se calculan desde los tipos capturados. Incluye módulo de inversión y NI por proyecto.
   </p>
@@ -243,7 +243,7 @@
         </select>
       </div>
       <div>
-        <button id="recalcBtn">Actualizar simulador</button>
+        <button id="recalcBtn" title="Recalcula tablas, gráficas y CSV con el campus, periodo, tasas y parámetros actuales.">Actualizar simulador</button>
       </div>
     </div>
     <div class="note">
@@ -432,23 +432,23 @@
       </section>
 
       <section class="card">
-        <h2>Espacios Multicampus</h2>
-        <p class="muted small">Suma de espacios/grupos Multicampus por campus y año. En S6/S7 considera las rutas de enfoque aperturadas.</p>
-        <button id="downloadResumenMcEspaciosLocalBtn" class="secondary">Descargar espacios CSV</button>
-        <div id="resumenMcEspaciosTable" class="table-wrap" style="margin-top:10px"></div>
+        <h2>Resumen por campus y carrera</h2>
+        <p class="muted small">
+          Una sola tabla con el desglose por campus, carrera y año. Para cada año se muestran los alumnos Multicampus y los espacios/grupos Multicampus calculados.
+          Las rutas a aperturar se fijan por defecto en 2 para todas las carreras y todos los campus.
+        </p>
+        <button id="downloadResumenMcDetalleLocalBtn" class="secondary">Descargar resumen carrera AD CSV</button>
+        <div id="resumenMcDetalleTable" class="table-wrap" style="margin-top:10px"></div>
       </section>
 
       <section class="card">
-        <h2>Alumnos en Multicampus</h2>
-        <p class="muted small">Suma de alumnos reales que quedan clasificados como Multicampus por campus y año; no usa capacidad ni alumnos redondeados por ruta.</p>
-        <button id="downloadResumenMcAlumnosLocalBtn" class="secondary">Descargar alumnos CSV</button>
-        <div id="resumenMcAlumnosTable" class="table-wrap" style="margin-top:10px"></div>
-      </section>
-
-      <section class="card">
-        <h2>Carreras con Multicampus</h2>
-        <p class="muted small">Número de carreras distintas que tienen al menos un grupo/ruta clasificado como Multicampus en ese campus y año.</p>
-        <div id="resumenMcCarrerasTable" class="table-wrap"></div>
+        <h2>Resumen Enero–Mayo por campus y carrera</h2>
+        <p class="muted small">
+          Transformación desde Agosto usando tasas de avance AD→EM. Mapea S1→S2, S3→S4, S5→S6 y S7→S8 hacia el EM del año siguiente.
+          El CSV incluye alumnos y espacios Multicampus; no incluye grupos ni presencial.
+        </p>
+        <button id="downloadResumenMcEmLocalBtn" class="secondary">Descargar resumen EM carrera CSV</button>
+        <div id="resumenMcEmTable" class="table-wrap" style="margin-top:10px"></div>
       </section>
     </div>
 
@@ -608,12 +608,12 @@
           <button id="downloadProjectionBtn">Descargar proyección CSV</button>
           <button id="downloadCapacityBtn" class="secondary">Descargar capacidad CSV</button>
           <button id="downloadMulticampusBtn" class="secondary">Descargar multicampus CSV</button>
-          <button id="downloadResumenMcEspaciosBtn" class="secondary">Descargar resumen MC espacios CSV</button>
-          <button id="downloadResumenMcAlumnosBtn" class="secondary">Descargar resumen MC alumnos CSV</button>
+          <button id="downloadResumenMcDetalleBtn" class="secondary">Descargar resumen MC carrera AD CSV</button>
+          <button id="downloadResumenMcEmBtn" class="secondary">Descargar resumen MC carrera EM CSV</button>
           <button id="downloadDocentesBtn" class="secondary">Descargar docentes CSV</button>
           <button id="downloadInvestmentBtn" class="secondary">Descargar inversión CSV</button>
           <button id="downloadConfigBtn" class="secondary">Descargar configuración CSV</button>
-          <button id="resetBtn" class="ghost">Restablecer configuración v70</button>
+          <button id="resetBtn" class="ghost">Restablecer configuración v81</button>
         </div>
       </section>
 
@@ -627,7 +627,7 @@
 
 <script>
 const AUTO_FILE = "./modelo_simulador.xlsx";
-const STORAGE_KEY = "simulador_matricula_v70_config";
+const STORAGE_KEY = "simulador_matricula_v81_config";
 const YEARS = Array.from({length:20}, (_,i)=>2026+i);
 const BASE_YEARS = Array.from({length:15}, (_,i)=>2026+i);
 const FUTURE_YEARS = [2041,2042,2043,2044,2045];
@@ -11745,7 +11745,7 @@ exportProjectionV55 = function(){
     crecimiento_ni_pct:pctIntV56(r.crec_ni),
     crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
   }));
-  downloadCsvV55(`proyeccion_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportCapacityV55 = function(){
@@ -11789,7 +11789,7 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v70.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v81.csv`, rows);
 };
 
 exportMulticampusV55 = function(){
@@ -11824,7 +11824,7 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportDocentesV55 = function(){
@@ -11860,7 +11860,7 @@ exportDocentesV55 = function(){
   }
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
-  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportConfigV55 = function(){
@@ -11871,14 +11871,14 @@ exportConfigV55 = function(){
     ruta:r.path,
     valor:configValueForCsvV56(r.path, r.valor)
   }));
-  downloadCsvV55(`configuracion_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`configuracion_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -11886,7 +11886,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12307,7 +12307,7 @@ function exportInvestmentV60(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v81.csv`, rows);
 }
 
 exportProjectionV55 = function(){
@@ -12333,14 +12333,14 @@ exportProjectionV55 = function(){
       crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
     };
   });
-  downloadCsvV55(`proyeccion_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12348,7 +12348,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 document.addEventListener("click", (e)=>{
@@ -12472,14 +12472,14 @@ exportInvestmentV60 = function(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12487,7 +12487,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12605,14 +12605,14 @@ exportInvestmentV60 = function(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12620,7 +12620,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12848,14 +12848,14 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12863,7 +12863,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12907,7 +12907,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12915,7 +12915,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12957,7 +12957,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12965,13 +12965,13 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
 
 /* ==============================
-   V66 patch: años 2026-2045 + hoja carreras_nuevas_2027
+   V66 patch: años 2026-2045 + hoja carreras_nuevas_2027 / carreras_nuevas_2028
    ============================== */
 
 function readRowsTryV66(wb, sheetNames){
@@ -12992,7 +12992,7 @@ function activeFlagV66(v){
 
 function parseCarrerasNuevas2027V66(wb){
   const res = readRowsTryV66(wb, [
-    "carreras_nuevas_2027",
+    "carreras_nuevas_2027 / carreras_nuevas_2028",
     "Carreras nuevas 2027",
     "carreras nuevas 2027",
     "carreras_nuevas_campus"
@@ -13006,7 +13006,7 @@ function parseCarrerasNuevas2027V66(wb){
     const modalidad = normalize(cleanHeaderValue(r, ["Modalidad","modalidad"]) || "Presencial");
     const active = activeFlagV66(cleanHeaderValue(r, ["Activo","activo","Abrir","abrir"]));
     const startYear = Math.floor(n(cleanHeaderValue(r, ["Año inicio","Anio inicio","anio_inicio","Año de apertura","Anio de apertura"]), 2027));
-    const ni2027 = n(cleanHeaderValue(r, ["NI 2027","NI_2027","NI","NI_programa","Inscritos 2027","Inscritos"]), 0);
+    const ni2027 = n(cleanHeaderValue(r, ["NI apertura","NI_2027","NI","NI_programa","Inscritos 2027","Inscritos"]), 0);
     const rutas = n(cleanHeaderValue(r, [
       "Cantidad de rutas de enfoque",
       "Rutas enfoque",
@@ -13158,7 +13158,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13166,7 +13166,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13262,7 +13262,7 @@ function exportResumenMcV67(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v81.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -13283,7 +13283,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13291,7 +13291,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13386,14 +13386,14 @@ exportResumenMcV67 = function(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13401,7 +13401,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13564,14 +13564,14 @@ exportResumenMcV67 = function(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v81.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13579,7 +13579,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13613,7 +13613,7 @@ function resumenMcPivotRowsForMetricV70(metric){
 function exportResumenMcMetricV70(metric){
   const label = metric === "alumnos" ? "alumnos" : "espacios";
   const rows = resumenMcPivotRowsForMetricV70(metric);
-  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v70.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v81.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -13641,7 +13641,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v70",
+    version:"v81",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13649,7 +13649,2946 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v70.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V71 patch: carreras nuevas solo desde 2027 y diferenciadas
+   ============================== */
+
+function excelNewCareerInfoV71(campus, programa){
+  const row = (state.multicampus?.carrerasNuevas2027 || [])
+    .find(r=>r.campus===campus && r.nivel==="Profesional" && r.programa===programa);
+  if(!row) return null;
+  return {
+    tipo:"Nueva",
+    startYear:Math.floor(n(row.startYear,2027)),
+    ni2027:n(row.ni2027,0),
+    rutas:n(row.rutas,0)
+  };
+}
+
+function manualNewCareerInfoV71(campus, programa){
+  const c = getNewCareerConfig ? getNewCareerConfig(campus) : {};
+  const prog = normalize(c.programa || "");
+  if(!n(c.active,0) || !prog || prog !== programa) return null;
+  return {
+    tipo:"Nueva manual",
+    startYear:Math.floor(n(c.startYear,2030)),
+    ni2027:n(c.niInicial,0),
+    rutas:n(c.rutas,0)
+  };
+}
+
+function careerInfoV71(campus, programa){
+  return excelNewCareerInfoV71(campus, programa) || manualNewCareerInfoV71(campus, programa);
+}
+
+function careerStartYearV71(campus, programa){
+  const info = careerInfoV71(campus, programa);
+  return info ? info.startYear : null;
+}
+
+function isExcelNewCareerV71(campus, programa){
+  return !!excelNewCareerInfoV71(campus, programa);
+}
+
+function programMaxSemesterByStartV71(campus, programa, year){
+  const start = careerStartYearV71(campus, programa);
+  const campusMax = (typeof maxProfessionalSemesterByMaturityV69 === "function")
+    ? maxProfessionalSemesterByMaturityV69(campus, year)
+    : 8;
+
+  if(!start) return campusMax;
+  if(year < start) return 0;
+
+  // Si una carrera abre en AD27, en el año 2027 solo puede estar en S1-S2;
+  // en 2028 en S1-S4; en 2029 en S1-S6; en 2030 en S1-S8.
+  const careerMax = Math.max(1, Math.min(8, 2 * (year - start + 1)));
+  return Math.min(campusMax, careerMax);
+}
+
+function programEligibleInSemV71(campus, programa, year, semNum){
+  const maxSem = programMaxSemesterByStartV71(campus, programa, year);
+  return semNum > 0 && semNum <= maxSem;
+}
+
+function programDisplayHtmlV71(campus, programa){
+  const label = escapeHtml(programa);
+  const info = careerInfoV71(campus, programa);
+  if(!info) return label;
+
+  const niTxt = info.tipo==="Nueva" && n(info.ni2027,0)>0
+    ? ` · NI apertura: ${fmt0.format(n(info.ni2027,0))}`
+    : "";
+  return `${label} <span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:11px;font-weight:700;">${escapeHtml(info.tipo)}${niTxt}</span>`;
+}
+
+function programsForYearV71(campus, year){
+  const programs = getProgramsForCampus ? getProgramsForCampus(campus) : [];
+  return programs.filter(p=>{
+    const start = careerStartYearV71(campus, p);
+    return !start || year >= start;
+  });
+}
+
+contributionByProgram = function(campus, year){
+  const m = state.multicampus || {};
+  const period = $("periodSelect")?.value || "AD";
+
+  // Importante: no se permite usar filas futuras como fallback.
+  // Esto evita que una carrera nueva 2027 aparezca en 2026.
+  let rows = (m.aportacion || [])
+    .filter(r=>r.campus===campus && r.periodo===period && r.nivel==="Profesional")
+    .filter(r=>{
+      const start = careerStartYearV71(campus, r.programa);
+      if(start && year < start) return false;
+      const ay = n(r.anio,0);
+      return !ay || ay <= year;
+    });
+
+  let chosen = rows.filter(r=>n(r.anio,0)===year);
+
+  if(!chosen.length){
+    const validYears = [...new Set(rows.map(r=>n(r.anio,0)).filter(y=>y>0 && y<=year))].sort((a,b)=>b-a);
+    if(validYears.length) chosen = rows.filter(r=>n(r.anio,0)===validYears[0]);
+  }
+
+  if(!chosen.length) chosen = rows.filter(r=>!r.anio || n(r.anio,0)===0);
+
+  const raw = {};
+  if(chosen.length){
+    const pctVals = chosen.map(r=>n(r.pct_aportacion,0)).filter(v=>v>0);
+    if(pctVals.length){
+      const pctLooksLikePercent = pctVals.reduce((a,b)=>a+b,0) > 1.5;
+      for(const r of chosen){
+        const rawPct = n(r.pct_aportacion,0);
+        if(rawPct>0) raw[r.programa] = (raw[r.programa] || 0) + (pctLooksLikePercent ? rawPct/100 : rawPct);
+      }
+    }else{
+      for(const r of chosen){
+        const niPrograma = n(r.ni_programa,0);
+        const totalCampus = n(r.ni_total_campus,0);
+        if(niPrograma>0 && totalCampus>0){
+          raw[r.programa] = (raw[r.programa] || 0) + (niPrograma / totalCampus);
+        }
+      }
+
+      if(!Object.keys(raw).length){
+        const totalNI = chosen.reduce((a,r)=>a+n(r.ni_programa,0),0);
+        if(totalNI>0){
+          for(const r of chosen){
+            const niPrograma = n(r.ni_programa,0);
+            if(niPrograma>0) raw[r.programa] = (raw[r.programa] || 0) + niPrograma/totalNI;
+          }
+        }
+      }
+    }
+  }
+
+  let baseWeights = V49.normalizeWeightsMap(raw);
+
+  // Soporte para la carrera nueva manual de la interfaz.
+  const c = getNewCareerConfig ? getNewCareerConfig(campus) : {};
+  const newProg = normalize(c.programa || "");
+  const addNi = typeof newCareerNiFor === "function" ? newCareerNiFor(campus, year) : 0;
+
+  if(newProg && n(c.active,0) && addNi>0){
+    const prof = getProjected(campus, "Profesional", year) || {};
+    const totalNi = Math.max(n(prof.ni,0), addNi);
+    const baseNi = Math.max(0, totalNi-addNi);
+    const out = {};
+    const baseKeys = Object.keys(baseWeights).filter(k=>k!==newProg);
+    if(baseKeys.length){
+      baseKeys.forEach(k=>out[k] = n(baseWeights[k],0) * baseNi / totalNi);
+    }else{
+      const programs = programsForYearV71(campus, year).filter(p=>p!==newProg);
+      const eq = programs.length ? 1/programs.length : 0;
+      programs.forEach(p=>out[p] = eq * baseNi / totalNi);
+    }
+    out[newProg] = addNi / totalNi;
+    return V49.normalizeWeightsMap(out);
+  }
+
+  if(Object.keys(baseWeights).length) return baseWeights;
+
+  const programs = programsForYearV71(campus, year);
+  const out = {};
+  if(programs.length){
+    const eq = 1 / programs.length;
+    programs.forEach(p=>out[p] = eq);
+  }
+  return out;
+};
+
+baseProgramSemesterRows = function(campus){
+  const dist = getDistribution(campus);
+  const rows = [];
+
+  for(const y of YEARS){
+    const prof = getProjected(campus, "Profesional", y) || {};
+    const profMt = n(prof.mt,0);
+    const profNi = Math.round(n(prof.ni,0));
+    const profRi = Math.round(n(prof.ri,0));
+    const annualContrib = contributionByProgram(campus, y);
+    const semTotals = V49.semesterAllocationMapForProfessional(campus, y, dist);
+    const maxSemCampus = (typeof maxProfessionalSemesterByMaturityV69 === "function")
+      ? maxProfessionalSemesterByMaturityV69(campus, y)
+      : 8;
+
+    for(const sem of SEMS_PROF){
+      const semNum = n(String(sem).replace("S",""),0);
+      if(semNum > maxSemCampus) continue;
+
+      const baseSem = n(semTotals[sem],0);
+      if(baseSem <= 0) continue;
+
+      const programs = Object.keys(annualContrib)
+        .filter(p=>n(annualContrib[p],0)>0)
+        .filter(p=>programEligibleInSemV71(campus, p, y, semNum))
+        .sort();
+
+      if(!programs.length) continue;
+
+      const semWeights = {};
+      programs.forEach(p=>semWeights[p] = n(annualContrib[p],0));
+      const semContrib = V49.normalizeWeightsMap(semWeights);
+      const alloc = V49.allocateByWeights(baseSem, programs, semContrib);
+      const pctSem = sem==="S1" ? 1 : (profRi>0 ? baseSem/profRi : 0);
+
+      for(const prog of programs){
+        const alumnos = n(alloc[prog],0);
+        if(alumnos <= 0) continue;
+        const pctProg = n(semContrib[prog],0);
+        const info = careerInfoV71(campus, prog);
+
+        rows.push({
+          campus,
+          anio:y,
+          semestre:sem,
+          semestreNum:semNum,
+          programa:prog,
+          pctProg,
+          profMt,
+          profNi,
+          profRi,
+          baseSem,
+          pctSem,
+          alumnosRaw:baseSem*pctProg,
+          alumnos,
+          maxSemCampus,
+          anioInicioPrograma:info ? info.startYear : "",
+          carreraNueva2027:info?.tipo==="Nueva" ? 1 : 0,
+          evaluaEspacio:semNum<=7,
+          clasificacion:semNum<=7 ? classifyProgramSem(alumnos, getMultiCfg()) : "No presencial"
+        });
+      }
+    }
+  }
+
+  return rows.sort((a,b)=>a.anio-b.anio || a.semestreNum-b.semestreNum || a.programa.localeCompare(b.programa));
+};
+
+programSemesterWideTable = function(programRows, selectedYear){
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  const yr = programRows.filter(r=>r.anio===selectedYear && r.semestre!=="S8");
+  const byProg = {};
+
+  for(const r of yr){
+    if(!byProg[r.programa]) byProg[r.programa] = {programa:r.programa, label:programDisplayHtmlV71(campus, r.programa)};
+    if(n(r.rutasCount,0)>0){
+      const groupSize = n(r.alumnosRutaMin,0);
+      byProg[r.programa][r.semestre] = `${fmt0.format(r.alumnos)} / ${fmt0.format(r.rutasCount)} rutas / ${fmt0.format(groupSize)} · ${r.clasificacionRuta}`;
+    }else{
+      byProg[r.programa][r.semestre] = `${fmt0.format(r.alumnos)} · ${r.clasificacionRuta}`;
+    }
+  }
+
+  return Object.values(byProg).sort((a,b)=>a.programa.localeCompare(b.programa)).map(r=>[
+    r.label,
+    r.S1 || "—", r.S2 || "—", r.S3 || "—", r.S4 || "—",
+    r.S5 || "—", r.S6 || "—", r.S7 || "—"
+  ]);
+};
+
+renderRouteOpenControlsV63 = function(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+
+  const programs = programsForRouteControlV63(campus);
+  if(!programs.length){
+    el.innerHTML = tableHtml(["Mensaje"], [["No hay carreras activas para este campus en Portafolio/Aportación NI."]], [0]);
+    return;
+  }
+
+  const map = routeOverrideMapV63(campus);
+  const rows = programs.map(prog=>{
+    const base = baseRouteCountV63(prog);
+    const hasOverride = Object.prototype.hasOwnProperty.call(map, prog);
+    const effective = routeCountEffectiveV63(campus, prog);
+    return [
+      programDisplayHtmlV71(campus, prog),
+      fmt0.format(base),
+      `<input data-zone="routeOpenV63" data-program="${escapeHtml(prog)}" type="number" step="1" min="0" value="${hasOverride ? Math.round(n(map[prog],0)) : effective}" placeholder="${base}">`
+    ];
+  });
+
+  el.innerHTML = tableHtml(
+    ["Carrera","Rutas base","Rutas a aperturar"],
+    rows,
+    [0]
+  );
+};
+
+function renderCarrerasNuevasHelpV71(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+  const news = (state.multicampus?.carrerasNuevas2027 || []).filter(r=>r.campus===campus && r.nivel==="Profesional");
+  if(!news.length) return;
+
+  const note = `<div class="muted small" style="margin:8px 0 12px 0;">
+    Las carreras marcadas como <b>Nueva</b> se toman de la hoja <b>carreras_nuevas_2027 / carreras_nuevas_2028</b>.
+    Su <b>NI propuesto</b> se captura en la columna <b>NI apertura</b> y no aparece en 2026.
+    En 2027 solo puede llegar hasta S2; en 2028 hasta S4; en 2029 hasta S6; en 2030 hasta S8.
+  </div>`;
+  if(!el.innerHTML.includes("carreras_nuevas_2027 / carreras_nuevas_2028")){
+    el.innerHTML = note + el.innerHTML;
+  }
+}
+
+const renderMulticampusBaseV71 = renderMulticampus;
+renderMulticampus = function(campus){
+  renderMulticampusBaseV71(campus);
+  renderCarrerasNuevasHelpV71(campus);
+};
+
+exportMulticampusV55 = function(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const selectedCampus = $("campusSelect")?.value || "";
+  const rows = [];
+
+  for(const c of state.campusList){
+    if($("campusSelect")) $("campusSelect").value = c;
+    CURRENT_ROUTE_CAMPUS_V63 = c;
+    const detail = multicampusDetailRows(c);
+    CURRENT_ROUTE_CAMPUS_V63 = "";
+    for(const r of detail){
+      const prog = r.programa || r.programas || "";
+      rows.push({
+        escenario:esc,
+        anio:intV56(r.anio),
+        campus:c,
+        semestre:r.semestre,
+        programa:prog,
+        carrera_nueva_2027:isExcelNewCareerV71(c, prog) ? 1 : 0,
+        anio_inicio_programa:careerStartYearV71(c, prog) || "",
+        grupo:r.grupo || "",
+        tipo:r.tipo || "",
+        alumnos:intV56(r.alumnos),
+        alumnos_programa_semestre:intV56(r.alumnosProgramaSemestre),
+        rutas_base_excel:intV56(baseRouteCountV63(prog)) || "",
+        rutas_a_aperturar:intV56(r.rutasCount) || "",
+        espacios_flex:intV56(r.salonesFlex),
+        espacios_multicampus:intV56(r.salonesMulticampus),
+        salones_presenciales:intV56(r.salonesPresenciales),
+        capacidad:intV56(r.capacidad),
+        ocioso:intV56(r.ocioso)
+      });
+    }
+  }
+
+  if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
+  if(selectedCampus) buildCapacityRows(selectedCampus);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v81.csv`, rows);
+};
+
+function exportResumenMcMetricV70(metric){
+  const label = metric === "alumnos" ? "alumnos" : "espacios";
+  const rows = resumenMcPivotRowsForMetricV70(metric);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v81.csv`, rows);
+}
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V72 patch: CSV alumnos MC desglosado por campus-carrera-año
+   ============================== */
+
+function resumenMcAlumnosPorCarreraRowsV72(){
+  ensureProjectionCurrentV55();
+
+  const cfg = getMultiCfg();
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(), 7);
+  const byKey = {};
+
+  for(const campus of state.campusList || []){
+    const prevCampus = CURRENT_ROUTE_CAMPUS_V63;
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+
+    try{
+      const baseRows = baseProgramSemesterRows(campus)
+        .filter(r=>n(r.semestreNum,0)<=7 && n(r.alumnos,0)>0);
+
+      for(const r of baseRows){
+        const year = n(r.anio,0);
+        const programa = r.programa || "";
+        const semNum = n(r.semestreNum,0);
+        const alumnosProgramaSemestre = Math.round(n(r.alumnos,0));
+
+        const inRouteSem = semNum >= rMin && semNum <= rMax;
+        const routeRows = inRouteSem ? rutasForProgram(programa) : [];
+
+        let isMulticampus = false;
+
+        if(routeRows.length){
+          const alumnosPorRuta = routeGroupSize(alumnosProgramaSemestre, routeRows.length);
+          isMulticampus = classifyProgramSem(alumnosPorRuta, cfg) === "Multicampus";
+        }else{
+          isMulticampus = classifyProgramSem(alumnosProgramaSemestre, cfg) === "Multicampus";
+        }
+
+        if(!isMulticampus) continue;
+
+        const key = `${campus}||${programa}`;
+        if(!byKey[key]){
+          byKey[key] = {
+            campus,
+            carrera:programa,
+            carrera_nueva_2027:isExcelNewCareerV71(campus, programa) ? 1 : 0,
+            anio_inicio_programa:careerStartYearV71(campus, programa) || ""
+          };
+          for(const y of YEARS) byKey[key][String(y)] = 0;
+        }
+
+        byKey[key][String(year)] += alumnosProgramaSemestre;
+      }
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = prevCampus || "";
+    }
+  }
+
+  return Object.values(byKey)
+    .sort((a,b)=>a.campus.localeCompare(b.campus,"es") || a.carrera.localeCompare(b.carrera,"es"))
+    .map(r=>{
+      const out = {
+        escenario:scenarioName(),
+        campus:r.campus,
+        carrera:r.carrera,
+        carrera_nueva_2027:r.carrera_nueva_2027,
+        anio_inicio_programa:r.anio_inicio_programa
+      };
+      for(const y of YEARS) out[String(y)] = intV56(r[String(y)] || 0);
+      return out;
+    });
+}
+
+function exportResumenMcMetricV70(metric){
+  if(metric === "alumnos"){
+    const rows = resumenMcAlumnosPorCarreraRowsV72();
+    downloadCsvV55(`resumen_multicampus_alumnos_por_carrera_${scenarioSlug()}_v81.csv`, rows);
+    return;
+  }
+
+  const label = metric === "espacios" ? "espacios" : metric;
+  const rows = resumenMcPivotRowsForMetricV70(metric);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v81.csv`, rows);
+}
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V73 patch: rutas default=2 + Resumen MC en una sola tabla campus-carrera-año
+   ============================== */
+
+const DEFAULT_RUTAS_APERTURAR_V73 = 2;
+
+routeCountEffectiveV63 = function(campus, programa){
+  const map = routeOverrideMapV63(campus);
+  if(Object.prototype.hasOwnProperty.call(map, programa)){
+    return Math.max(0, Math.round(n(map[programa],0)));
+  }
+  return DEFAULT_RUTAS_APERTURAR_V73;
+};
+
+baseRouteCountV63 = function(programa){
+  const campus = (typeof getRouteCampusV63 === "function" ? getRouteCampusV63() : ($("campusSelect")?.value || ""));
+  const custom = (typeof newCareerRouteCount2027V66 === "function") ? newCareerRouteCount2027V66(campus, programa) : null;
+  if(custom !== null) return custom;
+  const rp = (state.multicampus?.rutasPrograma || []).find(r=>r.programa===programa && n(r.cantidad_rutas,0)>0);
+  if(rp) return Math.max(1, Math.round(n(rp.cantidad_rutas,1)));
+  return detailedRoutesOnlyV63(programa).length || 0;
+};
+
+rutasForProgram = function(programa){
+  const campus = getRouteCampusV63();
+  const count = routeCountEffectiveV63(campus, programa);
+  const detailed = detailedRoutesOnlyV63(programa);
+
+  if(count > 0){
+    const out = [];
+    for(let i=0; i<count; i++){
+      if(detailed[i]){
+        out.push(detailed[i]);
+      }else{
+        out.push({
+          ruta:`Ruta ${i+1}`,
+          certificados:[],
+          certificadoPrincipal:""
+        });
+      }
+    }
+    return out;
+  }
+  return [];
+};
+
+renderRouteOpenControlsV63 = function(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+
+  const programs = programsForRouteControlV63(campus);
+  if(!programs.length){
+    el.innerHTML = tableHtml(["Mensaje"], [["No hay carreras activas para este campus en Portafolio/Aportación NI."]], [0]);
+    return;
+  }
+
+  const map = routeOverrideMapV63(campus);
+  const rows = programs.map(prog=>{
+    const base = baseRouteCountV63(prog);
+    const hasOverride = Object.prototype.hasOwnProperty.call(map, prog);
+    const effective = routeCountEffectiveV63(campus, prog);
+    return [
+      typeof programDisplayHtmlV71 === "function" ? programDisplayHtmlV71(campus, prog) : escapeHtml(prog),
+      fmt0.format(base),
+      `<input data-zone="routeOpenV63" data-program="${escapeHtml(prog)}" type="number" step="1" min="0" value="${hasOverride ? Math.round(n(map[prog],0)) : effective}" placeholder="2">`
+    ];
+  });
+
+  el.innerHTML = `<div class="muted small" style="margin:0 0 10px 0;">
+    Valor default: <b>2 rutas a aperturar</b> para todas las carreras y todos los campus. Puedes modificar alguna fila si quieres probar otra cantidad.
+  </div>` + tableHtml(
+    ["Carrera","Rutas base","Rutas a aperturar"],
+    rows,
+    [0]
+  );
+};
+
+document.addEventListener("change", (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='routeOpenV63']")) return;
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  const prog = e.target.dataset.program || "";
+  const map = routeOverrideMapV63(campus);
+
+  if(e.target.value === ""){
+    delete map[prog]; // vuelve al default 2
+  }else{
+    map[prog] = Math.max(0, Math.round(n(e.target.value,0)));
+  }
+
+  saveConfig();
+  render();
+}, true);
+
+function resumenMcCampusCarreraRowsV73(){
+  ensureProjectionCurrentV55();
+
+  const cfg = getMultiCfg();
+  const capMulti = Math.max(1, n(cfg.salonMulticampus, 12));
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(), 7);
+  const byKey = {};
+
+  for(const campus of state.campusList || []){
+    const prevCampus = CURRENT_ROUTE_CAMPUS_V63;
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+
+    try{
+      const baseRows = baseProgramSemesterRows(campus)
+        .filter(r=>n(r.semestreNum,0)<=7 && n(r.alumnos,0)>0);
+
+      for(const r of baseRows){
+        const year = n(r.anio,0);
+        const programa = r.programa || "";
+        const semNum = n(r.semestreNum,0);
+        const alumnosProgramaSemestre = Math.round(n(r.alumnos,0));
+
+        const inRouteSem = semNum >= rMin && semNum <= rMax;
+        const routeRows = inRouteSem ? rutasForProgram(programa) : [];
+
+        let isMulticampus = false;
+        let espacios = 0;
+        let grupos = 0;
+
+        if(routeRows.length){
+          const routeCount = routeRows.length;
+          const alumnosPorRuta = routeGroupSize(alumnosProgramaSemestre, routeCount);
+          isMulticampus = classifyProgramSem(alumnosPorRuta, cfg) === "Multicampus";
+          if(isMulticampus){
+            espacios = routeCount * Math.max(1, Math.ceil(alumnosPorRuta / capMulti));
+            grupos = routeCount;
+          }
+        }else{
+          isMulticampus = classifyProgramSem(alumnosProgramaSemestre, cfg) === "Multicampus";
+          if(isMulticampus){
+            espacios = Math.max(1, Math.ceil(alumnosProgramaSemestre / capMulti));
+            grupos = 1;
+          }
+        }
+
+        if(!isMulticampus) continue;
+
+        const key = `${campus}||${programa}`;
+        if(!byKey[key]){
+          byKey[key] = {
+            campus,
+            carrera:programa,
+            carrera_nueva_2027:(typeof isExcelNewCareerV71 === "function" && isExcelNewCareerV71(campus, programa)) ? 1 : 0,
+            anio_inicio_programa:(typeof careerStartYearV71 === "function" ? (careerStartYearV71(campus, programa) || "") : ""),
+            data:{}
+          };
+          for(const y of YEARS){
+            byKey[key].data[y] = {alumnos:0, espacios:0, grupos:0};
+          }
+        }
+
+        byKey[key].data[year].alumnos += alumnosProgramaSemestre;
+        byKey[key].data[year].espacios += espacios;
+        byKey[key].data[year].grupos += grupos;
+      }
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = prevCampus || "";
+    }
+  }
+
+  return Object.values(byKey)
+    .sort((a,b)=>a.campus.localeCompare(b.campus,"es") || a.carrera.localeCompare(b.carrera,"es"));
+}
+
+function resumenMcRowsForCsvV73(){
+  return resumenMcCampusCarreraRowsV73().map(r=>{
+    const out = {
+      escenario:scenarioName(),
+      campus:r.campus,
+      carrera:r.carrera,
+      carrera_nueva_2027:r.carrera_nueva_2027,
+      anio_inicio_programa:r.anio_inicio_programa
+    };
+    for(const y of YEARS){
+      out[`alumnos_${y}`] = intV56(r.data[y]?.alumnos || 0);
+      out[`espacios_${y}`] = intV56(r.data[y]?.espacios || 0);
+      out[`grupos_${y}`] = intV56(r.data[y]?.grupos || 0);
+    }
+    return out;
+  });
+}
+
+function renderResumenMcDetalleV73(){
+  const el = $("resumenMcDetalleTable");
+  if(!el) return;
+
+  const rows = resumenMcCampusCarreraRowsV73();
+
+  const headers = ["Campus","Carrera","Nueva","Año inicio"];
+  for(const y of YEARS){
+    headers.push(`${y} alumnos`);
+    headers.push(`${y} espacios`);
+    headers.push(`${y} grupos`);
+  }
+
+  const tableRows = rows.map(r=>{
+    const out = [
+      escapeHtml(r.campus),
+      escapeHtml(r.carrera),
+      r.carrera_nueva_2027 ? "Sí" : "No",
+      r.anio_inicio_programa || "—"
+    ];
+    for(const y of YEARS){
+      out.push(fmt0.format(n(r.data[y]?.alumnos,0)));
+      out.push(fmt0.format(n(r.data[y]?.espacios,0)));
+      out.push(fmt0.format(n(r.data[y]?.grupos,0)));
+    }
+    return out;
+  });
+
+  el.innerHTML = tableHtml(headers, tableRows, [0,1,2,3]);
+}
+
+function renderResumenMcViewV67(){
+  if(!$("resumenmc")) return;
+
+  const rows = resumenMcCampusCarreraRowsV73();
+  let totalEspacios = 0;
+  let totalAlumnos = 0;
+  let totalGrupos = 0;
+
+  for(const r of rows){
+    for(const y of YEARS){
+      totalEspacios += n(r.data[y]?.espacios,0);
+      totalAlumnos += n(r.data[y]?.alumnos,0);
+      totalGrupos += n(r.data[y]?.grupos,0);
+    }
+  }
+
+  if($("resumenMcKpis")){
+    $("resumenMcKpis").innerHTML = [
+      ["Alumnos acumulados",fmt0.format(totalAlumnos),"Multicampus 2026–2045"],
+      ["Espacios acumulados",fmt0.format(totalEspacios),"Multicampus 2026–2045"],
+      ["Grupos acumulados",fmt0.format(totalGrupos),"Con rutas default = 2"],
+      ["Campus-carrera",fmt0.format(rows.length),"Filas con Multicampus"]
+    ].map(([a,b,c])=>`<div class="kpi"><div class="label">${a}</div><div class="value">${b}</div><div class="sub">${c}</div></div>`).join("");
+  }
+
+  renderResumenMcDetalleV73();
+}
+
+function exportResumenMcDetalleV73(){
+  const rows = resumenMcRowsForCsvV73();
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+document.addEventListener("click", (e)=>{
+  if(!e.target) return;
+  if(e.target.id==="downloadResumenMcDetalleBtn" || e.target.id==="downloadResumenMcDetalleLocalBtn" ||
+     e.target.id==="downloadResumenMcAlumnosBtn" || e.target.id==="downloadResumenMcAlumnosLocalBtn"){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    exportResumenMcDetalleV73();
+  }
+}, true);
+
+function exportResumenMcMetricV70(metric){
+  exportResumenMcDetalleV73();
+}
+
+exportResumenMcV67 = function(){
+  exportResumenMcDetalleV73();
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V74 patch: rutas forzadas a 2 + cálculo exacto por ruta
+   ============================== */
+
+const DEFAULT_RUTAS_APERTURAR_V74 = 2;
+
+function allProgramsForCampusV74(campus){
+  const p1 = (typeof programsForRouteControlV63 === "function") ? programsForRouteControlV63(campus) : [];
+  const p2 = (typeof getProgramsForCampus === "function") ? getProgramsForCampus(campus) : [];
+  const p3 = [...new Set((state.multicampus?.aportacion || [])
+    .filter(r=>r.campus===campus && r.nivel==="Profesional")
+    .map(r=>r.programa)
+    .filter(Boolean))];
+  return [...new Set([...p1, ...p2, ...p3])].filter(Boolean).sort((a,b)=>a.localeCompare(b,"es"));
+}
+
+function forceAllRoutesTwoV74(force=true){
+  if(!state.config) state.config = {};
+  if(!state.config.routeOpenV63) state.config.routeOpenV63 = {};
+
+  for(const campus of state.campusList || []){
+    if(!state.config.routeOpenV63[campus]) state.config.routeOpenV63[campus] = {};
+    const map = state.config.routeOpenV63[campus];
+    for(const prog of allProgramsForCampusV74(campus)){
+      if(force || !Object.prototype.hasOwnProperty.call(map, prog)){
+        map[prog] = DEFAULT_RUTAS_APERTURAR_V74;
+      }
+    }
+  }
+}
+
+routeCountEffectiveV63 = function(campus, programa){
+  const map = routeOverrideMapV63(campus);
+  if(Object.prototype.hasOwnProperty.call(map, programa)){
+    return Math.max(0, Math.round(n(map[programa],0)));
+  }
+  return DEFAULT_RUTAS_APERTURAR_V74;
+};
+
+rutasForProgram = function(programa){
+  const campus = getRouteCampusV63();
+  const count = routeCountEffectiveV63(campus, programa);
+  const detailed = detailedRoutesOnlyV63(programa);
+
+  if(count > 0){
+    const out = [];
+    for(let i=0; i<count; i++){
+      if(detailed[i]){
+        out.push(detailed[i]);
+      }else{
+        out.push({ruta:`Ruta ${i+1}`, certificados:[], certificadoPrincipal:""});
+      }
+    }
+    return out;
+  }
+  return [];
+};
+
+function routeSplitStatsV74(totalAlumnos, routeCount, cfg){
+  const split = splitInteger(Math.round(n(totalAlumnos,0)), Math.max(1, Math.round(n(routeCount,1))));
+  const capMulti = Math.max(1, n(cfg.salonMulticampus, 12));
+  const capFlex = Math.max(1, n(cfg.salonFlex, 4));
+  const capNormal = Math.max(1, n(cfg.salonNormal, 25));
+
+  const out = {
+    split,
+    min: split.length ? Math.min(...split) : 0,
+    max: split.length ? Math.max(...split) : 0,
+    classSet:[],
+    alumnosFlex:0,
+    alumnosMulticampus:0,
+    alumnosPresencial:0,
+    gruposFlex:0,
+    gruposMulticampus:0,
+    gruposPresencial:0,
+    espaciosFlex:0,
+    espaciosMulticampus:0,
+    espaciosPresencial:0
+  };
+
+  for(const size of split){
+    if(size <= 0) continue;
+    const cls0 = classifyProgramSem(size, cfg);
+    const cls = cls0 === "Presencial" ? "Presencial 25" : cls0;
+    if(!out.classSet.includes(cls)) out.classSet.push(cls);
+
+    if(cls === "Flex"){
+      out.alumnosFlex += size;
+      out.gruposFlex += 1;
+      out.espaciosFlex += Math.max(1, Math.ceil(size / capFlex));
+    }else if(cls === "Multicampus"){
+      out.alumnosMulticampus += size;
+      out.gruposMulticampus += 1;
+      out.espaciosMulticampus += Math.max(1, Math.ceil(size / capMulti));
+    }else{
+      out.alumnosPresencial += size;
+      out.gruposPresencial += 1;
+      out.espaciosPresencial += Math.max(1, Math.ceil(size / capNormal));
+    }
+  }
+
+  return out;
+}
+
+function labelFromClassSetV74(classSet){
+  const order = ["Presencial 25", "Multicampus", "Flex"];
+  const vals = order.filter(x=>classSet.includes(x));
+  if(vals.length === 1) return vals[0];
+  if(vals.length > 1) return `Mixto: ${vals.join(" / ")}`;
+  return "—";
+}
+
+buildAcademicUnits = function(campus){
+  const base = baseProgramSemesterRows(campus);
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(),7);
+  const units = [];
+
+  for(const r of base){
+    if(r.semestreNum >= 8) continue;
+
+    const inRouteSem = r.semestreNum>=rMin && r.semestreNum<=rMax;
+    const routeRows = inRouteSem ? rutasForProgram(r.programa) : [];
+
+    if(routeRows.length){
+      const split = splitInteger(Math.round(n(r.alumnos,0)), routeRows.length);
+      routeRows.forEach((route, idx)=>{
+        const alumnos = split[idx] || 0;
+        if(alumnos <= 0) return;
+        const cert = normalize(route.certificadoPrincipal || route.certificados?.[0] || "");
+        units.push({
+          anio:r.anio, semestre:r.semestre, semestreNum:r.semestreNum,
+          programa:r.programa, ruta:route.ruta || `Ruta ${idx+1}`,
+          certificado:cert, secuencia:"", alumnos,
+          alumnosProgramaSemestre:Math.round(n(r.alumnos,0)), rutasCount:routeRows.length,
+          unitLabel:`${r.programa} · ${route.ruta || "Ruta " + (idx+1)}`, grain:"Ruta"
+        });
+      });
+    }else{
+      const mapKey = firstMapKeyForProgramSem(r.programa, r.semestreNum);
+      units.push({
+        anio:r.anio, semestre:r.semestre, semestreNum:r.semestreNum,
+        programa:r.programa, ruta:"",
+        certificado:mapKey ? mapKey.cert : "", secuencia:mapKey ? mapKey.seq : "",
+        alumnos:Math.round(n(r.alumnos,0)), alumnosProgramaSemestre:Math.round(n(r.alumnos,0)),
+        rutasCount:0, unitLabel:r.programa, grain:"Programa"
+      });
+    }
+  }
+
+  return units.filter(u=>n(u.alumnos,0)>0);
+};
+
+programSemesterRows = function(campus){
+  const base = baseProgramSemesterRows(campus);
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(),7);
+  const cfg = getMultiCfg();
+
+  return base.map(r=>{
+    if(r.semestreNum>=rMin && r.semestreNum<=rMax){
+      const routeRows = rutasForProgram(r.programa);
+      if(routeRows.length){
+        const stats = routeSplitStatsV74(r.alumnos, routeRows.length, cfg);
+        return {
+          ...r,
+          rutasCount:routeRows.length,
+          alumnosRutaMin:stats.min,
+          alumnosRutaMax:stats.max,
+          alumnosRutaMc:stats.alumnosMulticampus,
+          alumnosRutaPres:stats.alumnosPresencial,
+          alumnosRutaFlex:stats.alumnosFlex,
+          clasificacionRuta:labelFromClassSetV74(stats.classSet)
+        };
+      }
+    }
+    return {...r, rutasCount:0, alumnosRutaMin:null, alumnosRutaMax:null, clasificacionRuta:r.clasificacion};
+  });
+};
+
+renderRouteOpenControlsV63 = function(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+
+  forceAllRoutesTwoV74(false);
+
+  const programs = programsForRouteControlV63(campus);
+  if(!programs.length){
+    el.innerHTML = tableHtml(["Mensaje"], [["No hay carreras activas para este campus en Portafolio/Aportación NI."]], [0]);
+    return;
+  }
+
+  const map = routeOverrideMapV63(campus);
+  const rows = programs.map(prog=>{
+    const base = baseRouteCountV63(prog);
+    const effective = routeCountEffectiveV63(campus, prog);
+    return [
+      typeof programDisplayHtmlV71 === "function" ? programDisplayHtmlV71(campus, prog) : escapeHtml(prog),
+      fmt0.format(base),
+      `<input data-zone="routeOpenV63" data-program="${escapeHtml(prog)}" type="number" step="1" min="0" value="${Math.round(n(effective,DEFAULT_RUTAS_APERTURAR_V74))}" placeholder="2">`
+    ];
+  });
+
+  el.innerHTML = `<div class="muted small" style="margin:0 0 10px 0;">
+    En esta versión se fija <b>Rutas a aperturar = 2</b> para todas las carreras y campus. 
+    El cálculo se hace ruta por ruta: si una ruta queda con 12+ alumnos se va a Presencial 25 y deja de contar como Multicampus.
+  </div>` + tableHtml(
+    ["Carrera","Rutas base","Rutas a aperturar"],
+    rows,
+    [0]
+  );
+};
+
+document.addEventListener("change", (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='routeOpenV63']")) return;
+  const campus = $("campusSelect")?.value || state.campusList?.[0] || "";
+  const prog = e.target.dataset.program || "";
+  const map = routeOverrideMapV63(campus);
+
+  if(e.target.value === ""){
+    map[prog] = DEFAULT_RUTAS_APERTURAR_V74;
+  }else{
+    map[prog] = Math.max(0, Math.round(n(e.target.value,DEFAULT_RUTAS_APERTURAR_V74)));
+  }
+
+  saveConfig();
+  render();
+}, true);
+
+function resumenMcCampusCarreraRowsV73(){
+  ensureProjectionCurrentV55();
+  forceAllRoutesTwoV74(false);
+
+  const cfg = getMultiCfg();
+  const capMulti = Math.max(1, n(cfg.salonMulticampus, 12));
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(), 7);
+  const byKey = {};
+
+  for(const campus of state.campusList || []){
+    const prevCampus = CURRENT_ROUTE_CAMPUS_V63;
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+
+    try{
+      const baseRows = baseProgramSemesterRows(campus)
+        .filter(r=>n(r.semestreNum,0)<=7 && n(r.alumnos,0)>0);
+
+      for(const r of baseRows){
+        const year = n(r.anio,0);
+        const programa = r.programa || "";
+        const semNum = n(r.semestreNum,0);
+        const alumnosProgramaSemestre = Math.round(n(r.alumnos,0));
+
+        const inRouteSem = semNum >= rMin && semNum <= rMax;
+        const routeRows = inRouteSem ? rutasForProgram(programa) : [];
+
+        let alumnosMc = 0;
+        let espaciosMc = 0;
+        let gruposMc = 0;
+        let alumnosPres = 0;
+        let gruposPres = 0;
+
+        if(routeRows.length){
+          const stats = routeSplitStatsV74(alumnosProgramaSemestre, routeRows.length, cfg);
+          alumnosMc = stats.alumnosMulticampus;
+          espaciosMc = stats.espaciosMulticampus;
+          gruposMc = stats.gruposMulticampus;
+          alumnosPres = stats.alumnosPresencial;
+          gruposPres = stats.gruposPresencial;
+        }else{
+          const cls0 = classifyProgramSem(alumnosProgramaSemestre, cfg);
+          const cls = cls0 === "Presencial" ? "Presencial 25" : cls0;
+          if(cls === "Multicampus"){
+            alumnosMc = alumnosProgramaSemestre;
+            espaciosMc = Math.max(1, Math.ceil(alumnosProgramaSemestre / capMulti));
+            gruposMc = 1;
+          }else if(cls === "Presencial 25"){
+            alumnosPres = alumnosProgramaSemestre;
+            gruposPres = 1;
+          }
+        }
+
+        if(alumnosMc <= 0 && espaciosMc <= 0 && gruposMc <= 0) continue;
+
+        const key = `${campus}||${programa}`;
+        if(!byKey[key]){
+          byKey[key] = {
+            campus,
+            carrera:programa,
+            carrera_nueva_2027:(typeof isExcelNewCareerV71 === "function" && isExcelNewCareerV71(campus, programa)) ? 1 : 0,
+            anio_inicio_programa:(typeof careerStartYearV71 === "function" ? (careerStartYearV71(campus, programa) || "") : ""),
+            data:{}
+          };
+          for(const y of YEARS){
+            byKey[key].data[y] = {alumnos:0, espacios:0, grupos:0, alumnosPres:0, gruposPres:0};
+          }
+        }
+
+        byKey[key].data[year].alumnos += alumnosMc;
+        byKey[key].data[year].espacios += espaciosMc;
+        byKey[key].data[year].grupos += gruposMc;
+        byKey[key].data[year].alumnosPres += alumnosPres;
+        byKey[key].data[year].gruposPres += gruposPres;
+      }
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = prevCampus || "";
+    }
+  }
+
+  return Object.values(byKey)
+    .sort((a,b)=>a.campus.localeCompare(b.campus,"es") || a.carrera.localeCompare(b.carrera,"es"));
+}
+
+function resumenMcRowsForCsvV73(){
+  return resumenMcCampusCarreraRowsV73().map(r=>{
+    const out = {
+      escenario:scenarioName(),
+      campus:r.campus,
+      carrera:r.carrera,
+      carrera_nueva_2027:r.carrera_nueva_2027,
+      anio_inicio_programa:r.anio_inicio_programa
+    };
+    for(const y of YEARS){
+      out[`alumnos_mc_${y}`] = intV56(r.data[y]?.alumnos || 0);
+      out[`espacios_mc_${y}`] = intV56(r.data[y]?.espacios || 0);
+      out[`grupos_mc_${y}`] = intV56(r.data[y]?.grupos || 0);
+      out[`alumnos_presencial_por_ruta_${y}`] = intV56(r.data[y]?.alumnosPres || 0);
+      out[`grupos_presencial_por_ruta_${y}`] = intV56(r.data[y]?.gruposPres || 0);
+    }
+    return out;
+  });
+}
+
+function renderResumenMcDetalleV73(){
+  const el = $("resumenMcDetalleTable");
+  if(!el) return;
+
+  const rows = resumenMcCampusCarreraRowsV73();
+
+  const headers = ["Campus","Carrera","Nueva","Año inicio"];
+  for(const y of YEARS){
+    headers.push(`${y} alumnos MC`);
+    headers.push(`${y} espacios MC`);
+    headers.push(`${y} grupos MC`);
+  }
+
+  const tableRows = rows.map(r=>{
+    const out = [
+      escapeHtml(r.campus),
+      escapeHtml(r.carrera),
+      r.carrera_nueva_2027 ? "Sí" : "No",
+      r.anio_inicio_programa || "—"
+    ];
+    for(const y of YEARS){
+      out.push(fmt0.format(n(r.data[y]?.alumnos,0)));
+      out.push(fmt0.format(n(r.data[y]?.espacios,0)));
+      out.push(fmt0.format(n(r.data[y]?.grupos,0)));
+    }
+    return out;
+  });
+
+  el.innerHTML = tableHtml(headers, tableRows, [0,1,2,3]);
+}
+
+function exportResumenMcDetalleV73(){
+  const rows = resumenMcRowsForCsvV73();
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+const loadWorkbookBaseV74 = loadWorkbook;
+loadWorkbook = async function(buffer, name){
+  await loadWorkbookBaseV74(buffer, name);
+  forceAllRoutesTwoV74(true);
+  saveConfig();
+  render();
+};
+
+const renderBaseV74 = render;
+render = function(){
+  forceAllRoutesTwoV74(false);
+  renderBaseV74();
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V75 patch: NI apertura exacto para carreras nuevas y sin doble conteo
+   ============================== */
+
+const NEW_CAREER_RETENTION_BY_SEM_V75 = {
+  1:1.000,
+  2:0.895,
+  3:0.895*0.928,
+  4:0.895*0.928*0.958,
+  5:0.895*0.928*0.958*0.968,
+  6:0.895*0.928*0.958*0.968*0.975,
+  7:0.895*0.928*0.958*0.968*0.975*0.977,
+  8:0.895*0.928*0.958*0.968*0.975*0.977*0.979
+};
+
+function newCareerRowsForSemV75(campus, year, semNum){
+  const careers = (state.multicampus?.carrerasNuevas2027 || [])
+    .filter(c=>c.campus===campus && c.nivel==="Profesional" && activeFlagV66(c.activo ?? true));
+
+  const out = [];
+
+  for(const c of careers){
+    const start = Math.floor(n(c.startYear,2027));
+    if(year < start) continue;
+
+    const delta = year - start;
+    const semA = 2*delta + 1;
+    const semB = 2*delta + 2;
+    if(semNum !== semA && semNum !== semB) continue;
+    if(semNum < 1 || semNum > 8) continue;
+
+    // S1 del año de apertura conserva exactamente el NI apertura capturado por el usuario.
+    // Semestres posteriores usan avance promedio de Profesional Semestral.
+    const ni = Math.round(n(c.ni2027,0));
+    const alumnos = semNum === 1 ? ni : Math.round(ni * n(NEW_CAREER_RETENTION_BY_SEM_V75[semNum],0));
+    if(alumnos <= 0) continue;
+
+    out.push({
+      campus,
+      programa:c.programa,
+      alumnos,
+      niOriginal:ni,
+      startYear:start,
+      rutas:n(c.rutas,0)
+    });
+  }
+
+  return out;
+}
+
+function newCareerProgramsSetV75(campus){
+  return new Set((state.multicampus?.carrerasNuevas2027 || [])
+    .filter(c=>c.campus===campus && c.nivel==="Profesional")
+    .map(c=>c.programa)
+    .filter(Boolean));
+}
+
+function contributionByProgramExistingOnlyV75(campus, year){
+  const m = state.multicampus || {};
+  const period = $("periodSelect")?.value || "AD";
+  const newSet = newCareerProgramsSetV75(campus);
+
+  let rows = (m.aportacion || [])
+    .filter(r=>r.campus===campus && r.periodo===period && r.nivel==="Profesional")
+    .filter(r=>!newSet.has(r.programa))
+    .filter(r=>{
+      const ay = n(r.anio,0);
+      return !ay || ay <= year;
+    });
+
+  let chosen = rows.filter(r=>n(r.anio,0)===year);
+
+  if(!chosen.length){
+    const validYears = [...new Set(rows.map(r=>n(r.anio,0)).filter(y=>y>0 && y<=year))].sort((a,b)=>b-a);
+    if(validYears.length) chosen = rows.filter(r=>n(r.anio,0)===validYears[0]);
+  }
+
+  if(!chosen.length) chosen = rows.filter(r=>!r.anio || n(r.anio,0)===0);
+
+  const raw = {};
+  if(chosen.length){
+    const pctVals = chosen.map(r=>n(r.pct_aportacion,0)).filter(v=>v>0);
+    if(pctVals.length){
+      const pctLooksLikePercent = pctVals.reduce((a,b)=>a+b,0) > 1.5;
+      for(const r of chosen){
+        const rawPct = n(r.pct_aportacion,0);
+        if(rawPct>0) raw[r.programa] = (raw[r.programa] || 0) + (pctLooksLikePercent ? rawPct/100 : rawPct);
+      }
+    }else{
+      for(const r of chosen){
+        const niPrograma = n(r.ni_programa,0);
+        const totalCampus = n(r.ni_total_campus,0);
+        if(niPrograma>0 && totalCampus>0){
+          raw[r.programa] = (raw[r.programa] || 0) + (niPrograma / totalCampus);
+        }
+      }
+
+      if(!Object.keys(raw).length){
+        const totalNI = chosen.reduce((a,r)=>a+n(r.ni_programa,0),0);
+        if(totalNI>0){
+          for(const r of chosen){
+            const niPrograma = n(r.ni_programa,0);
+            if(niPrograma>0) raw[r.programa] = (raw[r.programa] || 0) + niPrograma/totalNI;
+          }
+        }
+      }
+    }
+  }
+
+  let weights = V49.normalizeWeightsMap(raw);
+  if(Object.keys(weights).length) return weights;
+
+  const programs = (typeof getProgramsForCampus === "function" ? getProgramsForCampus(campus) : [])
+    .filter(p=>!newSet.has(p));
+  const out = {};
+  if(programs.length){
+    const eq = 1/programs.length;
+    programs.forEach(p=>out[p] = eq);
+  }
+  return out;
+}
+
+baseProgramSemesterRows = function(campus){
+  const dist = getDistribution(campus);
+  const rows = [];
+
+  for(const y of YEARS){
+    const prof = getProjected(campus, "Profesional", y) || {};
+    const profMt = n(prof.mt,0);
+    const profNi = Math.round(n(prof.ni,0));
+    const profRi = Math.round(n(prof.ri,0));
+    const semTotals = V49.semesterAllocationMapForProfessional(campus, y, dist);
+    const maxSemCampus = (typeof maxProfessionalSemesterByMaturityV69 === "function")
+      ? maxProfessionalSemesterByMaturityV69(campus, y)
+      : 8;
+
+    const existingContrib = contributionByProgramExistingOnlyV75(campus, y);
+
+    for(const sem of SEMS_PROF){
+      const semNum = n(String(sem).replace("S",""),0);
+      if(semNum > maxSemCampus) continue;
+
+      const baseSemOriginal = n(semTotals[sem],0);
+      if(baseSemOriginal <= 0) continue;
+
+      const newRows = newCareerRowsForSemV75(campus, y, semNum);
+      const newAlumnos = newRows.reduce((a,r)=>a+n(r.alumnos,0),0);
+      const baseSemExisting = Math.max(0, baseSemOriginal - newAlumnos);
+
+      // Primero se agregan las carreras nuevas con su NI exacto / avance de cohorte.
+      for(const nr of newRows){
+        const info = careerInfoV71(campus, nr.programa) || {startYear:nr.startYear, tipo:"Nueva"};
+        rows.push({
+          campus,
+          anio:y,
+          semestre:sem,
+          semestreNum:semNum,
+          programa:nr.programa,
+          pctProg:baseSemOriginal>0 ? nr.alumnos/baseSemOriginal : 0,
+          profMt,
+          profNi,
+          profRi,
+          baseSem:baseSemOriginal,
+          pctSem:sem==="S1" ? 1 : (profRi>0 ? baseSemOriginal/profRi : 0),
+          alumnosRaw:nr.alumnos,
+          alumnos:nr.alumnos,
+          maxSemCampus,
+          anioInicioPrograma:info.startYear || 2027,
+          carreraNueva2027:1,
+          niOriginal2027:nr.niOriginal,
+          evaluaEspacio:semNum<=7,
+          clasificacion:semNum<=7 ? classifyProgramSem(nr.alumnos, getMultiCfg()) : "No presencial"
+        });
+      }
+
+      // El resto del semestre se reparte solo entre carreras existentes, para no duplicar ni achicar el NI nuevo.
+      const programs = Object.keys(existingContrib)
+        .filter(p=>n(existingContrib[p],0)>0)
+        .filter(p=>{
+          const maxSem = (typeof programMaxSemesterByStartV71 === "function") ? programMaxSemesterByStartV71(campus, p, y) : maxSemCampus;
+          return semNum <= maxSem;
+        })
+        .sort();
+
+      if(baseSemExisting <= 0 || !programs.length) continue;
+
+      const semWeights = {};
+      programs.forEach(p=>semWeights[p] = n(existingContrib[p],0));
+      const semContrib = V49.normalizeWeightsMap(semWeights);
+      const alloc = V49.allocateByWeights(baseSemExisting, programs, semContrib);
+      const pctSem = sem==="S1" ? 1 : (profRi>0 ? baseSemOriginal/profRi : 0);
+
+      for(const prog of programs){
+        const alumnos = n(alloc[prog],0);
+        if(alumnos <= 0) continue;
+        const pctProg = n(semContrib[prog],0);
+
+        rows.push({
+          campus,
+          anio:y,
+          semestre:sem,
+          semestreNum:semNum,
+          programa:prog,
+          pctProg,
+          profMt,
+          profNi,
+          profRi,
+          baseSem:baseSemOriginal,
+          pctSem,
+          alumnosRaw:baseSemExisting*pctProg,
+          alumnos,
+          maxSemCampus,
+          anioInicioPrograma:"",
+          carreraNueva2027:0,
+          niOriginal2027:"",
+          evaluaEspacio:semNum<=7,
+          clasificacion:semNum<=7 ? classifyProgramSem(alumnos, getMultiCfg()) : "No presencial"
+        });
+      }
+    }
+  }
+
+  return rows.sort((a,b)=>a.anio-b.anio || a.semestreNum-b.semestreNum || a.programa.localeCompare(b.programa));
+};
+
+function routeSplitStatsV75(totalAlumnos, routeCount, cfg){
+  const split = splitInteger(Math.round(n(totalAlumnos,0)), Math.max(1, Math.round(n(routeCount,1))));
+  const capMulti = Math.max(1, n(cfg.salonMulticampus, 12));
+  const capFlex = Math.max(1, n(cfg.salonFlex, 4));
+  const capNormal = Math.max(1, n(cfg.salonNormal, 25));
+
+  const out = {
+    split,
+    min: split.length ? Math.min(...split) : 0,
+    max: split.length ? Math.max(...split) : 0,
+    classSet:[],
+    alumnosFlex:0,
+    alumnosMulticampus:0,
+    alumnosPresencial:0,
+    gruposFlex:0,
+    gruposMulticampus:0,
+    gruposPresencial:0,
+    espaciosFlex:0,
+    espaciosMulticampus:0,
+    espaciosPresencial:0
+  };
+
+  for(const size of split){
+    if(size <= 0) continue;
+    const cls0 = classifyProgramSem(size, cfg);
+    const cls = cls0 === "Presencial" ? "Presencial 25" : cls0;
+    if(!out.classSet.includes(cls)) out.classSet.push(cls);
+
+    if(cls === "Flex"){
+      out.alumnosFlex += size;
+      out.gruposFlex += 1;
+      out.espaciosFlex += Math.max(1, Math.ceil(size / capFlex));
+    }else if(cls === "Multicampus"){
+      out.alumnosMulticampus += size;
+      out.gruposMulticampus += 1;
+      out.espaciosMulticampus += Math.max(1, Math.ceil(size / capMulti));
+    }else{
+      out.alumnosPresencial += size;
+      out.gruposPresencial += 1;
+      out.espaciosPresencial += Math.max(1, Math.ceil(size / capNormal));
+    }
+  }
+
+  return out;
+}
+
+routeSplitStatsV74 = routeSplitStatsV75;
+
+function resumenMcRowsForCsvV73(){
+  return resumenMcCampusCarreraRowsV73().map(r=>{
+    const out = {
+      escenario:scenarioName(),
+      campus:r.campus,
+      carrera:r.carrera,
+      carrera_nueva_2027:r.carrera_nueva_2027,
+      anio_inicio_programa:r.anio_inicio_programa,
+      ni_original:(state.multicampus?.carrerasNuevas2027 || []).find(x=>x.campus===r.campus && x.programa===r.carrera)?.ni2027 || ""
+    };
+    for(const y of YEARS){
+      out[`alumnos_mc_${y}`] = intV56(r.data[y]?.alumnos || 0);
+      out[`espacios_mc_${y}`] = intV56(r.data[y]?.espacios || 0);
+      out[`grupos_mc_${y}`] = intV56(r.data[y]?.grupos || 0);
+      out[`alumnos_presencial_por_ruta_${y}`] = intV56(r.data[y]?.alumnosPres || 0);
+      out[`grupos_presencial_por_ruta_${y}`] = intV56(r.data[y]?.gruposPres || 0);
+    }
+    return out;
+  });
+}
+
+function renderCarrerasNuevasHelpV71(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+  const news = (state.multicampus?.carrerasNuevas2027 || []).filter(r=>r.campus===campus && r.nivel==="Profesional");
+  if(!news.length) return;
+
+  const note = `<div class="muted small" style="margin:8px 0 12px 0;">
+    Las carreras marcadas como <b>Nueva</b> usan el <b>NI apertura exacto</b> capturado en la hoja <b>carreras_nuevas_2027 / carreras_nuevas_2028</b>.
+    Ese valor no se normaliza ni se reduce por mezcla de programas. Si el NI queda en 12+ alumnos, se clasifica como <b>Presencial 25</b>, no como Multicampus.
+  </div>`;
+  if(!el.innerHTML.includes("NI apertura exacto")){
+    el.innerHTML = note + el.innerHTML;
+  }
+}
+
+function exportResumenMcDetalleV73(){
+  const rows = resumenMcRowsForCsvV73();
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V76 patch: Resumen MC Enero-Mayo por campus-carrera
+   ============================== */
+
+const DEFAULT_TRANSITION_AD_TO_EM_V76 = {
+  1:0.895,
+  3:0.958,
+  5:0.975
+};
+
+const EM_YEARS_V76 = YEARS.filter(y=>y>=2027 && y<=2045);
+
+function emRowsFromAdV76(campus){
+  ensureProjectionCurrentV55();
+
+  const out = [];
+  const rowsAD = baseProgramSemesterRows(campus)
+    .filter(r=>[1,3,5].includes(n(r.semestreNum,0)))
+    .filter(r=>n(r.alumnos,0)>0);
+
+  for(const r of rowsAD){
+    const semNum = n(r.semestreNum,0);
+    const emYear = n(r.anio,0) + 1;
+    const emSemNum = semNum + 1;
+
+    if(!EM_YEARS_V76.includes(emYear)) continue;
+
+    const tasa = n(DEFAULT_TRANSITION_AD_TO_EM_V76[semNum],0);
+    const alumnos = Math.round(n(r.alumnos,0) * tasa);
+
+    if(alumnos <= 0) continue;
+
+    out.push({
+      campus,
+      anio:emYear,
+      periodo:"EM",
+      semestre:`S${emSemNum}`,
+      semestreNum:emSemNum,
+      programa:r.programa,
+      alumnos,
+      alumnosOrigenAD:Math.round(n(r.alumnos,0)),
+      semestreOrigenAD:`S${semNum}`,
+      anioOrigenAD:n(r.anio,0),
+      tasa
+    });
+  }
+
+  return out;
+}
+
+function resumenMcEmCampusCarreraRowsV76(){
+  ensureProjectionCurrentV55();
+  if(typeof forceAllRoutesTwoV74 === "function") forceAllRoutesTwoV74(false);
+
+  const cfg = getMultiCfg();
+  const capMulti = Math.max(1, n(cfg.salonMulticampus, 12));
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(), 7);
+  const byKey = {};
+
+  for(const campus of state.campusList || []){
+    const prevCampus = CURRENT_ROUTE_CAMPUS_V63;
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+
+    try{
+      const rowsEM = emRowsFromAdV76(campus);
+
+      for(const r of rowsEM){
+        const year = n(r.anio,0);
+        const programa = r.programa || "";
+        const semNum = n(r.semestreNum,0);
+        const alumnosProgramaSemestre = Math.round(n(r.alumnos,0));
+
+        const inRouteSem = semNum >= rMin && semNum <= rMax;
+        const routeRows = inRouteSem ? rutasForProgram(programa) : [];
+
+        let alumnosMc = 0;
+        let espaciosMc = 0;
+
+        if(routeRows.length){
+          const stats = routeSplitStatsV75(alumnosProgramaSemestre, routeRows.length, cfg);
+          alumnosMc = stats.alumnosMulticampus;
+          espaciosMc = stats.espaciosMulticampus;
+        }else{
+          const cls0 = classifyProgramSem(alumnosProgramaSemestre, cfg);
+          const cls = cls0 === "Presencial" ? "Presencial 25" : cls0;
+          if(cls === "Multicampus"){
+            alumnosMc = alumnosProgramaSemestre;
+            espaciosMc = Math.max(1, Math.ceil(alumnosProgramaSemestre / capMulti));
+          }
+        }
+
+        if(alumnosMc <= 0 && espaciosMc <= 0) continue;
+
+        const key = `${campus}||${programa}`;
+        if(!byKey[key]){
+          byKey[key] = {
+            campus,
+            carrera:programa,
+            carrera_nueva_2027:(typeof isExcelNewCareerV71 === "function" && isExcelNewCareerV71(campus, programa)) ? 1 : 0,
+            anio_inicio_programa:(typeof careerStartYearV71 === "function" ? (careerStartYearV71(campus, programa) || "") : ""),
+            data:{}
+          };
+          for(const y of EM_YEARS_V76){
+            byKey[key].data[y] = {alumnos:0, espacios:0};
+          }
+        }
+
+        byKey[key].data[year].alumnos += alumnosMc;
+        byKey[key].data[year].espacios += espaciosMc;
+      }
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = prevCampus || "";
+    }
+  }
+
+  return Object.values(byKey)
+    .sort((a,b)=>a.campus.localeCompare(b.campus,"es") || a.carrera.localeCompare(b.carrera,"es"));
+}
+
+function resumenMcEmRowsForCsvV76(){
+  return resumenMcEmCampusCarreraRowsV76().map(r=>{
+    const out = {
+      escenario:scenarioName(),
+      periodo:"EM",
+      campus:r.campus,
+      carrera:r.carrera,
+      carrera_nueva_2027:r.carrera_nueva_2027,
+      anio_inicio_programa:r.anio_inicio_programa,
+      ni_original:(state.multicampus?.carrerasNuevas2027 || []).find(x=>x.campus===r.campus && x.programa===r.carrera)?.ni2027 || ""
+    };
+    for(const y of EM_YEARS_V76){
+      out[`alumnos_mc_${y}`] = intV56(r.data[y]?.alumnos || 0);
+      out[`espacios_mc_${y}`] = intV56(r.data[y]?.espacios || 0);
+    }
+    return out;
+  });
+}
+
+function renderResumenMcEmV76(){
+  const el = $("resumenMcEmTable");
+  if(!el) return;
+
+  const rows = resumenMcEmCampusCarreraRowsV76();
+  const headers = ["Campus","Carrera","Nueva","Año inicio"];
+  for(const y of EM_YEARS_V76){
+    headers.push(`${y} alumnos MC`);
+    headers.push(`${y} espacios MC`);
+  }
+
+  const tableRows = rows.map(r=>{
+    const out = [
+      escapeHtml(r.campus),
+      escapeHtml(r.carrera),
+      r.carrera_nueva_2027 ? "Sí" : "No",
+      r.anio_inicio_programa || "—"
+    ];
+    for(const y of EM_YEARS_V76){
+      out.push(fmt0.format(n(r.data[y]?.alumnos,0)));
+      out.push(fmt0.format(n(r.data[y]?.espacios,0)));
+    }
+    return out;
+  });
+
+  el.innerHTML = tableHtml(headers, tableRows, [0,1,2,3]);
+}
+
+function exportResumenMcEmV76(){
+  const rows = resumenMcEmRowsForCsvV76();
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+document.addEventListener("click", (e)=>{
+  if(!e.target) return;
+  if(e.target.id==="downloadResumenMcEmBtn" || e.target.id==="downloadResumenMcEmLocalBtn"){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    exportResumenMcEmV76();
+  }
+}, true);
+
+const renderResumenMcViewBaseV76 = renderResumenMcViewV67;
+renderResumenMcViewV67 = function(){
+  renderResumenMcViewBaseV76();
+  renderResumenMcEmV76();
+};
+
+const renderBaseV76 = render;
+render = function(){
+  renderBaseV76();
+  renderResumenMcEmV76();
+};
+
+function exportResumenMcDetalleV73(){
+  const rows = resumenMcRowsForCsvV73();
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V77 patch: carreras nuevas 2027 y 2028 desde Excel base nuevo
+   ============================== */
+
+function sheetYearFromNameV77(sheetName){
+  const m = String(sheetName || "").match(/20(2[7-9]|3[0-9]|4[0-5])/);
+  return m ? Number(m[0]) : null;
+}
+
+function readRowsFromSheetV77(wb, sheetName){
+  if(!sheetName || !wb.Sheets[sheetName]) return [];
+  let rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:2, defval:null, raw:true});
+  if(!rows.length) rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:0, defval:null, raw:true});
+  return rows;
+}
+
+function parseAllCarrerasNuevasV77(wb){
+  const names = wb.SheetNames || [];
+  const candidateSheets = names.filter(s=>{
+    const t = normalize(s).toLowerCase();
+    return t.includes("carreras") && t.includes("nuevas");
+  });
+
+  const out = [];
+
+  for(const sheetName of candidateSheets){
+    const sheetYear = sheetYearFromNameV77(sheetName);
+    const rows = readRowsFromSheetV77(wb, sheetName);
+
+    for(const r of rows){
+      const campus = normalize(cleanHeaderValue(r, ["Campus","campus"]));
+      const nivel = normalize(cleanHeaderValue(r, ["Nivel","nivel"]) || "Profesional");
+      const programa = normalize(cleanHeaderValue(r, ["Programa","programa","Carrera","carrera"]));
+      const periodo = normalize(cleanHeaderValue(r, ["Periodo","periodo","Periodo inicio","periodo_inicio"]) || "AD");
+      const modalidad = normalize(cleanHeaderValue(r, ["Modalidad","modalidad"]) || "Presencial");
+      const active = activeFlagV66(cleanHeaderValue(r, ["Activo","activo","Abrir","abrir"]));
+
+      let startYear = Math.floor(n(cleanHeaderValue(r, [
+        "Año inicio","Anio inicio","anio_inicio",
+        "Año de apertura","Anio de apertura",
+        "Año","Anio","anio"
+      ]), sheetYear || 2027));
+
+      if(!startYear || startYear < 2026) startYear = sheetYear || 2027;
+
+      const ni = n(cleanHeaderValue(r, [
+        `NI ${startYear}`,
+        `NI_${startYear}`,
+        "NI apertura",
+        "NI Apertura",
+        "NI",
+        "NI_programa",
+        "Inscritos",
+        "Inscritos apertura"
+      ]), 0);
+
+      const rutas = n(cleanHeaderValue(r, [
+        "Cantidad de rutas de enfoque",
+        "Rutas enfoque",
+        "Rutas",
+        "cantidad_rutas",
+        "rutas"
+      ]), 0);
+
+      if(!active || !campus || !programa || nivel !== "Profesional" || ni <= 0) continue;
+
+      out.push({
+        campus,
+        nivel,
+        programa,
+        periodo,
+        modalidad,
+        activo:true,
+        startYear,
+        niApertura:ni,
+        ni2027:startYear===2027 ? ni : 0,
+        rutas,
+        sourceSheet:sheetName
+      });
+    }
+  }
+
+  const dedup = {};
+  for(const r of out){
+    const key = `${r.campus}||${r.programa}||${r.startYear}`;
+    dedup[key] = {...dedup[key], ...r};
+  }
+
+  return Object.values(dedup).sort((a,b)=>
+    a.campus.localeCompare(b.campus,"es") ||
+    a.startYear-b.startYear ||
+    a.programa.localeCompare(b.programa,"es")
+  );
+}
+
+function setCarrerasNuevasAllV77(rows){
+  if(!state.multicampus) state.multicampus = {};
+  state.multicampus.carrerasNuevasAll = rows || [];
+  // Compatibilidad con funciones anteriores: ahora esta lista contiene 2027 y 2028.
+  state.multicampus.carrerasNuevas2027 = rows || [];
+}
+
+function enrichCarrerasNuevasAllV77(){
+  const m = state.multicampus || {};
+  const careers = m.carrerasNuevasAll || m.carrerasNuevas2027 || [];
+  if(!careers.length) return;
+
+  m.portafolio = [...(m.portafolio || [])];
+
+  for(const c of careers){
+    const exists = m.portafolio.some(r=>r.campus===c.campus && r.nivel==="Profesional" && r.programa===c.programa);
+    if(!exists){
+      m.portafolio.push({
+        campus:c.campus,
+        nivel:"Profesional",
+        programa:c.programa,
+        modalidad:c.modalidad || "Presencial",
+        activo:"SI"
+      });
+    }
+  }
+
+  state.multicampus = m;
+}
+
+function carrerasNuevasAllV77(){
+  return state.multicampus?.carrerasNuevasAll || state.multicampus?.carrerasNuevas2027 || [];
+}
+
+const loadWorkbookBaseV77 = loadWorkbook;
+loadWorkbook = async function(buffer, name){
+  const wb = XLSX.read(buffer, {type:"array", cellDates:false});
+  await loadWorkbookBaseV77(buffer, name);
+  const allRows = parseAllCarrerasNuevasV77(wb);
+  setCarrerasNuevasAllV77(allRows);
+  enrichCarrerasNuevasAllV77();
+  if(typeof forceAllRoutesTwoV74 === "function") forceAllRoutesTwoV74(true);
+  setStatus([
+    {text:`Archivo cargado: ${state.workbookName}`,cls:"ok"},
+    {text:`Filas base: ${fmt0.format(state.base.length)}`},
+    {text:`Campus: ${fmt0.format(state.campusList.length)}`},
+    {text:`Carreras nuevas: ${fmt0.format(allRows.length)}`,cls:allRows.length ? "ok" : ""}
+  ]);
+  saveConfig();
+  render();
+};
+
+function excelNewCareerInfoV71(campus, programa){
+  const row = carrerasNuevasAllV77()
+    .find(r=>r.campus===campus && r.nivel==="Profesional" && r.programa===programa);
+  if(!row) return null;
+  return {
+    tipo:`Nueva ${Math.floor(n(row.startYear,2027))}`,
+    startYear:Math.floor(n(row.startYear,2027)),
+    niApertura:n(row.niApertura ?? row.ni2027,0),
+    ni2027:n(row.ni2027,0),
+    rutas:n(row.rutas,0),
+    sourceSheet:row.sourceSheet || ""
+  };
+}
+
+function isExcelNewCareerV71(campus, programa){
+  return !!excelNewCareerInfoV71(campus, programa);
+}
+
+function careerInfoV71(campus, programa){
+  return excelNewCareerInfoV71(campus, programa) || manualNewCareerInfoV71(campus, programa);
+}
+
+function careerStartYearV71(campus, programa){
+  const info = careerInfoV71(campus, programa);
+  return info ? info.startYear : null;
+}
+
+function programDisplayHtmlV71(campus, programa){
+  const label = escapeHtml(programa);
+  const info = careerInfoV71(campus, programa);
+  if(!info) return label;
+
+  const ni = n(info.niApertura ?? info.ni2027,0);
+  const niTxt = ni>0 ? ` · NI apertura: ${fmt0.format(ni)}` : "";
+  return `${label} <span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:11px;font-weight:700;">${escapeHtml(info.tipo)}${niTxt}</span>`;
+}
+
+function newCareerProgramsSetV75(campus){
+  return new Set(carrerasNuevasAllV77()
+    .filter(c=>c.campus===campus && c.nivel==="Profesional")
+    .map(c=>c.programa)
+    .filter(Boolean));
+}
+
+function newCareerRowsForSemV75(campus, year, semNum){
+  const careers = carrerasNuevasAllV77()
+    .filter(c=>c.campus===campus && c.nivel==="Profesional" && activeFlagV66(c.activo ?? true));
+
+  const out = [];
+
+  for(const c of careers){
+    const start = Math.floor(n(c.startYear,2027));
+    if(year < start) continue;
+
+    const delta = year - start;
+    const semA = 2*delta + 1;
+    const semB = 2*delta + 2;
+    if(semNum !== semA && semNum !== semB) continue;
+    if(semNum < 1 || semNum > 8) continue;
+
+    const ni = Math.round(n(c.niApertura ?? c.ni2027,0));
+    const alumnos = semNum === 1 ? ni : Math.round(ni * n(NEW_CAREER_RETENTION_BY_SEM_V75[semNum],0));
+    if(alumnos <= 0) continue;
+
+    out.push({
+      campus,
+      programa:c.programa,
+      alumnos,
+      niOriginal:ni,
+      startYear:start,
+      rutas:n(c.rutas,0)
+    });
+  }
+
+  return out;
+}
+
+function newCareerRouteCount2027V66(campus, programa){
+  const row = carrerasNuevasAllV77()
+    .find(r=>r.campus===campus && r.programa===programa && n(r.rutas,0)>0);
+  return row ? Math.max(0, Math.round(n(row.rutas,0))) : null;
+}
+
+const getProgramsForCampusBaseV77 = getProgramsForCampus;
+getProgramsForCampus = function(campus){
+  const base = getProgramsForCampusBaseV77(campus) || [];
+  const news = carrerasNuevasAllV77()
+    .filter(r=>r.campus===campus && r.nivel==="Profesional")
+    .map(r=>r.programa);
+  return [...new Set([...base, ...news])].filter(Boolean).sort((a,b)=>a.localeCompare(b,"es"));
+};
+
+function programsForYearV71(campus, year){
+  const programs = getProgramsForCampus ? getProgramsForCampus(campus) : [];
+  return programs.filter(p=>{
+    const start = careerStartYearV71(campus, p);
+    return !start || year >= start;
+  });
+}
+
+function renderCarrerasNuevasHelpV71(campus){
+  const el = $("routeOpenControlsV63");
+  if(!el) return;
+  const news = carrerasNuevasAllV77().filter(r=>r.campus===campus && r.nivel==="Profesional");
+  if(!news.length) return;
+
+  const years = [...new Set(news.map(r=>Math.floor(n(r.startYear,2027))))].sort((a,b)=>a-b).join(", ");
+  const note = `<div class="muted small" style="margin:8px 0 12px 0;">
+    Las carreras marcadas como <b>Nueva ${escapeHtml(years)}</b> se toman de las hojas de carreras nuevas del Excel.
+    Usan el <b>NI de apertura exacto</b> capturado para su año de inicio; ese valor no se normaliza ni se reduce por mezcla de programas.
+    Si el NI queda en 12+ alumnos, se clasifica como <b>Presencial 25</b>, no como Multicampus.
+  </div>`;
+  if(!el.innerHTML.includes("NI de apertura exacto")){
+    el.innerHTML = note + el.innerHTML;
+  }
+}
+
+function resumenMcRowsForCsvV73(){
+  return resumenMcCampusCarreraRowsV73().map(r=>{
+    const info = excelNewCareerInfoV71(r.campus, r.carrera);
+    const out = {
+      escenario:scenarioName(),
+      campus:r.campus,
+      carrera:r.carrera,
+      carrera_nueva:info ? 1 : 0,
+      anio_inicio_programa:info?.startYear || r.anio_inicio_programa || "",
+      ni_apertura:info?.niApertura || "",
+      hoja_origen:info?.sourceSheet || ""
+    };
+    for(const y of YEARS){
+      out[`alumnos_mc_${y}`] = intV56(r.data[y]?.alumnos || 0);
+      out[`espacios_mc_${y}`] = intV56(r.data[y]?.espacios || 0);
+      out[`grupos_mc_${y}`] = intV56(r.data[y]?.grupos || 0);
+      out[`alumnos_presencial_por_ruta_${y}`] = intV56(r.data[y]?.alumnosPres || 0);
+      out[`grupos_presencial_por_ruta_${y}`] = intV56(r.data[y]?.gruposPres || 0);
+    }
+    return out;
+  });
+}
+
+function resumenMcEmRowsForCsvV76(){
+  return resumenMcEmCampusCarreraRowsV76().map(r=>{
+    const info = excelNewCareerInfoV71(r.campus, r.carrera);
+    const out = {
+      escenario:scenarioName(),
+      periodo:"EM",
+      campus:r.campus,
+      carrera:r.carrera,
+      carrera_nueva:info ? 1 : 0,
+      anio_inicio_programa:info?.startYear || r.anio_inicio_programa || "",
+      ni_apertura:info?.niApertura || "",
+      hoja_origen:info?.sourceSheet || ""
+    };
+    for(const y of EM_YEARS_V76){
+      out[`alumnos_mc_${y}`] = intV56(r.data[y]?.alumnos || 0);
+      out[`espacios_mc_${y}`] = intV56(r.data[y]?.espacios || 0);
+    }
+    return out;
+  });
+}
+
+function exportResumenMcDetalleV73(){
+  const rows = resumenMcRowsForCsvV73();
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+function exportResumenMcEmV76(){
+  const rows = resumenMcEmRowsForCsvV76();
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V78 patch: carreras nuevas 2028 dentro de la misma hoja carreras_nuevas_2027
+   ============================== */
+
+function normKeyV78(x){
+  return String(x || "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase()
+    .replace(/[_\-.]+/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function valueByHeaderNamesV78(row, names){
+  const wanted = names.map(normKeyV78);
+  for(const [k,v] of Object.entries(row || {})){
+    if(wanted.includes(normKeyV78(k))) return v;
+  }
+  return null;
+}
+
+function valueByHeaderPredicateV78(row, predicate){
+  for(const [k,v] of Object.entries(row || {})){
+    const nk = normKeyV78(k);
+    if(predicate(nk,k)) return v;
+  }
+  return null;
+}
+
+function startYearFromRowV78(row, fallbackYear){
+  const direct = valueByHeaderNamesV78(row, [
+    "Año inicio","Anio inicio","Año de inicio","Anio de inicio",
+    "año_inicio","anio_inicio","Año apertura","Anio apertura",
+    "Año de apertura","Anio de apertura","Año Inicio Programa","Anio Inicio Programa",
+    "Año","Anio"
+  ]);
+
+  let y = Math.floor(n(direct,0));
+  if(y>=2026 && y<=2045) return y;
+
+  const fuzzy = valueByHeaderPredicateV78(row, nk =>
+    (nk.includes("ano") || nk.includes("anio")) &&
+    (nk.includes("inicio") || nk.includes("apertura"))
+  );
+
+  y = Math.floor(n(fuzzy,0));
+  if(y>=2026 && y<=2045) return y;
+
+  return fallbackYear || 2027;
+}
+
+function niFromRowV78(row, startYear){
+  const direct = valueByHeaderNamesV78(row, [
+    `NI ${startYear}`, `NI_${startYear}`, `NI-${startYear}`,
+    "NI apertura","NI Apertura","NI de apertura",
+    "NI propuesto","NI Propuesto","NI", "NI_programa",
+    "Inscritos","Inscritos apertura","Inscritos propuestos"
+  ]);
+
+  let val = n(direct,0);
+  if(val>0) return val;
+
+  const byYear = valueByHeaderPredicateV78(row, nk => nk.includes("ni") && nk.includes(String(startYear)));
+  val = n(byYear,0);
+  if(val>0) return val;
+
+  const anyNI = valueByHeaderPredicateV78(row, nk => nk==="ni" || nk.startsWith("ni "));
+  val = n(anyNI,0);
+  if(val>0) return val;
+
+  return 0;
+}
+
+function textFromRowV78(row, names, fallback=""){
+  const v = valueByHeaderNamesV78(row, names);
+  return normalize(v === null || v === undefined ? fallback : v);
+}
+
+function parseAllCarrerasNuevasV78(wb){
+  const names = wb.SheetNames || [];
+  const candidateSheets = names.filter(s=>{
+    const t = normKeyV78(s);
+    return (t.includes("carrera") || t.includes("programa")) &&
+           (t.includes("nueva") || t.includes("nuevo"));
+  });
+
+  const out = [];
+
+  for(const sheetName of candidateSheets){
+    const fallbackYear = sheetYearFromNameV77 ? sheetYearFromNameV77(sheetName) : null;
+    let rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:2, defval:null, raw:true});
+    if(!rows.length) rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:0, defval:null, raw:true});
+
+    for(const r of rows){
+      const campus = textFromRowV78(r, ["Campus","campus"]);
+      const nivel = textFromRowV78(r, ["Nivel","nivel"], "Profesional") || "Profesional";
+      const programa = textFromRowV78(r, ["Programa","programa","Carrera","carrera"]);
+      const periodo = textFromRowV78(r, ["Periodo","periodo","Periodo inicio","periodo_inicio"], "AD") || "AD";
+      const modalidad = textFromRowV78(r, ["Modalidad","modalidad"], "Presencial") || "Presencial";
+      const activeVal = valueByHeaderNamesV78(r, ["Activo","activo","Abrir","abrir"]);
+      const active = activeFlagV66(activeVal === null || activeVal === undefined ? "SI" : activeVal);
+      const startYear = startYearFromRowV78(r, fallbackYear || 2027);
+      const niApertura = niFromRowV78(r, startYear);
+      const rutas = n(valueByHeaderNamesV78(r, [
+        "Cantidad de rutas de enfoque",
+        "Rutas enfoque",
+        "Rutas",
+        "cantidad_rutas",
+        "rutas"
+      ]), 0);
+
+      if(!active || !campus || !programa || nivel !== "Profesional" || niApertura <= 0) continue;
+      if(programa.toLowerCase().includes("ejemplo")) continue;
+
+      out.push({
+        campus,
+        nivel,
+        programa,
+        periodo,
+        modalidad,
+        activo:true,
+        startYear,
+        niApertura,
+        ni2027:startYear===2027 ? niApertura : 0,
+        rutas,
+        sourceSheet:sheetName
+      });
+    }
+  }
+
+  const dedup = {};
+  for(const r of out){
+    const key = `${r.campus}||${r.programa}||${r.startYear}`;
+    dedup[key] = r;
+  }
+
+  return Object.values(dedup).sort((a,b)=>
+    a.campus.localeCompare(b.campus,"es") ||
+    a.startYear-b.startYear ||
+    a.programa.localeCompare(b.programa,"es")
+  );
+}
+
+function setCarrerasNuevasAllV78(rows){
+  if(!state.multicampus) state.multicampus = {};
+  state.multicampus.carrerasNuevasAll = rows || [];
+  state.multicampus.carrerasNuevas2027 = rows || []; // compatibilidad con funciones previas
+}
+
+function ensureNewCareerRowsInResumenV78(rows, yearsList){
+  const arr = rows || [];
+  const idx = new Set(arr.map(r=>`${r.campus}||${r.carrera}`));
+
+  for(const c of carrerasNuevasAllV77()){
+    const key = `${c.campus}||${c.programa}`;
+    if(idx.has(key)) continue;
+
+    const data = {};
+    for(const y of yearsList){
+      data[y] = {alumnos:0, espacios:0, grupos:0, alumnosPres:0, gruposPres:0};
+    }
+
+    arr.push({
+      campus:c.campus,
+      carrera:c.programa,
+      carrera_nueva_2027:1,
+      anio_inicio_programa:c.startYear,
+      data
+    });
+    idx.add(key);
+  }
+
+  return arr.sort((a,b)=>a.campus.localeCompare(b.campus,"es") || a.carrera.localeCompare(b.carrera,"es"));
+}
+
+const loadWorkbookBaseV78 = loadWorkbook;
+loadWorkbook = async function(buffer, name){
+  const wb = XLSX.read(buffer, {type:"array", cellDates:false});
+  await loadWorkbookBaseV78(buffer, name);
+
+  const allRows = parseAllCarrerasNuevasV78(wb);
+  setCarrerasNuevasAllV78(allRows);
+  enrichCarrerasNuevasAllV77();
+
+  if(typeof forceAllRoutesTwoV74 === "function") forceAllRoutesTwoV74(true);
+
+  const y2027 = allRows.filter(r=>r.startYear===2027).length;
+  const y2028 = allRows.filter(r=>r.startYear===2028).length;
+
+  setStatus([
+    {text:`Archivo cargado: ${state.workbookName}`,cls:"ok"},
+    {text:`Filas base: ${fmt0.format(state.base.length)}`},
+    {text:`Campus: ${fmt0.format(state.campusList.length)}`},
+    {text:`Carreras nuevas: ${fmt0.format(allRows.length)} (${fmt0.format(y2027)} de 2027, ${fmt0.format(y2028)} de 2028)`,cls:allRows.length ? "ok" : ""}
+  ]);
+
+  saveConfig();
+  render();
+};
+
+const resumenMcCampusCarreraRowsBaseV78 = resumenMcCampusCarreraRowsV73;
+resumenMcCampusCarreraRowsV73 = function(){
+  const rows = resumenMcCampusCarreraRowsBaseV78();
+  return ensureNewCareerRowsInResumenV78(rows, YEARS);
+};
+
+if(typeof resumenMcEmCampusCarreraRowsV76 === "function"){
+  const resumenMcEmCampusCarreraRowsBaseV78 = resumenMcEmCampusCarreraRowsV76;
+  resumenMcEmCampusCarreraRowsV76 = function(){
+    const rows = resumenMcEmCampusCarreraRowsBaseV78();
+    return ensureNewCareerRowsInResumenV78(rows, EM_YEARS_V76);
+  };
+}
+
+function renderResumenMcDetalleV73(){
+  const el = $("resumenMcDetalleTable");
+  if(!el) return;
+
+  const rows = resumenMcCampusCarreraRowsV73();
+
+  const headers = ["Campus","Carrera","Carrera nueva","Año inicio"];
+  for(const y of YEARS){
+    headers.push(`${y} alumnos MC`);
+    headers.push(`${y} espacios MC`);
+    headers.push(`${y} grupos MC`);
+  }
+
+  const tableRows = rows.map(r=>{
+    const info = excelNewCareerInfoV71(r.campus, r.carrera);
+    const out = [
+      escapeHtml(r.campus),
+      escapeHtml(r.carrera),
+      info ? `Sí (${info.startYear})` : "No",
+      info?.startYear || r.anio_inicio_programa || "—"
+    ];
+    for(const y of YEARS){
+      out.push(fmt0.format(n(r.data[y]?.alumnos,0)));
+      out.push(fmt0.format(n(r.data[y]?.espacios,0)));
+      out.push(fmt0.format(n(r.data[y]?.grupos,0)));
+    }
+    return out;
+  });
+
+  el.innerHTML = tableHtml(headers, tableRows, [0,1,2,3]);
+}
+
+if(typeof renderResumenMcEmV76 === "function"){
+  renderResumenMcEmV76 = function(){
+    const el = $("resumenMcEmTable");
+    if(!el) return;
+
+    const rows = resumenMcEmCampusCarreraRowsV76();
+    const headers = ["Campus","Carrera","Carrera nueva","Año inicio"];
+    for(const y of EM_YEARS_V76){
+      headers.push(`${y} alumnos MC`);
+      headers.push(`${y} espacios MC`);
+    }
+
+    const tableRows = rows.map(r=>{
+      const info = excelNewCareerInfoV71(r.campus, r.carrera);
+      const out = [
+        escapeHtml(r.campus),
+        escapeHtml(r.carrera),
+        info ? `Sí (${info.startYear})` : "No",
+        info?.startYear || r.anio_inicio_programa || "—"
+      ];
+      for(const y of EM_YEARS_V76){
+        out.push(fmt0.format(n(r.data[y]?.alumnos,0)));
+        out.push(fmt0.format(n(r.data[y]?.espacios,0)));
+      }
+      return out;
+    });
+
+    el.innerHTML = tableHtml(headers, tableRows, [0,1,2,3]);
+  };
+}
+
+function exportResumenMcDetalleV73(){
+  const rows = resumenMcRowsForCsvV73();
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+}
+
+if(typeof exportResumenMcEmV76 === "function"){
+  exportResumenMcEmV76 = function(){
+    const rows = resumenMcEmRowsForCsvV76();
+    downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+  };
+}
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V79 patch: EM vuelve a calcularse como avance desde AD hacia S2/S4/S6/S8
+   ============================== */
+
+const DEFAULT_TRANSITION_AD_TO_EM_V79 = {
+  1:0.895,
+  3:0.958,
+  5:0.975,
+  7:0.979
+};
+
+function semNumV79(v){
+  const s = normalize(v || "");
+  const m = s.match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+
+function pctRateV79(v, fallback=0){
+  const x = n(v, fallback);
+  if(!Number.isFinite(x)) return fallback;
+  return x > 1 ? x/100 : x;
+}
+
+function parseTransitionRatesV79(wb){
+  const names = [
+    "tasas_transicion",
+    "tasas de transicion",
+    "tasas_de_transicion",
+    "tasas avance",
+    "tasas_avance",
+    "tasas_de_avance",
+    "transiciones"
+  ];
+
+  const sheetName = names.find(s=>wb.Sheets[s]);
+  const rates = {};
+  if(!sheetName){
+    state.transitionRatesV79 = rates;
+    return rates;
+  }
+
+  let rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:2, defval:null, raw:true});
+  if(!rows.length) rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {range:0, defval:null, raw:true});
+
+  for(const r of rows){
+    const periodo = normalize(cleanHeaderValue(r, [
+      "periodo_origen","Periodo origen","Periodo_Origen","periodo origen",
+      "Periodo","periodo"
+    ]) || "AD").toUpperCase();
+
+    const origenRaw = cleanHeaderValue(r, [
+      "semestre_origen","Semestre origen","Semestre_Origen",
+      "desde","Desde","origen","Origen","semestre","Semestre"
+    ]);
+
+    let origen = semNumV79(origenRaw);
+    if(!origen) continue;
+
+    const destinoRaw = cleanHeaderValue(r, [
+      "semestre_destino","Semestre destino","Semestre_Destino",
+      "hacia","Hacia","destino","Destino"
+    ]);
+
+    let destino = semNumV79(destinoRaw);
+    if(!destino) destino = origen + 1;
+
+    const tasaRaw = cleanHeaderValue(r, [
+      "tasa","Tasa","tasa_avance","Tasa avance","Tasa_Avance",
+      "pct_avance","Pct avance","porcentaje","Porcentaje"
+    ]);
+
+    const tasa = pctRateV79(tasaRaw, null);
+    if(tasa === null || tasa === undefined || tasa <= 0) continue;
+
+    rates[`${periodo}|S${origen}|S${destino}`] = tasa;
+    rates[`${periodo}|${origen}|${destino}`] = tasa;
+    rates[`${periodo}|S${origen}`] = tasa;
+    rates[`${periodo}|${origen}`] = tasa;
+  }
+
+  state.transitionRatesV79 = rates;
+  return rates;
+}
+
+const loadWorkbookBaseV79 = loadWorkbook;
+loadWorkbook = async function(buffer, name){
+  const wb = XLSX.read(buffer, {type:"array", cellDates:false});
+  await loadWorkbookBaseV79(buffer, name);
+  parseTransitionRatesV79(wb);
+  render();
+};
+
+function transitionRateAdToEmV79(originSemNum){
+  const destSemNum = originSemNum + 1;
+  const rates = state.transitionRatesV79 || {};
+  return n(
+    rates[`AD|S${originSemNum}|S${destSemNum}`],
+    n(rates[`AD|${originSemNum}|${destSemNum}`],
+      n(rates[`AD|S${originSemNum}`],
+        n(rates[`AD|${originSemNum}`], DEFAULT_TRANSITION_AD_TO_EM_V79[originSemNum] || 0)
+      )
+    )
+  );
+}
+
+function withAdContextV79(callback){
+  const periodEl = $("periodSelect");
+  const oldPeriod = periodEl ? periodEl.value : "AD";
+
+  try{
+    if(periodEl) periodEl.value = "AD";
+    if(typeof buildProjection === "function") buildProjection();
+    return callback();
+  }finally{
+    if(periodEl) periodEl.value = oldPeriod;
+    if(typeof buildProjection === "function") buildProjection();
+  }
+}
+
+emRowsFromAdV76 = function(campus){
+  ensureProjectionCurrentV55();
+
+  return withAdContextV79(()=>{
+    const out = [];
+    const prevCampus = CURRENT_ROUTE_CAMPUS_V63;
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+
+    try{
+      const rowsAD = baseProgramSemesterRows(campus)
+        .filter(r=>[1,3,5,7].includes(n(r.semestreNum,0)))
+        .filter(r=>n(r.alumnos,0)>0);
+
+      for(const r of rowsAD){
+        const semNum = n(r.semestreNum,0);
+        const emYear = n(r.anio,0) + 1;
+        const emSemNum = semNum + 1;
+
+        if(!EM_YEARS_V76.includes(emYear) || emSemNum > 8) continue;
+
+        const tasa = transitionRateAdToEmV79(semNum);
+        const alumnos = Math.round(n(r.alumnos,0) * tasa);
+
+        if(alumnos <= 0) continue;
+
+        out.push({
+          campus,
+          anio:emYear,
+          periodo:"EM",
+          semestre:`S${emSemNum}`,
+          semestreNum:emSemNum,
+          programa:r.programa,
+          alumnos,
+          alumnosOrigenAD:Math.round(n(r.alumnos,0)),
+          semestreOrigenAD:`S${semNum}`,
+          anioOrigenAD:n(r.anio,0),
+          tasa
+        });
+      }
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = prevCampus || "";
+    }
+
+    return out;
+  });
+};
+
+resumenMcEmCampusCarreraRowsV76 = function(){
+  ensureProjectionCurrentV55();
+  if(typeof forceAllRoutesTwoV74 === "function") forceAllRoutesTwoV74(false);
+
+  const cfg = getMultiCfg();
+  const capMulti = Math.max(1, n(cfg.salonMulticampus, 12));
+  const rMin = getRouteSemMin();
+  const rMax = Math.min(getRouteSemMax(), 7);
+  const byKey = {};
+
+  for(const campus of state.campusList || []){
+    const prevCampus = CURRENT_ROUTE_CAMPUS_V63;
+    CURRENT_ROUTE_CAMPUS_V63 = campus;
+
+    try{
+      const rowsEM = emRowsFromAdV76(campus);
+
+      for(const r of rowsEM){
+        const year = n(r.anio,0);
+        const programa = r.programa || "";
+        const semNum = n(r.semestreNum,0);
+        const alumnosProgramaSemestre = Math.round(n(r.alumnos,0));
+
+        const inRouteSem = semNum >= rMin && semNum <= rMax;
+        const routeRows = inRouteSem ? rutasForProgram(programa) : [];
+
+        let alumnosMc = 0;
+        let espaciosMc = 0;
+
+        if(routeRows.length){
+          const stats = routeSplitStatsV75(alumnosProgramaSemestre, routeRows.length, cfg);
+          alumnosMc = stats.alumnosMulticampus;
+          espaciosMc = stats.espaciosMulticampus;
+        }else{
+          const cls0 = classifyProgramSem(alumnosProgramaSemestre, cfg);
+          const cls = cls0 === "Presencial" ? "Presencial 25" : cls0;
+          if(cls === "Multicampus"){
+            alumnosMc = alumnosProgramaSemestre;
+            espaciosMc = Math.max(1, Math.ceil(alumnosProgramaSemestre / capMulti));
+          }
+        }
+
+        if(alumnosMc <= 0 && espaciosMc <= 0) continue;
+
+        const key = `${campus}||${programa}`;
+        if(!byKey[key]){
+          byKey[key] = {
+            campus,
+            carrera:programa,
+            carrera_nueva:(typeof excelNewCareerInfoV71 === "function" && excelNewCareerInfoV71(campus, programa)) ? 1 : 0,
+            carrera_nueva_2027:(typeof isExcelNewCareerV71 === "function" && isExcelNewCareerV71(campus, programa)) ? 1 : 0,
+            anio_inicio_programa:(typeof careerStartYearV71 === "function" ? (careerStartYearV71(campus, programa) || "") : ""),
+            ni_original:(state.multicampus?.carrerasNuevas2027 || []).find(x=>x.campus===campus && x.programa===programa)?.ni2027 || "",
+            data:{}
+          };
+          for(const y of EM_YEARS_V76){
+            byKey[key].data[y] = {
+              alumnos:0,
+              espacios:0,
+              S2_alumnos:0, S2_espacios:0,
+              S4_alumnos:0, S4_espacios:0,
+              S6_alumnos:0, S6_espacios:0,
+              S8_alumnos:0, S8_espacios:0
+            };
+          }
+        }
+
+        byKey[key].data[year].alumnos += alumnosMc;
+        byKey[key].data[year].espacios += espaciosMc;
+
+        const semKey = `S${semNum}`;
+        if(byKey[key].data[year][`${semKey}_alumnos`] !== undefined){
+          byKey[key].data[year][`${semKey}_alumnos`] += alumnosMc;
+          byKey[key].data[year][`${semKey}_espacios`] += espaciosMc;
+        }
+      }
+    }finally{
+      CURRENT_ROUTE_CAMPUS_V63 = prevCampus || "";
+    }
+  }
+
+  return Object.values(byKey)
+    .sort((a,b)=>a.campus.localeCompare(b.campus,"es") || a.carrera.localeCompare(b.carrera,"es"));
+};
+
+resumenMcEmRowsForCsvV76 = function(){
+  return resumenMcEmCampusCarreraRowsV76().map(r=>{
+    const info = typeof excelNewCareerInfoV71 === "function" ? excelNewCareerInfoV71(r.campus, r.carrera) : null;
+    const out = {
+      escenario:scenarioName(),
+      periodo:"EM",
+      fuente:"AD avanzado a EM",
+      campus:r.campus,
+      carrera:r.carrera,
+      carrera_nueva:info ? 1 : (r.carrera_nueva || r.carrera_nueva_2027 || 0),
+      anio_inicio_programa:info?.startYear || r.anio_inicio_programa || "",
+      ni_apertura:info?.niApertura || r.ni_original || "",
+      hoja_origen:info?.sourceSheet || ""
+    };
+
+    for(const y of EM_YEARS_V76){
+      out[`alumnos_mc_${y}`] = intV56(r.data[y]?.alumnos || 0);
+      out[`espacios_mc_${y}`] = intV56(r.data[y]?.espacios || 0);
+
+      for(const s of ["S2","S4","S6","S8"]){
+        out[`alumnos_mc_${s}_${y}`] = intV56(r.data[y]?.[`${s}_alumnos`] || 0);
+        out[`espacios_mc_${s}_${y}`] = intV56(r.data[y]?.[`${s}_espacios`] || 0);
+      }
+    }
+
+    return out;
+  });
+};
+
+renderResumenMcEmV76 = function(){
+  const el = $("resumenMcEmTable");
+  if(!el) return;
+
+  const rows = resumenMcEmCampusCarreraRowsV76();
+  const headers = ["Campus","Carrera","Carrera nueva","Año inicio"];
+  for(const y of EM_YEARS_V76){
+    headers.push(`${y} alumnos MC`);
+    headers.push(`${y} espacios MC`);
+  }
+
+  const tableRows = rows.map(r=>{
+    const info = typeof excelNewCareerInfoV71 === "function" ? excelNewCareerInfoV71(r.campus, r.carrera) : null;
+    const out = [
+      escapeHtml(r.campus),
+      escapeHtml(r.carrera),
+      info ? `Sí (${info.startYear})` : "No",
+      info?.startYear || r.anio_inicio_programa || "—"
+    ];
+    for(const y of EM_YEARS_V76){
+      out.push(fmt0.format(n(r.data[y]?.alumnos,0)));
+      out.push(fmt0.format(n(r.data[y]?.espacios,0)));
+    }
+    return out;
+  });
+
+  el.innerHTML = tableHtml(headers, tableRows, [0,1,2,3]);
+};
+
+exportResumenMcEmV76 = function(){
+  const rows = resumenMcEmRowsForCsvV76();
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v81.csv`, rows);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V80 patch: si tasa vuelve al valor base, se desmarca ajuste por tasa
+   ============================== */
+
+function baselineGrowthValueV80(campus, nivel, field){
+  const period = $("periodSelect")?.value || "AD";
+  const m = growthMetrics(campus, nivel, period);
+
+  if(field === "b1_ni") return n(m.cagrNiB1, 0);
+  if(field === "b2_ni") return n(m.cagrNiB2, 0);
+  if(field === "b3_ni") return n(m.cagrNiAll, 0);
+  if(field === "b4_ni") return n(m.cagrNiAll, 0);
+
+  const cfg = state.config.growth[key(campus,nivel)] || {};
+  return n(cfg[field], 0);
+}
+
+function inputMatchesBaselineGrowthV80(inputValue, campus, nivel, field){
+  const inputPct = n(inputValue, 0);
+  const basePct = pctInput(baselineGrowthValueV80(campus, nivel, field));
+
+  // Los inputs muestran porcentajes enteros; comparamos en la misma escala visible.
+  return Math.abs(inputPct - basePct) < 0.000001;
+}
+
+V49.unmarkGrowthTouched = function(campus, nivel, field){
+  if(!state.config) state.config = {};
+  if(!state.config.growthTouched) state.config.growthTouched = {};
+  delete state.config.growthTouched[V49.growthTouchKey(campus,nivel,field)];
+};
+
+function handleGrowthChangeV80(target){
+  const campus = target.dataset.campus;
+  const nivel = target.dataset.level;
+  const field = target.dataset.field;
+  const k = key(campus, nivel);
+
+  if(!state.config.growth[k]) state.config.growth[k] = {};
+
+  if(inputMatchesBaselineGrowthV80(target.value, campus, nivel, field)){
+    // Regresa al comportamiento base: 2030–2040 vuelve a leerse del Excel.
+    V49.unmarkGrowthTouched(campus, nivel, field);
+    state.config.growth[k][field] = baselineGrowthValueV80(campus, nivel, field);
+  }else{
+    state.config.growth[k][field] = pctFromInput(target.value);
+    V49.markGrowthTouched(campus, nivel, field);
+  }
+
+  saveConfig();
+  render();
+}
+
+// Este listener captura el cambio antes de los listeners anteriores que siempre marcaban "touched".
+document.addEventListener("change", (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='growth']")) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+
+  handleGrowthChangeV80(e.target);
+}, true);
+
+renderGrowthControls = function(campus){
+  const headers = ["Bloque","Periodo","Crec. NI Prepa","Crec. NI Profesional","Estado"];
+  const rows = [
+    ["b1","B1","2030–2034"],
+    ["b2","B2","2035–2040"],
+    ["b3","B3","2041–2043"],
+    ["b4","B4","2044–2045"]
+  ].map(([bk,label,periodo])=>{
+    const fp = `${bk}_ni`;
+    const gp = state.config.growth[key(campus,"Preparatoria")] || {};
+    const gpr = state.config.growth[key(campus,"Profesional")] || {};
+
+    const touchedPrepa = V49.isGrowthTouched(campus,"Preparatoria",fp);
+    const touchedProf = V49.isGrowthTouched(campus,"Profesional",fp);
+
+    const vPrepa = touchedPrepa ? n(gp[fp],0) : baselineGrowthValueV80(campus,"Preparatoria",fp);
+    const vProf = touchedProf ? n(gpr[fp],0) : baselineGrowthValueV80(campus,"Profesional",fp);
+
+    const estado = (touchedPrepa || touchedProf) ? "Ajuste por tasa" : "Base";
+
+    return [
+      label,
+      periodo,
+      `<input data-zone="growth" data-campus="${escapeHtml(campus)}" data-level="Preparatoria" data-field="${fp}" type="number" step="1" value="${pctInput(vPrepa)}">`,
+      `<input data-zone="growth" data-campus="${escapeHtml(campus)}" data-level="Profesional" data-field="${fp}" type="number" step="1" value="${pctInput(vProf)}">`,
+      estado
+    ];
+  });
+
+  $("growthControls").innerHTML = tableHtml(headers, rows, [0,1,4]);
+};
+
+buildProjection = function(){
+  const period = $("periodSelect").value || "AD";
+  const rows = [];
+
+  for(const campus of state.campusList){
+    for(const nivel of MAIN_LEVELS){
+      let prev = null;
+
+      for(const y of YEARS){
+        let row;
+        const base = y<=2040 ? baseRow(campus,nivel,y,period) : null;
+        const block = V49.blockFor(y);
+        const field = `${block}_ni`;
+
+        if(y<=2040){
+          const useRate = y>2030 && V49.isGrowthTouched(campus,nivel,field);
+
+          if(useRate && prev){
+            const growthNi = n((state.config.growth[key(campus,nivel)] || {})[field], baselineGrowthValueV80(campus,nivel,field));
+            const ni = n(prev.ni,0) * (1+growthNi);
+            const ratio = base ? ratioRow(base) : internalRatioFor(campus,nivel,y,period,n(prev.ratio_ri_ni,0));
+            const ri = ni * ratio;
+            row = {
+              anio:y, periodo:period, campus, nivel, modalidad:base?.modalidad || prev.modalidad || "Presencial",
+              ni, ri, mt:ni+ri, tipo:"Ajustado por tasa", ratio_ri_ni:ratio, crec_ni:growthNi
+            };
+          }else if(base){
+            row = {...base, tipo:"Base", ratio_ri_ni:ratioRow(base)};
+          }else if(prev){
+            row = {
+              anio:y, periodo:period, campus, nivel, modalidad:prev.modalidad || "Presencial",
+              ni:n(prev.ni,0), ri:n(prev.ri,0), mt:n(prev.mt,0), tipo:"Base sin dato", ratio_ri_ni:n(prev.ratio_ri_ni,0)
+            };
+          }else{
+            row = {anio:y, periodo:period, campus, nivel, ni:0, ri:0, mt:0, tipo:"Base sin dato", ratio_ri_ni:0};
+          }
+        }else{
+          const cfg = state.config.growth[key(campus,nivel)] || {};
+          const growthNi = V49.isGrowthTouched(campus,nivel,field)
+            ? n(cfg[field], baselineGrowthValueV80(campus,nivel,field))
+            : baselineGrowthValueV80(campus,nivel,field);
+          const ni = n(prev?.ni,0) * (1+growthNi);
+          const ratio = internalRatioFor(campus,nivel,y,period,n(prev?.ratio_ri_ni,0));
+          const ri = ni * ratio;
+          row = {
+            anio:y, periodo:period, campus, nivel, modalidad:prev?.modalidad || "Presencial",
+            ni, ri, mt:ni+ri, tipo:"Proyección", ratio_ri_ni:ratio, crec_ni:growthNi
+          };
+        }
+
+        rows.push(row);
+        prev = row;
+      }
+    }
+  }
+
+  for(const nivel of INST_LEVELS){
+    let prev = null;
+    for(const y of YEARS){
+      let row;
+      const base = y<=2040 ? (baseRow("Institucional",nivel,y,period) || state.base.find(r=>r.nivel===nivel && n(r.anio)===y && r.periodo===period)) : null;
+      const block = V49.blockFor(y);
+      const field = `${block}_ni`;
+
+      if(y<=2040){
+        if(base){
+          row = {...base, campus:"Institucional", tipo:"Base", ratio_ri_ni:ratioRow(base)};
+        }else if(prev){
+          row = {anio:y, periodo:period, campus:"Institucional", nivel, ni:n(prev.ni,0), ri:n(prev.ri,0), mt:n(prev.mt,0), tipo:"Base sin dato", ratio_ri_ni:n(prev.ratio_ri_ni,0)};
+        }else{
+          row = {anio:y, periodo:period, campus:"Institucional", nivel, ni:0, ri:0, mt:0, tipo:"Base sin dato", ratio_ri_ni:0};
+        }
+      }else{
+        const cfg = state.config.instGrowth[nivel] || {};
+        const growthNi = n(cfg[field], V49.estimatedInstGrowthValue(nivel,field));
+        const ni = n(prev?.ni,0) * (1+growthNi);
+        const ratio = internalInstRatioFor(nivel,y,period,n(prev?.ratio_ri_ni,0));
+        const ri = ni * ratio;
+        row = {
+          anio:y, periodo:period, campus:"Institucional", nivel, modalidad:prev?.modalidad || "Institucional",
+          ni, ri, mt:ni+ri, tipo:"Proyección", ratio_ri_ni:ratio, crec_ni:growthNi
+        };
+      }
+
+      rows.push(row);
+      prev = row;
+    }
+  }
+
+  state.projection = rows;
+  if(typeof applyNewCareerToProjection === "function") applyNewCareerToProjection();
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V81 patch: ocultar capacidad salón multicampus en pestaña Multicampus
+   ============================== */
+
+function removeSalonMulticampusControlV81(){
+  const table = document.querySelector("#multiControls table");
+  if(!table) return;
+
+  const rows = Array.from(table.querySelectorAll("tbody tr"));
+  for(const tr of rows){
+    const firstCellText = normalize(tr.querySelector("td")?.textContent || "").toLowerCase();
+    if(firstCellText.includes("capacidad salón multicampus") || firstCellText.includes("capacidad salon multicampus")){
+      tr.remove();
+    }
+  }
+
+  const el = $("multiControls");
+  if(el && !el.innerHTML.includes("Capacidad Multicampus fija")){
+    const note = document.createElement("div");
+    note.className = "muted small";
+    note.style.margin = "8px 0 0";
+    note.innerHTML = "Capacidad Multicampus fija por modelo: <b>12 alumnos</b>. Se oculta como parámetro editable para evitar duplicidad.";
+    el.appendChild(note);
+  }
+}
+
+const renderMulticampusBaseV81 = renderMulticampus;
+renderMulticampus = function(campus){
+  renderMulticampusBaseV81(campus);
+  removeSalonMulticampusControlV81();
+};
+
+const renderBaseV81 = render;
+render = function(){
+  renderBaseV81();
+  removeSalonMulticampusControlV81();
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v81",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v81.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
