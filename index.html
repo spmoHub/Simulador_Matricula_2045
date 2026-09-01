@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2026–2045 · v87</title>
+  <title>Simulador matrícula 2026–2045 · v90</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -218,7 +218,7 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2026–2045 · v87</h1>
+  <h1>Simulador de matrícula y salones 2026–2045 · v90</h1>
   <p>
     Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus, exportaciones CSV sin decimales, capacidad por tipos de espacios y aulas móviles separadas por nivel. Los salones disponibles se calculan desde los tipos capturados. Incluye módulo de inversión y NI por proyecto.
   </p>
@@ -615,7 +615,7 @@
           <button id="downloadDocentesBtn" class="secondary">Descargar docentes CSV</button>
           <button id="downloadInvestmentBtn" class="secondary">Descargar inversión CSV</button>
           <button id="downloadConfigBtn" class="secondary">Descargar configuración CSV</button>
-          <button id="resetBtn" class="ghost">Restablecer configuración v87</button>
+          <button id="resetBtn" class="ghost">Restablecer configuración v90</button>
         </div>
       </section>
 
@@ -629,7 +629,7 @@
 
 <script>
 const AUTO_FILE = "./modelo_simulador.xlsx";
-const STORAGE_KEY = "simulador_matricula_v87_config";
+const STORAGE_KEY = "simulador_matricula_v90_config";
 const YEARS = Array.from({length:20}, (_,i)=>2026+i);
 const BASE_YEARS = Array.from({length:15}, (_,i)=>2026+i);
 const FUTURE_YEARS = [2041,2042,2043,2044,2045];
@@ -11747,7 +11747,7 @@ exportProjectionV55 = function(){
     crecimiento_ni_pct:pctIntV56(r.crec_ni),
     crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
   }));
-  downloadCsvV55(`proyeccion_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportCapacityV55 = function(){
@@ -11791,7 +11791,7 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v87.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v90.csv`, rows);
 };
 
 exportMulticampusV55 = function(){
@@ -11826,7 +11826,7 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportDocentesV55 = function(){
@@ -11862,7 +11862,7 @@ exportDocentesV55 = function(){
   }
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
-  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportConfigV55 = function(){
@@ -11873,14 +11873,14 @@ exportConfigV55 = function(){
     ruta:r.path,
     valor:configValueForCsvV56(r.path, r.valor)
   }));
-  downloadCsvV55(`configuracion_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`configuracion_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -11888,7 +11888,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12309,7 +12309,7 @@ function exportInvestmentV60(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v90.csv`, rows);
 }
 
 exportProjectionV55 = function(){
@@ -12335,14 +12335,14 @@ exportProjectionV55 = function(){
       crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
     };
   });
-  downloadCsvV55(`proyeccion_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12350,7 +12350,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 document.addEventListener("click", (e)=>{
@@ -12474,14 +12474,14 @@ exportInvestmentV60 = function(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12489,7 +12489,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12607,14 +12607,14 @@ exportInvestmentV60 = function(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12622,7 +12622,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12850,14 +12850,14 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12865,7 +12865,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12909,7 +12909,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12917,7 +12917,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12959,7 +12959,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12967,7 +12967,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13160,7 +13160,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13168,7 +13168,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13264,7 +13264,7 @@ function exportResumenMcV67(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v90.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -13285,7 +13285,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13293,7 +13293,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13388,14 +13388,14 @@ exportResumenMcV67 = function(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13403,7 +13403,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13566,14 +13566,14 @@ exportResumenMcV67 = function(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13581,7 +13581,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13615,7 +13615,7 @@ function resumenMcPivotRowsForMetricV70(metric){
 function exportResumenMcMetricV70(metric){
   const label = metric === "alumnos" ? "alumnos" : "espacios";
   const rows = resumenMcPivotRowsForMetricV70(metric);
-  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v90.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -13643,7 +13643,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13651,7 +13651,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14004,20 +14004,20 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v90.csv`, rows);
 };
 
 function exportResumenMcMetricV70(metric){
   const label = metric === "alumnos" ? "alumnos" : "espacios";
   const rows = resumenMcPivotRowsForMetricV70(metric);
-  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v90.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14025,7 +14025,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14106,20 +14106,20 @@ function resumenMcAlumnosPorCarreraRowsV72(){
 function exportResumenMcMetricV70(metric){
   if(metric === "alumnos"){
     const rows = resumenMcAlumnosPorCarreraRowsV72();
-    downloadCsvV55(`resumen_multicampus_alumnos_por_carrera_${scenarioSlug()}_v87.csv`, rows);
+    downloadCsvV55(`resumen_multicampus_alumnos_por_carrera_${scenarioSlug()}_v90.csv`, rows);
     return;
   }
 
   const label = metric === "espacios" ? "espacios" : metric;
   const rows = resumenMcPivotRowsForMetricV70(metric);
-  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v90.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14127,7 +14127,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14379,7 +14379,7 @@ function renderResumenMcViewV67(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -14404,7 +14404,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14412,7 +14412,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14783,7 +14783,7 @@ function renderResumenMcDetalleV73(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 const loadWorkbookBaseV74 = loadWorkbook;
@@ -14804,7 +14804,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14812,7 +14812,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15128,14 +15128,14 @@ function renderCarrerasNuevasHelpV71(campus){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -15143,7 +15143,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15317,7 +15317,7 @@ function renderResumenMcEmV76(){
 
 function exportResumenMcEmV76(){
   const rows = resumenMcEmRowsForCsvV76();
-  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -15343,14 +15343,14 @@ render = function(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -15358,7 +15358,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15673,19 +15673,19 @@ function resumenMcEmRowsForCsvV76(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 function exportResumenMcEmV76(){
   const rows = resumenMcEmRowsForCsvV76();
-  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -15693,7 +15693,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15977,13 +15977,13 @@ if(typeof renderResumenMcEmV76 === "function"){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 }
 
 if(typeof exportResumenMcEmV76 === "function"){
   exportResumenMcEmV76 = function(){
     const rows = resumenMcEmRowsForCsvV76();
-    downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+    downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
   };
 }
 
@@ -15991,7 +15991,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -15999,7 +15999,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16315,14 +16315,14 @@ renderResumenMcEmV76 = function(){
 
 exportResumenMcEmV76 = function(){
   const rows = resumenMcEmRowsForCsvV76();
-  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16330,7 +16330,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16527,7 +16527,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16535,7 +16535,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16582,7 +16582,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16590,7 +16590,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16686,14 +16686,14 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v87.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16701,7 +16701,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16991,14 +16991,14 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v87.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17006,7 +17006,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17370,14 +17370,14 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v87.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v90.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17385,7 +17385,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17580,7 +17580,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17588,7 +17588,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17628,7 +17628,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17636,7 +17636,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17706,7 +17706,7 @@ function capacitySummaryRowsV87(){
 
 function exportCapacitySummaryCsvV87(){
   const rows = capacitySummaryRowsV87();
-  downloadCsvV55(`resumen_capacidad_campus_nivel_bloques_${scenarioSlug()}_v87.csv`, rows);
+  downloadCsvV55(`resumen_capacidad_campus_nivel_bloques_${scenarioSlug()}_v90.csv`, rows);
 }
 
 function exportCapacitySummaryExcelV87(){
@@ -17749,7 +17749,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v87",
+    version:"v90",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17757,7 +17757,723 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v87.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V88 patch: Institución 2026–2036 · Posgrado/Ejecutivo por modalidad
+   - Objetivo de MT 2036 para Posgrado + Ejecutivo.
+   - Síncrono y Asíncrono con crecimientos requeridos separados.
+   - La vista de Institución se limita a 2026–2036.
+   ============================== */
+
+const INST_MODAL_YEARS_V88 = YEARS.filter(y=>y>=2026 && y<=2036);
+
+function institutionModalCfgV88(){
+  if(!state.config) state.config = {};
+  if(!state.config.institutionModalV88){
+    state.config.institutionModalV88 = {
+      targetMt2036:43000,
+      posgradoPct2036:55,
+      posgradoSyncPct2026:55,
+      posgradoSyncPct2036:45,
+      ejecutivoSyncPct2026:70,
+      ejecutivoSyncPct2036:50
+    };
+  }
+  const cfg = state.config.institutionModalV88;
+  if(cfg.targetMt2036 === undefined) cfg.targetMt2036 = 43000;
+  if(cfg.posgradoPct2036 === undefined) cfg.posgradoPct2036 = 55;
+  if(cfg.posgradoSyncPct2026 === undefined) cfg.posgradoSyncPct2026 = 55;
+  if(cfg.posgradoSyncPct2036 === undefined) cfg.posgradoSyncPct2036 = 45;
+  if(cfg.ejecutivoSyncPct2026 === undefined) cfg.ejecutivoSyncPct2026 = 70;
+  if(cfg.ejecutivoSyncPct2036 === undefined) cfg.ejecutivoSyncPct2036 = 50;
+  return cfg;
+}
+
+function pctValueV88(v){
+  return Math.min(1, Math.max(0, n(v,0)/100));
+}
+
+function mtByLevelYearV88(nivel, year){
+  return state.projection
+    .filter(r=>n(r.anio)===year && r.nivel===nivel)
+    .reduce((a,r)=>a+n(r.mt,0),0);
+}
+
+function cagrSafeV88(start, end, years){
+  start = n(start,0); end = n(end,0); years = Math.max(1,n(years,1));
+  if(start <= 0 && end <= 0) return 0;
+  if(start <= 0 && end > 0) return null;
+  return Math.pow(end/start, 1/years) - 1;
+}
+
+function growValueV88(start, rate, step, target){
+  start = n(start,0);
+  if(rate === null){
+    // Si la base fuera cero, evita infinito: reparte linealmente como respaldo.
+    return start + (n(target,0)-start) * safeDiv(step,10,0);
+  }
+  return start * Math.pow(1+n(rate,0), step);
+}
+
+function institutionModalPlanV88(){
+  const cfg = institutionModalCfgV88();
+  const targetTotal = Math.max(0, n(cfg.targetMt2036,43000));
+  const targetPg = targetTotal * pctValueV88(cfg.posgradoPct2036);
+  const targetEj = targetTotal - targetPg;
+
+  const basePg = mtByLevelYearV88('Posgrado', 2026);
+  const baseEj = mtByLevelYearV88('Ejecutivo', 2026);
+
+  const basePgSync = basePg * pctValueV88(cfg.posgradoSyncPct2026);
+  const basePgAsync = basePg - basePgSync;
+  const baseEjSync = baseEj * pctValueV88(cfg.ejecutivoSyncPct2026);
+  const baseEjAsync = baseEj - baseEjSync;
+
+  const targetPgSync = targetPg * pctValueV88(cfg.posgradoSyncPct2036);
+  const targetPgAsync = targetPg - targetPgSync;
+  const targetEjSync = targetEj * pctValueV88(cfg.ejecutivoSyncPct2036);
+  const targetEjAsync = targetEj - targetEjSync;
+
+  const rates = {
+    pgSync:cagrSafeV88(basePgSync, targetPgSync, 10),
+    pgAsync:cagrSafeV88(basePgAsync, targetPgAsync, 10),
+    ejSync:cagrSafeV88(baseEjSync, targetEjSync, 10),
+    ejAsync:cagrSafeV88(baseEjAsync, targetEjAsync, 10)
+  };
+
+  const rows = INST_MODAL_YEARS_V88.map(y=>{
+    const step = y-2026;
+    const pgSync = y===2036 ? targetPgSync : growValueV88(basePgSync, rates.pgSync, step, targetPgSync);
+    const pgAsync = y===2036 ? targetPgAsync : growValueV88(basePgAsync, rates.pgAsync, step, targetPgAsync);
+    const ejSync = y===2036 ? targetEjSync : growValueV88(baseEjSync, rates.ejSync, step, targetEjSync);
+    const ejAsync = y===2036 ? targetEjAsync : growValueV88(baseEjAsync, rates.ejAsync, step, targetEjAsync);
+    const pgTotal = pgSync + pgAsync;
+    const ejTotal = ejSync + ejAsync;
+    return {
+      anio:y,
+      pgSync, pgAsync, pgTotal,
+      ejSync, ejAsync, ejTotal,
+      total:pgTotal+ejTotal
+    };
+  });
+
+  const rateRows = [
+    {nivel:'Posgrado', modalidad:'Síncrono', base2026:basePgSync, meta2036:targetPgSync, cagr:rates.pgSync},
+    {nivel:'Posgrado', modalidad:'Asíncrono', base2026:basePgAsync, meta2036:targetPgAsync, cagr:rates.pgAsync},
+    {nivel:'Ejecutivo', modalidad:'Síncrono', base2026:baseEjSync, meta2036:targetEjSync, cagr:rates.ejSync},
+    {nivel:'Ejecutivo', modalidad:'Asíncrono', base2026:baseEjAsync, meta2036:targetEjAsync, cagr:rates.ejAsync}
+  ];
+
+  return {rows, rateRows, targetTotal, targetPg, targetEj, basePg, baseEj};
+}
+
+function ensureInstitutionLayoutV88(){
+  const inst = $('institucion');
+  if(!inst) return;
+
+  const title = inst.querySelector('h2');
+  if(title) title.textContent = 'Institución 2026–2036';
+  const p = inst.querySelector('p.muted.small');
+  if(p) p.textContent = 'Vista enfocada en Posgrado + Ejecutivo, separando el producto en Síncrono y Asíncrono y calculando el crecimiento requerido para alcanzar una meta de MT en 2036.';
+
+  const controlsCard = $('institutionGrowthControls')?.closest('section.card');
+  if(controlsCard){
+    const h2 = controlsCard.querySelector('h2');
+    if(h2) h2.textContent = 'Objetivo 2036 y mezcla por modalidad';
+    const pp = controlsCard.querySelector('p.muted.small');
+    if(pp) pp.textContent = 'Define la MT objetivo 2036 para Posgrado + Ejecutivo y la mezcla Síncrono / Asíncrono. El simulador calcula las tasas anuales requeridas desde la base 2026.';
+  }
+
+  if($('institutionGrowthControls') && !$('institutionRatesV88')){
+    $('institutionGrowthControls').insertAdjacentHTML('afterend', `
+      <div style="margin-top:14px">
+        <h3>Tasas requeridas por modalidad</h3>
+        <div id="institutionRatesV88" class="table-wrap"></div>
+        <div class="footer-actions" style="margin-top:10px">
+          <button id="downloadInstitutionModalV88Btn" class="secondary">Descargar plan Posgrado/Ejecutivo CSV</button>
+        </div>
+      </div>
+    `);
+  }
+
+  if($('institutionTable') && !$('institutionBimestreNoteV88')){
+    $('institutionTable').insertAdjacentHTML('afterend', `
+      <div id="institutionBimestreNoteV88" class="note" style="margin-top:14px">
+        <b>Nota para siguiente versión:</b> para calcular RI de agosto con mayor precisión, conviene agregar un motor interno por periodos de captación: Agosto, Octubre, Enero, Marzo y Junio. Cada generación entraría con su NI por periodo y avanzaría con tasas de reingreso bimestrales; el simulador mostraría solo el RI agregado de agosto.
+      </div>
+    `);
+  }
+}
+
+renderInstitutionGrowthControls = function(){
+  ensureInstitutionLayoutV88();
+  const cfg = institutionModalCfgV88();
+  const rows = [
+    ['MT objetivo 2036 Posgrado + Ejecutivo', `<input data-zone="instModalV88" data-field="targetMt2036" type="number" step="100" min="0" value="${Math.round(n(cfg.targetMt2036,43000))}">`, 'Ej. 43000'],
+    ['% del objetivo 2036 para Posgrado', `<input data-zone="instModalV88" data-field="posgradoPct2036" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.posgradoPct2036,55))}">`, 'El resto queda en Ejecutivo'],
+    ['% Síncrono Posgrado 2026', `<input data-zone="instModalV88" data-field="posgradoSyncPct2026" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.posgradoSyncPct2026,55))}">`, 'Base 2026'],
+    ['% Síncrono Posgrado 2036', `<input data-zone="instModalV88" data-field="posgradoSyncPct2036" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.posgradoSyncPct2036,45))}">`, 'Meta 2036'],
+    ['% Síncrono Ejecutivo 2026', `<input data-zone="instModalV88" data-field="ejecutivoSyncPct2026" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.ejecutivoSyncPct2026,70))}">`, 'Base 2026'],
+    ['% Síncrono Ejecutivo 2036', `<input data-zone="instModalV88" data-field="ejecutivoSyncPct2036" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.ejecutivoSyncPct2036,50))}">`, 'Meta 2036']
+  ];
+
+  $('institutionGrowthControls').innerHTML = tableHtml(['Parámetro','Valor','Notas'], rows, [0,2]);
+};
+
+function renderInstitutionRatesV88(){
+  const el = $('institutionRatesV88');
+  if(!el) return;
+  const plan = institutionModalPlanV88();
+  const rows = plan.rateRows.map(r=>[
+    r.nivel,
+    r.modalidad,
+    fmt0.format(n(r.base2026,0)),
+    fmt0.format(n(r.meta2036,0)),
+    r.cagr === null ? 'Base 2026 = 0' : fmtPct.format(n(r.cagr,0))
+  ]);
+  el.innerHTML = tableHtml(['Nivel','Modalidad','MT 2026','Meta MT 2036','Crecimiento anual requerido'], rows, [0,1,4]);
+}
+
+renderInstitutionTable = function(){
+  ensureInstitutionLayoutV88();
+  const plan = institutionModalPlanV88();
+  const rows = plan.rows.map(r=>[
+    r.anio,
+    fmt0.format(r.pgSync),
+    fmt0.format(r.pgAsync),
+    fmt0.format(r.pgTotal),
+    fmt0.format(r.ejSync),
+    fmt0.format(r.ejAsync),
+    fmt0.format(r.ejTotal),
+    fmt0.format(r.total)
+  ]);
+
+  $('institutionTable').innerHTML = tableHtml(
+    ['Año','Posgrado Síncrono','Posgrado Asíncrono','MT Posgrado','Ejecutivo Síncrono','Ejecutivo Asíncrono','MT Ejecutivo','MT Total'],
+    rows,
+    [0]
+  );
+  renderInstitutionRatesV88();
+};
+
+function drawInstitutionModalChartV88(){
+  const canvas = $('institutionChart');
+  if(!canvas) return;
+  const plan = institutionModalPlanV88();
+  drawChart('institutionChart', canvas, {
+    type:'line',
+    data:{
+      labels:plan.rows.map(r=>r.anio),
+      datasets:[
+        {label:'MT Posgrado', data:plan.rows.map(r=>Math.round(n(r.pgTotal,0))), tension:.25},
+        {label:'MT Ejecutivo', data:plan.rows.map(r=>Math.round(n(r.ejTotal,0))), tension:.25},
+        {label:'MT Total objetivo', data:plan.rows.map(r=>Math.round(n(r.total,0))), tension:.25, borderWidth:3}
+      ]
+    },
+    options:chartOptions('MT Posgrado + Ejecutivo', 'Año')
+  });
+}
+
+const renderChartsForActiveTabBaseV88 = typeof renderChartsForActiveTabV85 === 'function' ? renderChartsForActiveTabV85 : null;
+renderChartsForActiveTabV85 = function(campus, tab){
+  if(tab === 'institucion'){
+    drawInstitutionModalChartV88();
+    return;
+  }
+  if(renderChartsForActiveTabBaseV88) return renderChartsForActiveTabBaseV88(campus, tab);
+  if(typeof renderCharts === 'function') return renderCharts(campus);
+};
+
+function exportInstitutionModalV88(){
+  ensureProjectionCurrentV55();
+  const plan = institutionModalPlanV88();
+  const esc = scenarioName();
+  const rows = [];
+
+  for(const r of plan.rows){
+    rows.push({
+      escenario:esc,
+      anio:r.anio,
+      posgrado_sincrono:Math.round(n(r.pgSync,0)),
+      posgrado_asincrono:Math.round(n(r.pgAsync,0)),
+      mt_posgrado:Math.round(n(r.pgTotal,0)),
+      ejecutivo_sincrono:Math.round(n(r.ejSync,0)),
+      ejecutivo_asincrono:Math.round(n(r.ejAsync,0)),
+      mt_ejecutivo:Math.round(n(r.ejTotal,0)),
+      mt_total:Math.round(n(r.total,0)),
+      objetivo_mt_2036:Math.round(n(plan.targetTotal,0))
+    });
+  }
+
+  downloadCsvV55(`plan_posgrado_ejecutivo_modalidades_${scenarioSlug()}_v90.csv`, rows);
+}
+
+document.addEventListener('change', (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='instModalV88']")) return;
+  const cfg = institutionModalCfgV88();
+  const field = e.target.dataset.field;
+  const value = n(e.target.value,0);
+  if(field === 'targetMt2036') cfg[field] = Math.max(0, Math.round(value));
+  else cfg[field] = Math.min(100, Math.max(0, Math.round(value)));
+  saveConfig();
+  render('institution-modal-v88');
+}, true);
+
+document.addEventListener('click', (e)=>{
+  if(!e.target || e.target.id !== 'downloadInstitutionModalV88Btn') return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  exportInstitutionModalV88();
+}, true);
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:'v90',
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || '',
+    selected_campus:$('campusSelect')?.value || '',
+    selected_period:$('periodSelect')?.value || 'AD',
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+};
+
+
+
+/* ==============================
+   V89 patch: año de inicio para captación Asíncrona
+   ============================== */
+
+function institutionModalCfgV88(){
+  if(!state.config) state.config = {};
+  if(!state.config.institutionModalV88){
+    state.config.institutionModalV88 = {
+      targetMt2036:43000,
+      posgradoPct2036:55,
+      asyncStartYear:2028,
+      posgradoSyncPct2036:45,
+      ejecutivoSyncPct2036:50
+    };
+  }
+
+  const cfg = state.config.institutionModalV88;
+  if(cfg.targetMt2036 === undefined) cfg.targetMt2036 = 43000;
+  if(cfg.posgradoPct2036 === undefined) cfg.posgradoPct2036 = 55;
+  if(cfg.asyncStartYear === undefined) cfg.asyncStartYear = 2028;
+
+  // En v89 el % síncrono de 2026 ya no es necesario para Asíncrono.
+  // Antes del año de inicio, Asíncrono se considera 0 y el total queda en Síncrono.
+  if(cfg.posgradoSyncPct2036 === undefined) cfg.posgradoSyncPct2036 = 45;
+  if(cfg.ejecutivoSyncPct2036 === undefined) cfg.ejecutivoSyncPct2036 = 50;
+
+  cfg.asyncStartYear = Math.min(2036, Math.max(2026, Math.round(n(cfg.asyncStartYear,2028))));
+  return cfg;
+}
+
+function rampAsyncV89(targetAsync, year, startYear){
+  targetAsync = Math.max(0, n(targetAsync,0));
+  startYear = Math.min(2036, Math.max(2026, Math.round(n(startYear,2028))));
+
+  if(year < startYear) return 0;
+  if(year >= 2036) return targetAsync;
+
+  const duration = Math.max(1, 2036 - startYear + 1);
+  const step = Math.max(1, year - startYear + 1);
+  const ramp = Math.pow(step / duration, 1.25);
+  return targetAsync * ramp;
+}
+
+function institutionModalPlanV88(){
+  const cfg = institutionModalCfgV88();
+  const asyncStartYear = Math.min(2036, Math.max(2026, Math.round(n(cfg.asyncStartYear,2028))));
+
+  const targetTotal = Math.max(0, n(cfg.targetMt2036,43000));
+  const targetPg = targetTotal * pctValueV88(cfg.posgradoPct2036);
+  const targetEj = targetTotal - targetPg;
+
+  const basePg = mtByLevelYearV88('Posgrado', 2026);
+  const baseEj = mtByLevelYearV88('Ejecutivo', 2026);
+
+  const targetPgSync = targetPg * pctValueV88(cfg.posgradoSyncPct2036);
+  const targetPgAsync = targetPg - targetPgSync;
+  const targetEjSync = targetEj * pctValueV88(cfg.ejecutivoSyncPct2036);
+  const targetEjAsync = targetEj - targetEjSync;
+
+  const totalRates = {
+    pg:cagrSafeV88(basePg, targetPg, 10),
+    ej:cagrSafeV88(baseEj, targetEj, 10)
+  };
+
+  const rows = INST_MODAL_YEARS_V88.map(y=>{
+    const step = y - 2026;
+
+    const pgTotal = y===2036 ? targetPg : growValueV88(basePg, totalRates.pg, step, targetPg);
+    const ejTotal = y===2036 ? targetEj : growValueV88(baseEj, totalRates.ej, step, targetEj);
+
+    const pgAsyncRaw = rampAsyncV89(targetPgAsync, y, asyncStartYear);
+    const ejAsyncRaw = rampAsyncV89(targetEjAsync, y, asyncStartYear);
+
+    const pgAsync = Math.min(pgTotal, pgAsyncRaw);
+    const ejAsync = Math.min(ejTotal, ejAsyncRaw);
+    const pgSync = Math.max(0, pgTotal - pgAsync);
+    const ejSync = Math.max(0, ejTotal - ejAsync);
+
+    return {
+      anio:y,
+      pgSync, pgAsync, pgTotal,
+      ejSync, ejAsync, ejTotal,
+      total:pgTotal + ejTotal,
+      asyncStartYear
+    };
+  });
+
+  const rateRows = [
+    {
+      nivel:'Posgrado',
+      modalidad:'Total Posgrado',
+      base2026:basePg,
+      anioInicio:'2026',
+      meta2036:targetPg,
+      cagr:totalRates.pg,
+      nota:'Crecimiento total del nivel'
+    },
+    {
+      nivel:'Posgrado',
+      modalidad:'Asíncrono',
+      base2026:0,
+      anioInicio:asyncStartYear,
+      meta2036:targetPgAsync,
+      cagr:null,
+      nota:`Rampa desde ${asyncStartYear}`
+    },
+    {
+      nivel:'Ejecutivo',
+      modalidad:'Total Ejecutivo',
+      base2026:baseEj,
+      anioInicio:'2026',
+      meta2036:targetEj,
+      cagr:totalRates.ej,
+      nota:'Crecimiento total del nivel'
+    },
+    {
+      nivel:'Ejecutivo',
+      modalidad:'Asíncrono',
+      base2026:0,
+      anioInicio:asyncStartYear,
+      meta2036:targetEjAsync,
+      cagr:null,
+      nota:`Rampa desde ${asyncStartYear}`
+    }
+  ];
+
+  return {
+    rows,
+    rateRows,
+    targetTotal,
+    targetPg,
+    targetEj,
+    basePg,
+    baseEj,
+    asyncStartYear,
+    targetPgSync,
+    targetPgAsync,
+    targetEjSync,
+    targetEjAsync
+  };
+}
+
+renderInstitutionGrowthControls = function(){
+  ensureInstitutionLayoutV88();
+  const cfg = institutionModalCfgV88();
+  const rows = [
+    ['MT objetivo 2036 Posgrado + Ejecutivo', `<input data-zone="instModalV88" data-field="targetMt2036" type="number" step="100" min="0" value="${Math.round(n(cfg.targetMt2036,43000))}">`, 'Ej. 43000'],
+    ['% del objetivo 2036 para Posgrado', `<input data-zone="instModalV88" data-field="posgradoPct2036" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.posgradoPct2036,55))}">`, 'El resto queda en Ejecutivo'],
+    ['Año inicio captación Asíncrono', `<select data-zone="instModalV88" data-field="asyncStartYear">${INST_MODAL_YEARS_V88.map(y=>`<option value="${y}"${y===Math.round(n(cfg.asyncStartYear,2028))?' selected':''}>${y}</option>`).join('')}</select>`, 'Antes de este año, Asíncrono = 0'],
+    ['% Síncrono Posgrado 2036', `<input data-zone="instModalV88" data-field="posgradoSyncPct2036" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.posgradoSyncPct2036,45))}">`, 'Meta 2036; el resto es Asíncrono'],
+    ['% Síncrono Ejecutivo 2036', `<input data-zone="instModalV88" data-field="ejecutivoSyncPct2036" type="number" step="1" min="0" max="100" value="${Math.round(n(cfg.ejecutivoSyncPct2036,50))}">`, 'Meta 2036; el resto es Asíncrono']
+  ];
+
+  $('institutionGrowthControls').innerHTML = tableHtml(['Parámetro','Valor','Notas'], rows, [0,2]);
+};
+
+function renderInstitutionRatesV88(){
+  const el = $('institutionRatesV88');
+  if(!el) return;
+  const plan = institutionModalPlanV88();
+  const rows = plan.rateRows.map(r=>[
+    r.nivel,
+    r.modalidad,
+    fmt0.format(n(r.base2026,0)),
+    r.anioInicio,
+    fmt0.format(n(r.meta2036,0)),
+    r.cagr === null ? r.nota : fmtPct.format(n(r.cagr,0)),
+    r.nota
+  ]);
+  el.innerHTML = tableHtml(['Nivel','Concepto','MT inicial','Inicio','Meta MT 2036','Tasa / rampa','Nota'], rows, [0,1,3,5,6]);
+}
+
+renderInstitutionTable = function(){
+  ensureInstitutionLayoutV88();
+  const plan = institutionModalPlanV88();
+  const rows = plan.rows.map(r=>[
+    r.anio,
+    fmt0.format(r.pgSync),
+    fmt0.format(r.pgAsync),
+    fmt0.format(r.pgTotal),
+    fmt0.format(r.ejSync),
+    fmt0.format(r.ejAsync),
+    fmt0.format(r.ejTotal),
+    fmt0.format(r.total)
+  ]);
+
+  $('institutionTable').innerHTML = tableHtml(
+    ['Año','Posgrado Síncrono','Posgrado Asíncrono','MT Posgrado','Ejecutivo Síncrono','Ejecutivo Asíncrono','MT Ejecutivo','MT Total'],
+    rows,
+    [0]
+  );
+  renderInstitutionRatesV88();
+};
+
+function drawInstitutionModalChartV88(){
+  const canvas = $('institutionChart');
+  if(!canvas) return;
+  const plan = institutionModalPlanV88();
+  drawChart('institutionChart', canvas, {
+    type:'line',
+    data:{
+      labels:plan.rows.map(r=>r.anio),
+      datasets:[
+        {label:'Posgrado Síncrono', data:plan.rows.map(r=>Math.round(n(r.pgSync,0))), tension:.25},
+        {label:'Posgrado Asíncrono', data:plan.rows.map(r=>Math.round(n(r.pgAsync,0))), tension:.25},
+        {label:'Ejecutivo Síncrono', data:plan.rows.map(r=>Math.round(n(r.ejSync,0))), tension:.25},
+        {label:'Ejecutivo Asíncrono', data:plan.rows.map(r=>Math.round(n(r.ejAsync,0))), tension:.25},
+        {label:'MT Total objetivo', data:plan.rows.map(r=>Math.round(n(r.total,0))), tension:.25, borderWidth:3}
+      ]
+    },
+    options:chartOptions(`MT Posgrado + Ejecutivo · Asíncrono inicia ${plan.asyncStartYear}`, 'Año')
+  });
+}
+
+function exportInstitutionModalV88(){
+  ensureProjectionCurrentV55();
+  const plan = institutionModalPlanV88();
+  const esc = scenarioName();
+  const rows = [];
+
+  for(const r of plan.rows){
+    rows.push({
+      escenario:esc,
+      anio:r.anio,
+      anio_inicio_asincrono:plan.asyncStartYear,
+      posgrado_sincrono:Math.round(n(r.pgSync,0)),
+      posgrado_asincrono:Math.round(n(r.pgAsync,0)),
+      mt_posgrado:Math.round(n(r.pgTotal,0)),
+      ejecutivo_sincrono:Math.round(n(r.ejSync,0)),
+      ejecutivo_asincrono:Math.round(n(r.ejAsync,0)),
+      mt_ejecutivo:Math.round(n(r.ejTotal,0)),
+      mt_total:Math.round(n(r.total,0)),
+      objetivo_mt_2036:Math.round(n(plan.targetTotal,0))
+    });
+  }
+
+  downloadCsvV55(`plan_posgrado_ejecutivo_modalidades_${scenarioSlug()}_v90.csv`, rows);
+}
+
+document.addEventListener('change', (e)=>{
+  if(!e.target || !e.target.matches("[data-zone='instModalV88']")) return;
+  const cfg = institutionModalCfgV88();
+  const field = e.target.dataset.field;
+  const value = n(e.target.value,0);
+
+  if(field === 'targetMt2036') cfg[field] = Math.max(0, Math.round(value));
+  else if(field === 'asyncStartYear') cfg[field] = Math.min(2036, Math.max(2026, Math.round(value)));
+  else cfg[field] = Math.min(100, Math.max(0, Math.round(value)));
+
+  saveConfig();
+  render('institution-modal-v89');
+}, true);
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:'v90',
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || '',
+    selected_campus:$('campusSelect')?.value || '',
+    selected_period:$('periodSelect')?.value || 'AD',
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+};
+
+
+
+/* ==============================
+   V90 patch: corregir valles anómalos de RI Prepa 2030–2032
+   - La base 2030–2040 del Excel se conserva, pero si RI Prepa cae
+     artificialmente entre 2029 y 2033, se suaviza por interpolación.
+   - Aplica a Chihuahua y a cualquier campus con el mismo patrón.
+   ============================== */
+
+function projectedRowV90(campus, nivel, year, period){
+  return state.projection.find(r=>
+    r.campus === campus &&
+    r.nivel === nivel &&
+    n(r.anio) === year &&
+    (!period || r.periodo === period)
+  );
+}
+
+function shouldSmoothPrepaRiV90(rawRi, expectedRi, startRi, endRi){
+  rawRi = n(rawRi,0);
+  expectedRi = n(expectedRi,0);
+  startRi = n(startRi,0);
+  endRi = n(endRi,0);
+
+  if(startRi <= 0 || endRi <= 0 || expectedRi <= 0) return false;
+
+  // Solo corrige cuando el tramo general no debería caer fuerte.
+  // Si 2033 realmente es mucho menor que 2029, se respeta como caída real.
+  if(endRi < startRi * 0.90) return false;
+
+  // Detecta valle fuerte o dato claramente incompleto.
+  if(rawRi <= 0) return true;
+  if(rawRi < expectedRi * 0.92) return true;
+  if(rawRi < Math.min(startRi,endRi) * 0.88) return true;
+
+  return false;
+}
+
+function smoothPrepaRiTransitionV90(){
+  if(!Array.isArray(state.projection) || !state.projection.length) return;
+
+  const periods = Array.from(new Set(state.projection.map(r=>r.periodo || ($('periodSelect')?.value || 'AD'))));
+  const campuses = state.campusList || [];
+
+  for(const period of periods){
+    for(const campus of campuses){
+      const start = projectedRowV90(campus, 'Preparatoria', 2029, period);
+      const end = projectedRowV90(campus, 'Preparatoria', 2033, period);
+      if(!start || !end) continue;
+
+      const startRi = n(start.ri,0);
+      const endRi = n(end.ri,0);
+      if(startRi <= 0 || endRi <= 0) continue;
+
+      const affected = [];
+      for(const y of [2030,2031,2032]){
+        const row = projectedRowV90(campus, 'Preparatoria', y, period);
+        if(!row) continue;
+
+        const expectedRi = startRi + (endRi - startRi) * ((y - 2029) / 4);
+        const rawRi = n(row.ri,0);
+
+        if(shouldSmoothPrepaRiV90(rawRi, expectedRi, startRi, endRi)){
+          const adjustedRi = Math.max(0, expectedRi);
+          row.ri_original_v90 = rawRi;
+          row.ri = adjustedRi;
+          row.mt = n(row.ni,0) + adjustedRi;
+          row.ratio_ri_ni = ratioRow(row);
+          row.ri_suavizado_v90 = 1;
+          row.tipo = row.tipo ? `${row.tipo} · RI Prepa suavizado` : 'RI Prepa suavizado';
+          affected.push(y);
+        }
+      }
+
+      if(affected.length){
+        window.__riPrepaSmoothedV90 = window.__riPrepaSmoothedV90 || [];
+        window.__riPrepaSmoothedV90.push({campus, period, years:affected});
+      }
+    }
+  }
+}
+
+const buildProjectionBaseV90 = buildProjection;
+buildProjection = function(){
+  const result = buildProjectionBaseV90();
+  window.__riPrepaSmoothedV90 = [];
+  smoothPrepaRiTransitionV90();
+  return result;
+};
+
+function addRiPrepaV90Note(){
+  const el = $('campusTable');
+  if(!el) return;
+  const affected = (window.__riPrepaSmoothedV90 || []).filter(x=>x.campus === ($('campusSelect')?.value || ''));
+  if(!affected.length) return;
+  const years = Array.from(new Set(affected.flatMap(x=>x.years))).sort().join(', ');
+  el.insertAdjacentHTML('beforebegin', `
+    <div class="note" id="riPrepaSmoothNoteV90" style="margin-bottom:10px">
+      <b>Corrección v90:</b> se detectó un valle anómalo en RI de Preparatoria (${years}) y se suavizó con interpolación entre 2029 y 2033 para evitar una caída artificial de MT/capacidad.
+    </div>
+  `);
+}
+
+const renderCampusTableBaseV90 = renderCampusTable;
+renderCampusTable = function(campus){
+  const oldNote = $('riPrepaSmoothNoteV90');
+  if(oldNote) oldNote.remove();
+  renderCampusTableBaseV90(campus);
+  addRiPrepaV90Note();
+};
+
+const exportProjectionBaseV90 = typeof exportProjectionV55 === 'function' ? exportProjectionV55 : (typeof exportProjection === 'function' ? exportProjection : null);
+function exportProjectionV90(){
+  ensureProjectionCurrentV55();
+  const esc = scenarioName();
+  const rows = state.projection.map(r=>({
+    escenario:esc,
+    anio:intV56(r.anio),
+    periodo:r.periodo,
+    campus:r.campus,
+    nivel:r.nivel,
+    modalidad:r.modalidad || '',
+    tipo:r.tipo || '',
+    ni:intV56(r.ni),
+    ri:intV56(r.ri),
+    mt:intV56(r.mt),
+    ri_original_prepa_v90:r.ri_original_v90 !== undefined ? intV56(r.ri_original_v90) : '',
+    ri_prepa_suavizado_v90:r.ri_suavizado_v90 ? 1 : 0,
+    ratio_ri_ni:n(r.ratio_ri_ni,0),
+    crec_ni:n(r.crec_ni,0)
+  }));
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v90.csv`, rows);
+}
+
+exportProjection = exportProjectionV90;
+if(typeof exportProjectionV55 === 'function') exportProjectionV55 = exportProjectionV90;
+
+// Reasigna el botón por si apuntaba a una versión previa.
+document.addEventListener('click', (e)=>{
+  if(!e.target || e.target.id !== 'downloadProjectionBtn') return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  exportProjectionV90();
+}, true);
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:'v90',
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || '',
+    selected_campus:$('campusSelect')?.value || '',
+    selected_period:$('periodSelect')?.value || 'AD',
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v90.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
 };
 
 
