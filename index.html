@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2026–2045 · v106</title>
+  <title>Simulador matrícula 2026–2045 · v107</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -218,7 +218,7 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2026–2045 · v106</h1>
+  <h1>Simulador de matrícula y salones 2026–2045 · v107</h1>
   <p>
     Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus, exportaciones CSV sin decimales, capacidad por tipos de espacios y aulas móviles separadas por nivel. Los salones disponibles se calculan desde los tipos capturados. Incluye módulo de inversión y NI por proyecto.
   </p>
@@ -616,7 +616,7 @@
           <button id="downloadDocentesBtn" class="secondary">Descargar docentes CSV</button>
           <button id="downloadInvestmentBtn" class="secondary">Descargar inversión CSV</button>
           <button id="downloadConfigBtn" class="secondary">Descargar configuración CSV</button>
-          <button id="resetBtn" class="ghost">Restablecer configuración v106</button>
+          <button id="resetBtn" class="ghost">Restablecer configuración v107</button>
         </div>
       </section>
 
@@ -630,7 +630,7 @@
 
 <script>
 const AUTO_FILE = "./modelo_simulador.xlsx";
-const STORAGE_KEY = "simulador_matricula_v106_config";
+const STORAGE_KEY = "simulador_matricula_v107_config";
 const YEARS = Array.from({length:20}, (_,i)=>2026+i);
 const BASE_YEARS = Array.from({length:15}, (_,i)=>2026+i);
 const FUTURE_YEARS = [2041,2042,2043,2044,2045];
@@ -11748,7 +11748,7 @@ exportProjectionV55 = function(){
     crecimiento_ni_pct:pctIntV56(r.crec_ni),
     crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
   }));
-  downloadCsvV55(`proyeccion_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportCapacityV55 = function(){
@@ -11792,7 +11792,7 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v106.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v107.csv`, rows);
 };
 
 exportMulticampusV55 = function(){
@@ -11827,7 +11827,7 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportDocentesV55 = function(){
@@ -11863,7 +11863,7 @@ exportDocentesV55 = function(){
   }
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
-  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`docentes_mc_flex_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportConfigV55 = function(){
@@ -11874,14 +11874,14 @@ exportConfigV55 = function(){
     ruta:r.path,
     valor:configValueForCsvV56(r.path, r.valor)
   }));
-  downloadCsvV55(`configuracion_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`configuracion_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -11889,7 +11889,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12310,7 +12310,7 @@ function exportInvestmentV60(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v107.csv`, rows);
 }
 
 exportProjectionV55 = function(){
@@ -12336,14 +12336,14 @@ exportProjectionV55 = function(){
       crecimiento_factor_ri_ni_pct:pctIntV56(r.crec_ratio)
     };
   });
-  downloadCsvV55(`proyeccion_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12351,7 +12351,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 document.addEventListener("click", (e)=>{
@@ -12475,14 +12475,14 @@ exportInvestmentV60 = function(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12490,7 +12490,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12608,14 +12608,14 @@ exportInvestmentV60 = function(){
     });
   });
 
-  downloadCsvV55(`inversion_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`inversion_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12623,7 +12623,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12851,14 +12851,14 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12866,7 +12866,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12910,7 +12910,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12918,7 +12918,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -12960,7 +12960,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -12968,7 +12968,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13161,7 +13161,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13169,7 +13169,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13265,7 +13265,7 @@ function exportResumenMcV67(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v107.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -13286,7 +13286,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13294,7 +13294,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13389,14 +13389,14 @@ exportResumenMcV67 = function(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13404,7 +13404,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13567,14 +13567,14 @@ exportResumenMcV67 = function(){
     carreras_multicampus:intV56(r.carreras),
     grupos_multicampus:intV56(r.grupos)
   }));
-  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13582,7 +13582,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -13616,7 +13616,7 @@ function resumenMcPivotRowsForMetricV70(metric){
 function exportResumenMcMetricV70(metric){
   const label = metric === "alumnos" ? "alumnos" : "espacios";
   const rows = resumenMcPivotRowsForMetricV70(metric);
-  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v107.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -13644,7 +13644,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -13652,7 +13652,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14005,20 +14005,20 @@ exportMulticampusV55 = function(){
 
   if(selectedCampus && $("campusSelect")) $("campusSelect").value = selectedCampus;
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`multicampus_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`multicampus_${scenarioSlug()}_v107.csv`, rows);
 };
 
 function exportResumenMcMetricV70(metric){
   const label = metric === "alumnos" ? "alumnos" : "espacios";
   const rows = resumenMcPivotRowsForMetricV70(metric);
-  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v107.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14026,7 +14026,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14107,20 +14107,20 @@ function resumenMcAlumnosPorCarreraRowsV72(){
 function exportResumenMcMetricV70(metric){
   if(metric === "alumnos"){
     const rows = resumenMcAlumnosPorCarreraRowsV72();
-    downloadCsvV55(`resumen_multicampus_alumnos_por_carrera_${scenarioSlug()}_v106.csv`, rows);
+    downloadCsvV55(`resumen_multicampus_alumnos_por_carrera_${scenarioSlug()}_v107.csv`, rows);
     return;
   }
 
   const label = metric === "espacios" ? "espacios" : metric;
   const rows = resumenMcPivotRowsForMetricV70(metric);
-  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_${label}_${scenarioSlug()}_v107.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14128,7 +14128,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14380,7 +14380,7 @@ function renderResumenMcViewV67(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -14405,7 +14405,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14413,7 +14413,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -14784,7 +14784,7 @@ function renderResumenMcDetalleV73(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 const loadWorkbookBaseV74 = loadWorkbook;
@@ -14805,7 +14805,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -14813,7 +14813,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15129,14 +15129,14 @@ function renderCarrerasNuevasHelpV71(campus){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -15144,7 +15144,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15318,7 +15318,7 @@ function renderResumenMcEmV76(){
 
 function exportResumenMcEmV76(){
   const rows = resumenMcEmRowsForCsvV76();
-  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 document.addEventListener("click", (e)=>{
@@ -15344,14 +15344,14 @@ render = function(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -15359,7 +15359,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15674,19 +15674,19 @@ function resumenMcEmRowsForCsvV76(){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 function exportResumenMcEmV76(){
   const rows = resumenMcEmRowsForCsvV76();
-  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -15694,7 +15694,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -15978,13 +15978,13 @@ if(typeof renderResumenMcEmV76 === "function"){
 
 function exportResumenMcDetalleV73(){
   const rows = resumenMcRowsForCsvV73();
-  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_ad_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 }
 
 if(typeof exportResumenMcEmV76 === "function"){
   exportResumenMcEmV76 = function(){
     const rows = resumenMcEmRowsForCsvV76();
-    downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+    downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
   };
 }
 
@@ -15992,7 +15992,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16000,7 +16000,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16316,14 +16316,14 @@ renderResumenMcEmV76 = function(){
 
 exportResumenMcEmV76 = function(){
   const rows = resumenMcEmRowsForCsvV76();
-  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_multicampus_em_campus_carrera_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16331,7 +16331,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16528,7 +16528,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16536,7 +16536,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16583,7 +16583,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16591,7 +16591,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16687,14 +16687,14 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v106.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -16702,7 +16702,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -16992,14 +16992,14 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v106.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17007,7 +17007,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17371,14 +17371,14 @@ exportCapacityV55 = function(){
   }
 
   if(selectedCampus) buildCapacityRows(selectedCampus);
-  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v106.csv`, rows);
+  downloadCsvV55(`capacidad_${scenarioSlug()}_todos_los_campus_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17386,7 +17386,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17581,7 +17581,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17589,7 +17589,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17629,7 +17629,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17637,7 +17637,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -17707,7 +17707,7 @@ function capacitySummaryRowsV87(){
 
 function exportCapacitySummaryCsvV87(){
   const rows = capacitySummaryRowsV87();
-  downloadCsvV55(`resumen_capacidad_campus_nivel_bloques_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`resumen_capacidad_campus_nivel_bloques_${scenarioSlug()}_v107.csv`, rows);
 }
 
 function exportCapacitySummaryExcelV87(){
@@ -17750,7 +17750,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -17758,7 +17758,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -18010,7 +18010,7 @@ function exportInstitutionModalV88(){
     });
   }
 
-  downloadCsvV55(`plan_posgrado_ejecutivo_modalidades_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`plan_posgrado_ejecutivo_modalidades_${scenarioSlug()}_v107.csv`, rows);
 }
 
 document.addEventListener('change', (e)=>{
@@ -18035,7 +18035,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:'v106',
+    version:'v107',
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || '',
@@ -18043,7 +18043,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$('periodSelect')?.value || 'AD',
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
 };
 
 
@@ -18284,7 +18284,7 @@ function exportInstitutionModalV88(){
     });
   }
 
-  downloadCsvV55(`plan_posgrado_ejecutivo_modalidades_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`plan_posgrado_ejecutivo_modalidades_${scenarioSlug()}_v107.csv`, rows);
 }
 
 document.addEventListener('change', (e)=>{
@@ -18305,7 +18305,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:'v106',
+    version:'v107',
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || '',
@@ -18313,7 +18313,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$('periodSelect')?.value || 'AD',
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
 };
 
 
@@ -18447,7 +18447,7 @@ function exportProjectionV90(){
     ratio_ri_ni:n(r.ratio_ri_ni,0),
     crec_ni:n(r.crec_ni,0)
   }));
-  downloadCsvV55(`proyeccion_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`proyeccion_${scenarioSlug()}_v107.csv`, rows);
 }
 
 exportProjection = exportProjectionV90;
@@ -18466,7 +18466,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:'v106',
+    version:'v107',
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || '',
@@ -18474,7 +18474,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$('periodSelect')?.value || 'AD',
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
 };
 
 
@@ -18606,7 +18606,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:'v106',
+    version:'v107',
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || '',
@@ -18614,7 +18614,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$('periodSelect')?.value || 'AD',
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
 };
 
 
@@ -18666,7 +18666,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -18674,7 +18674,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -18721,7 +18721,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -18729,7 +18729,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -18845,7 +18845,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -18853,7 +18853,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -18952,7 +18952,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -18960,7 +18960,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -19029,7 +19029,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -19037,7 +19037,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -19074,7 +19074,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -19082,7 +19082,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -19238,7 +19238,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -19246,7 +19246,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -19445,7 +19445,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -19453,7 +19453,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -20360,7 +20360,7 @@ function exportInstitutionModalV88(){
     };
   });
 
-  downloadCsvV55(`plan_posgrado_ejecutivo_cohortes_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`plan_posgrado_ejecutivo_cohortes_${scenarioSlug()}_v107.csv`, rows);
 }
 
 document.addEventListener("change", (e)=>{
@@ -20405,7 +20405,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -20413,7 +20413,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -20589,7 +20589,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -20597,7 +20597,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -21265,14 +21265,14 @@ exportInstitutionModalV88 = function(){
     });
   }
 
-  downloadCsvV55(`plan_posgrado_ejecutivo_cohortes_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`plan_posgrado_ejecutivo_cohortes_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -21280,7 +21280,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -21792,14 +21792,14 @@ exportInstitutionModalV88 = function(){
     });
   }
 
-  downloadCsvV55(`plan_posgrado_ejecutivo_cohortes_${scenarioSlug()}_v106.csv`, rows);
+  downloadCsvV55(`plan_posgrado_ejecutivo_cohortes_${scenarioSlug()}_v107.csv`, rows);
 };
 
 exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -21807,7 +21807,7 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
@@ -21958,7 +21958,7 @@ exportScenarioJsonV55 = function(){
   setScenarioName(scenarioName());
   saveConfig();
   const payload = {
-    version:"v106",
+    version:"v107",
     scenario_name:scenarioName(),
     exported_at:new Date().toISOString(),
     workbook_name:state.workbookName || "",
@@ -21966,7 +21966,120 @@ exportScenarioJsonV55 = function(){
     selected_period:$("periodSelect")?.value || "AD",
     config:state.config
   };
-  downloadTextV55(`escenario_${scenarioSlug()}_v106.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+};
+
+
+
+/* ==============================
+   V107 patch:
+   Corrige columna "2026 PMP" del Excel histórico.
+   La v106 buscaba r.year/r.period, pero state.base usa r.anio/r.periodo.
+   ============================== */
+
+function basePmpMetricV107(campus, nivel, metric){
+  const period = $('periodSelect')?.value || 'AD';
+  const rows = state.base || [];
+
+  const rowPeriod = rows.find(r =>
+    normalize(r.campus) === normalize(campus)
+    && normalize(r.nivel) === normalize(nivel)
+    && Math.floor(n(r.anio,0)) === 2026
+    && normalize(r.periodo || 'AD') === normalize(period)
+  );
+
+  const rowAnyPeriod = rows.find(r =>
+    normalize(r.campus) === normalize(campus)
+    && normalize(r.nivel) === normalize(nivel)
+    && Math.floor(n(r.anio,0)) === 2026
+  );
+
+  const row = rowPeriod || rowAnyPeriod;
+  if(!row) return "";
+
+  const val = row[metric];
+  return (val === null || val === undefined || val === "") ? "" : n(val, "");
+}
+
+basePmpMetricV106 = basePmpMetricV107;
+
+function campusMetricHistoryLevelV107(campus, nivel, y, metric, opts={}){
+  if(opts && opts.pmp === true && y === 2026){
+    return basePmpMetricV107(campus, nivel, metric);
+  }
+  return campusMetricHistoryLevelV95(campus, nivel, y, metric);
+}
+
+campusMetricHistoryLevelV106 = campusMetricHistoryLevelV107;
+
+function campusHistoryMatrixRowsV107(metric){
+  ensureProjectionCurrentV55();
+
+  const esc = scenarioName();
+  const period = $('periodSelect')?.value || 'AD';
+  const rows = [];
+
+  for(const campus of state.campusList){
+    for(const nivel of ["Preparatoria","Profesional"]){
+      const row = {
+        escenario: esc,
+        campus,
+        nivel,
+        periodo: period
+      };
+
+      for(const y of HIST_YEARS_V94){
+        const val = campusMetricHistoryLevelV107(campus, nivel, y, metric);
+        row[String(y)] = val === '' ? '' : Math.round(n(val, 0));
+
+        if(y === 2026){
+          const pmpVal = campusMetricHistoryLevelV107(campus, nivel, y, metric, {pmp:true});
+          row["2026 PMP"] = pmpVal === '' ? '' : Math.round(n(pmpVal, 0));
+        }
+      }
+
+      rows.push(row);
+    }
+  }
+
+  return rows;
+}
+
+campusHistoryMatrixRowsV106 = campusHistoryMatrixRowsV107;
+
+exportCampusHistoryExcelV91 = function(){
+  ensureProjectionCurrentV55();
+
+  const wb = XLSX.utils.book_new();
+
+  appendHistorySheetV106(
+    wb,
+    campusHistoryMatrixRowsV107('ni'),
+    'NI_por_nivel_2020_2045'
+  );
+
+  appendHistorySheetV106(
+    wb,
+    campusHistoryMatrixRowsV107('mt'),
+    'MT_por_nivel_2020_2045'
+  );
+
+  XLSX.writeFile(wb, `historia_ni_mt_campus_por_nivel_2020_2045_${scenarioSlug()}_v107.xlsx`);
+};
+
+exportScenarioJsonV55 = function(){
+  setScenarioName(scenarioName());
+  saveConfig();
+  const payload = {
+    version:"v107",
+    scenario_name:scenarioName(),
+    exported_at:new Date().toISOString(),
+    workbook_name:state.workbookName || "",
+    selected_campus:$("campusSelect")?.value || "",
+    selected_period:$("periodSelect")?.value || "AD",
+    config:state.config
+  };
+  downloadTextV55(`escenario_${scenarioSlug()}_v107.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
 };
 
 
