@@ -37104,6 +37104,890 @@ exportScenarioJsonV55 = function(){
 };
 
 
+
+/* ==============================
+   V158 patch · fuentes oficiales Caso base fijo
+   - RI bimestral 2026–2029 se toma directamente de ri_bimestral_pos_ejec.
+   - MT tetra histórica se toma de la nueva hoja mt_tetra_historica_pos_ejec
+     por anio_calendario + periodo + nivel + modalidad.
+   - PMP 2026–2029 se mantiene como referencia/meta en pmp_mt_pos_ejec.
+   - MT se arma como NI + RI bimestral + MT tetra histórica.
+   - Se muestra diferencia Componentes - PMP para validar que el Excel cuadre.
+   - Desde 2030, NI crece 3% anual y RI avanza por tasas; si existe un RI exacto
+     capturado para un periodo futuro, se usa como checkpoint oficial.
+   ============================== */
+
+function tetraKeyV158(anioCalendario, periodo, nivel, modalidad){
+  return `${Math.floor(n(anioCalendario,0))}|${periodNameV102(periodo)}|${txtV102(nivel)}|${txtV102(modalidad || "Síncrono")}`;
+}
+function tetraTotalKeyV158(anioCalendario, periodo, nivel){
+  return `${Math.floor(n(anioCalendario,0))}|${periodNameV102(periodo)}|${txtV102(nivel)}|Total`;
+}
+
+function parseTetraHistoricaV158(wb){
+  const rows = readSheetRowsV102(wb,"mt_tetra_historica_pos_ejec")
+    .map(r=>{
+      const periodo = periodNameV102(rowValV102(r,["periodo","Periodo"]));
+      const calRaw = rowValV102(r,["anio_calendario","año_calendario","anio calendario","año calendario","year_calendario","anio","año","year"]);
+      const acadRaw = rowValV102(r,["anio_academico","año_academico","anio academico","año academico"]);
+      const acad = Math.floor(n(acadRaw,0));
+      const cal = (calRaw !== null && calRaw !== undefined && calRaw !== "")
+        ? Math.floor(n(calRaw,0))
+        : (acad > 0 ? calYearV138(acad,periodo) : 0);
+      const raw = rowValV102(r,[
+        "MT_tetra_historica","mt_tetra_historica","MT tetra histórica","MT tetra historica",
+        "mt tetra histórica","mt tetra historica","MT_tetra","mt_tetra","MT","mt"
+      ]);
+      const val = (raw === null || raw === undefined || raw === "") ? null : n(raw,null);
+      return {
+        anio_calendario:cal,
+        anio_academico:acad,
+        periodo,
+        nivel:txtV102(rowValV102(r,["nivel","Nivel"])),
+        modalidad:txtV102(rowValV102(r,["modalidad","Modalidad"])) || "Síncrono",
+        mt_tetra_historica:val
+      };
+    })
+    .filter(r=>r.anio_calendario>0 && r.periodo && r.nivel && r.mt_tetra_historica !== null && isFinite(r.mt_tetra_historica));
+
+  const map = {}, has = {};
+  for(const r of rows){
+    const k = tetraKeyV158(r.anio_calendario,r.periodo,r.nivel,r.modalidad);
+    map[k] = (map[k] || 0) + Math.max(0,n(r.mt_tetra_historica,0));
+    has[k] = true;
+
+    const kt = tetraTotalKeyV158(r.anio_calendario,r.periodo,r.nivel);
+    map[kt] = (map[kt] || 0) + Math.max(0,n(r.mt_tetra_historica,0));
+    has[kt] = true;
+  }
+  return {rows,map,has};
+}
+
+const parsePosEjecWorkbookPrevV158 = parsePosEjecWorkbookV102;
+parsePosEjecWorkbookV102 = function(wb){
+  const pos = parsePosEjecWorkbookPrevV158(wb);
+  const tetra = parseTetraHistoricaV158(wb);
+  pos.tetraRowsV158 = tetra.rows;
+  pos.tetraMapV158 = tetra.map;
+  pos.tetraHasV158 = tetra.has;
+  return pos;
+};
+
+function tetraExactV158(nivel, anioCal, periodo, modalidad="Síncrono"){
+  const pos = state.posEjecV102 || {};
+  const y = Math.floor(n(anioCal,0));
+  const p = periodNameV102(periodo);
+  const k = tetraKeyV158(y,p,nivel,modalidad);
+  if(pos.tetraHasV158?.[k]) return Math.max(0,n(pos.tetraMapV158[k],0));
+  const kt = tetraTotalKeyV158(y,p,nivel);
+  if(pos.tetraHasV158?.[kt]) return Math.max(0,n(pos.tetraMapV158[kt],0));
+  return null;
+}
+
+function riFixedFromSheetV158(nivel, anioCal, periodo, modalidad="Síncrono"){
+  if(typeof exactRiV154 === "function"){
+    const v = exactRiV154(nivel,anioCal,periodo,modalidad);
+    if(v !== null && v !== undefined) return Math.max(0,n(v,0));
+  }
+  if(typeof riExactV149 === "function"){
+    const v = riExactV149(nivel,anioCal,periodo,modalidad);
+    if(v !== null && v !== undefined) return Math.max(0,n(v,0));
+  }
+  return null;
+}
+
+function niFixedFromSheetV158(nivel, anioCal, periodo, modalidad="Síncrono"){
+  if(typeof exactNiV154 === "function"){
+    const v = exactNiV154(nivel,anioCal,periodo,modalidad);
+    if(v !== null && v !== undefined) return Math.max(0,n(v,0));
+  }
+  if(typeof niFromSheetCalendarV145 === "function"){
+    const v = niFromSheetCalendarV145(nivel,anioCal,periodo,modalidad);
+    if(v !== null && v !== undefined) return Math.max(0,n(v,0));
+  }
+  return null;
+}
+
+// La MT tetra deja de inferirse por salidas fijas: la hoja nueva es la fuente oficial.
+legacyTetraMtV110 = function(nivel, modalidad, anioAcademico, periodo){
+  if(modalidad !== "Síncrono") return 0;
+  const p = periodNameV102(periodo);
+  const calY = calYearV138(anioAcademico,p);
+  const v = tetraExactV158(nivel,calY,p,modalidad);
+  return v === null ? 0 : Math.max(0,n(v,0));
+};
+
+function scaleRiStateV158(st,targetRi){
+  const target = Math.max(0,n(targetRi,0));
+  const out = {...(st || {})};
+  const current = sumRiStateV115(out);
+  if(current > 0){
+    const factor = target/current;
+    for(const [age,val] of Object.entries(out)){
+      if(Number(age)>=2) out[age] = Math.max(0,n(val,0)*factor);
+    }
+  }else if(target > 0){
+    out[2] = target;
+  }
+  return out;
+}
+
+const initialStockAgosto2029PrevV158 = initialStockAgosto2029V138;
+initialStockAgosto2029V138 = function(nivel){
+  let st = null;
+  if(typeof stockSnapV154 === "function") st = stockSnapV154(nivel,2029,"Agosto","Síncrono");
+  if(!st && typeof stockSnapshotV149 === "function") st = stockSnapshotV149(nivel,2029,"Agosto","Síncrono");
+  if(!st) st = initialStockAgosto2029PrevV158(nivel);
+  st = {...(st || {})};
+
+  const riOfficial = riFixedFromSheetV158(nivel,2029,"Agosto","Síncrono");
+  if(riOfficial !== null) st = scaleRiStateV158(st,riOfficial);
+  return st;
+};
+
+// Caso base dinámico 2030+: NI 3%, RI por tasas y tetra desde la nueva hoja.
+buildFixedBaseV138 = function(){
+  const periods = POS_EJEC_PERIODS_V102;
+  const levels = ["Posgrado","Ejecutivo"];
+  const states = {};
+  const periodRows = [];
+  const annual = {};
+
+  for(const nivel of levels){
+    states[nivel] = initialStockAgosto2029V138(nivel);
+  }
+
+  for(let y=2029; y<=BASE_CASE_END_V138; y++){
+    for(const periodo of periods){
+      const calY = calYearV138(y,periodo);
+      if(calY < 2030 || calY > BASE_CASE_END_V138) continue;
+
+      for(const nivel of levels){
+        const rates = ratesForSegmentV102(nivel,"Síncrono");
+        const ni = baseCaseNiV138(nivel,y,periodo);
+
+        // Si el Excel trae RI exacto para este periodo, se usa como checkpoint oficial.
+        const riExact = riFixedFromSheetV158(nivel,calY,periodo,"Síncrono");
+        if(riExact !== null){
+          states[nivel] = scaleRiStateV158(states[nivel],riExact);
+        }
+        const ri = riExact !== null ? riExact : sumRiStateV115(states[nivel]);
+
+        const tetraRaw = tetraExactV158(nivel,calY,periodo,"Síncrono");
+        const tetra = tetraRaw === null ? 0 : Math.max(0,n(tetraRaw,0));
+        const mt = ni + ri + tetra;
+
+        periodRows.push({
+          anio:calY,
+          anio_academico:y,
+          periodo,
+          nivel,
+          modalidad:"Síncrono",
+          ni,
+          ri,
+          mt_tetra:tetra,
+          mt
+        });
+
+        const withNi = {...states[nivel]};
+        withNi[1] = (withNi[1] || 0) + ni;
+        states[nivel] = advanceStateV115(withNi,rates);
+      }
+    }
+  }
+
+  // 2026–2029: los tres componentes vienen del Excel; PMP queda como referencia de cuadre.
+  for(let y=BASE_CASE_START_V138; y<=BASE_CASE_PMP_END_V138; y++){
+    const yearRows = [];
+    for(const nivel of levels){
+      const ni = niFixedFromSheetV158(nivel,y,"Agosto","Síncrono") || 0;
+      const ri = riFixedFromSheetV158(nivel,y,"Agosto","Síncrono") || 0;
+      const tetra = tetraExactV158(nivel,y,"Agosto","Síncrono") || 0;
+      const mt = ni + ri + tetra;
+      const pmp = pmpLevelMtOrAllocatedV142(y,nivel);
+      yearRows.push({nivel,ni,ri,tetra,mt,pmp});
+    }
+    annual[y] = {
+      anio:y,
+      ni_agosto_total:yearRows.reduce((a,r)=>a+r.ni,0),
+      ri_bimestral_agosto:yearRows.reduce((a,r)=>a+r.ri,0),
+      mt_bimestral_agosto:yearRows.reduce((a,r)=>a+r.ni+r.ri,0),
+      mt_tetra_historica_agosto:yearRows.reduce((a,r)=>a+r.tetra,0),
+      mt_posgrado_agosto:yearRows.find(r=>r.nivel==="Posgrado")?.mt || 0,
+      mt_ejecutivo_agosto:yearRows.find(r=>r.nivel==="Ejecutivo")?.mt || 0,
+      mt_total_agosto:yearRows.reduce((a,r)=>a+r.mt,0),
+      pmp_total_agosto:yearRows.reduce((a,r)=>a+n(r.pmp,0),0),
+      diferencia_componentes_vs_pmp:yearRows.reduce((a,r)=>a+r.mt-n(r.pmp,0),0),
+      diferencia_vs_43000:y>=2036 ? "" : Math.round(BASE_CASE_TARGET_V138-yearRows.reduce((a,r)=>a+r.mt,0))
+    };
+  }
+
+  for(const row of periodRows.filter(r=>periodNameV102(r.periodo)==="Agosto")){
+    const y = row.anio;
+    if(!annual[y]){
+      annual[y] = {
+        anio:y,
+        ni_agosto_total:0,
+        ri_bimestral_agosto:0,
+        mt_bimestral_agosto:0,
+        mt_tetra_historica_agosto:0,
+        mt_posgrado_agosto:0,
+        mt_ejecutivo_agosto:0,
+        mt_total_agosto:0,
+        pmp_total_agosto:"",
+        diferencia_componentes_vs_pmp:"",
+        diferencia_vs_43000:""
+      };
+    }
+    const a = annual[y];
+    a.ni_agosto_total += row.ni;
+    a.ri_bimestral_agosto += row.ri;
+    a.mt_bimestral_agosto += row.ni + row.ri;
+    a.mt_tetra_historica_agosto += row.mt_tetra;
+    if(row.nivel==="Posgrado") a.mt_posgrado_agosto += row.mt;
+    if(row.nivel==="Ejecutivo") a.mt_ejecutivo_agosto += row.mt;
+    a.mt_total_agosto += row.mt;
+  }
+
+  const annualRows = Object.values(annual)
+    .filter(r=>r.anio>=BASE_CASE_START_V138 && r.anio<=BASE_CASE_END_V138)
+    .sort((a,b)=>a.anio-b.anio)
+    .map(r=>({
+      ...r,
+      ni_agosto_total:Math.round(n(r.ni_agosto_total,0)),
+      ri_bimestral_agosto:Math.round(n(r.ri_bimestral_agosto,0)),
+      mt_bimestral_agosto:Math.round(n(r.mt_bimestral_agosto,0)),
+      mt_tetra_historica_agosto:Math.round(n(r.mt_tetra_historica_agosto,0)),
+      mt_posgrado_agosto:Math.round(n(r.mt_posgrado_agosto,0)),
+      mt_ejecutivo_agosto:Math.round(n(r.mt_ejecutivo_agosto,0)),
+      mt_total_agosto:Math.round(n(r.mt_total_agosto,0)),
+      pmp_total_agosto:r.pmp_total_agosto==="" ? "" : Math.round(n(r.pmp_total_agosto,0)),
+      diferencia_componentes_vs_pmp:r.diferencia_componentes_vs_pmp==="" ? "" : Math.round(n(r.diferencia_componentes_vs_pmp,0)),
+      diferencia_vs_43000:r.anio>=2036 ? "" : Math.round(BASE_CASE_TARGET_V138-n(r.mt_total_agosto,0))
+    }));
+
+  return {annualRows,periodRows};
+};
+
+// Tabla visible del caso base: 2026–2029 usa NI, RI y tetra exactos; PMP se muestra solo para validar.
+fixedBaseLevelRowsV142 = function(){
+  const levels = ["Posgrado","Ejecutivo"];
+  const out = [];
+  let dynamic = {periodRows:[]};
+  try{ dynamic = buildFixedBaseV138(); }catch(e){ dynamic = {periodRows:[]}; }
+
+  for(let y=2026; y<=2045; y++){
+    const yearRows = [];
+    for(const nivel of levels){
+      let ni=0,ri=0,tetra=0,mt=0,pmp="",difPmp="";
+      if(y <= 2029){
+        ni = niFixedFromSheetV158(nivel,y,"Agosto","Síncrono") || 0;
+        ri = riFixedFromSheetV158(nivel,y,"Agosto","Síncrono") || 0;
+        tetra = tetraExactV158(nivel,y,"Agosto","Síncrono") || 0;
+        mt = ni + ri + tetra;
+        const p = pmpLevelMtOrAllocatedV142(y,nivel);
+        if(p !== null && p !== undefined){
+          pmp = Math.round(n(p,0));
+          difPmp = Math.round(mt-n(p,0));
+        }
+      }else{
+        const matches = (dynamic.periodRows || []).filter(r=>
+          Math.floor(n(r.anio,0))===y &&
+          periodNameV102(r.periodo)==="Agosto" &&
+          r.nivel===nivel
+        );
+        ni = matches.reduce((a,r)=>a+n(r.ni,0),0);
+        ri = matches.reduce((a,r)=>a+n(r.ri,0),0);
+        tetra = matches.reduce((a,r)=>a+n(r.mt_tetra,0),0);
+        mt = matches.reduce((a,r)=>a+n(r.mt,0),0);
+      }
+
+      yearRows.push({
+        anio:y,nivel,
+        ni_agosto:Math.round(ni),
+        ri_bimestral_agosto:Math.round(ri),
+        mt_tetra_historica:Math.round(tetra),
+        mt_agosto:Math.round(mt),
+        pmp_agosto:pmp,
+        diferencia_vs_pmp:difPmp,
+        gap_vs_43000:"",
+        asincrono_requerido_para_43000:"",
+        marca_2036:y===2036 ? "Año meta 2036" : ""
+      });
+    }
+
+    const totalMt = yearRows.reduce((a,r)=>a+n(r.mt_agosto,0),0);
+    const totalPmpValues = yearRows.filter(r=>r.pmp_agosto!=="");
+    const totalPmp = totalPmpValues.length ? totalPmpValues.reduce((a,r)=>a+n(r.pmp_agosto,0),0) : "";
+    const gap = Math.round(43000-totalMt);
+    yearRows.push({
+      anio:y,nivel:"Total",
+      ni_agosto:yearRows.reduce((a,r)=>a+n(r.ni_agosto,0),0),
+      ri_bimestral_agosto:yearRows.reduce((a,r)=>a+n(r.ri_bimestral_agosto,0),0),
+      mt_tetra_historica:yearRows.reduce((a,r)=>a+n(r.mt_tetra_historica,0),0),
+      mt_agosto:Math.round(totalMt),
+      pmp_agosto:totalPmp,
+      diferencia_vs_pmp:totalPmp==="" ? "" : Math.round(totalMt-n(totalPmp,0)),
+      gap_vs_43000:y>=2037 ? "" : gap,
+      asincrono_requerido_para_43000:y===2036 ? Math.max(0,gap) : "",
+      marca_2036:y===2036 ? "Año meta 2036" : ""
+    });
+    out.push(...yearRows);
+  }
+  return out;
+};
+
+fixedBaseRowsExportV138 = function(){
+  return fixedBaseLevelRowsV142().map(r=>({
+    anio:r.anio,
+    nivel:r.nivel,
+    ni_agosto:r.ni_agosto,
+    ri_bimestral_agosto:r.ri_bimestral_agosto,
+    mt_tetra_historica:r.mt_tetra_historica,
+    mt_agosto:r.mt_agosto,
+    pmp_agosto:r.pmp_agosto,
+    diferencia_componentes_vs_pmp:r.diferencia_vs_pmp,
+    gap_vs_43000:r.gap_vs_43000,
+    asincrono_requerido_para_43000:r.asincrono_requerido_para_43000,
+    marca_2036:r.marca_2036
+  }));
+};
+
+fixedBaseCaseLevelTableHtmlV142 = function(rows){
+  const headers = ["Año","Nivel","NI Agosto","RI bimestral Agosto","MT tetra histórica","MT componentes","PMP Agosto","Dif. componentes vs PMP","Gap vs 43,000","Asíncrono requerido"];
+  const head = `<thead><tr>${headers.map(h=>`<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`;
+  const body = rows.map(r=>{
+    const is2036 = Math.floor(n(r.anio,0))===2036;
+    const isTotal = r.nivel==="Total";
+    const mismatch = r.diferencia_vs_pmp!=="" && Math.abs(n(r.diferencia_vs_pmp,0))>=1;
+    const baseStyle = is2036 ? "background:#FFF3B0;" : "";
+    const totalStyle = isTotal ? "font-weight:700;" : "";
+    const diffStyle = mismatch ? "color:#dc2626;font-weight:800;" : "color:#166534;";
+    return `<tr style="${baseStyle}${totalStyle}">
+      <td>${r.anio}</td>
+      <td>${escapeHtml(r.nivel)}</td>
+      <td>${fmt0.format(n(r.ni_agosto,0))}</td>
+      <td>${fmt0.format(n(r.ri_bimestral_agosto,0))}</td>
+      <td>${fmt0.format(n(r.mt_tetra_historica,0))}</td>
+      <td>${fmt0.format(n(r.mt_agosto,0))}</td>
+      <td>${r.pmp_agosto==="" ? "" : fmt0.format(n(r.pmp_agosto,0))}</td>
+      <td style="${r.diferencia_vs_pmp==="" ? "" : diffStyle}">${r.diferencia_vs_pmp==="" ? "" : signedV102(r.diferencia_vs_pmp)}</td>
+      <td>${r.gap_vs_43000==="" ? "" : signedV102(r.gap_vs_43000)}</td>
+      <td>${r.asincrono_requerido_para_43000==="" ? "" : fmt0.format(r.asincrono_requerido_para_43000)}</td>
+    </tr>`;
+  }).join("");
+  return `<table class="case-base-fixed-v144">${head}<tbody>${body}</tbody></table>`;
+};
+
+renderFixedBaseCaseV129 = function(){
+  const el = $("posEjecFixedBaseV129");
+  if(!el) return;
+  let rows=[];
+  try{ rows=fixedBaseLevelRowsV142(); }
+  catch(err){ el.innerHTML=`<p class="muted small">No se pudo calcular el caso base fijo: ${escapeHtml(err.message || String(err))}</p>`; return; }
+
+  const r2036 = rows.find(r=>r.anio===2036 && r.nivel==="Total");
+  const r2045 = rows.find(r=>r.anio===2045 && r.nivel==="Total");
+  const gap2036 = r2036 ? Math.max(0,n(r2036.asincrono_requerido_para_43000,0)) : 0;
+
+  el.innerHTML =
+    `<p class="muted small"><b>Caso base fijo:</b> NI desde <b>ni_bimestral_pos_ejec</b>, RI desde <b>ri_bimestral_pos_ejec</b> y MT tetra histórica desde <b>mt_tetra_historica_pos_ejec</b>. Para 2026–2029, <b>pmp_mt_pos_ejec</b> se usa como referencia de cuadre: <b>NI + RI + MT tetra = PMP</b>. Desde 2030 el NI crece 3% anual y el RI avanza con <b>tasas_ri_bimestre_pos_ejec</b>.</p>` +
+    `<p class="muted small" style="margin-top:10px;"><b>Validación:</b> la columna “Dif. componentes vs PMP” debe quedar en <b>0</b> en 2026–2029. La fila 2036 queda marcada en amarillo; el asíncrono requerido para llegar a 43,000 es <b>${fmt0.format(gap2036)}</b>. ${r2045 ? `En 2045 llega a ${fmt0.format(r2045.mt_agosto)}.` : ""}</p>` +
+    fixedBaseCaseLevelTableHtmlV142(rows);
+};
+
+// Resumen de insumos: deja visible que la nueva hoja es obligatoria para tetra histórica.
+renderPosEjecInputSummaryV102 = function(){
+  const el = $("posEjecInputSummaryV102");
+  if(!el) return;
+  const pos = state.posEjecV102 || {};
+  const rows = [
+    ["ni_bimestral_pos_ejec",fmt0.format((pos.niRowsV154 || pos.niCalendarRowsV149 || []).length),"NI exacto por anio_calendario + periodo + nivel + modalidad"],
+    ["ri_bimestral_pos_ejec",fmt0.format((pos.riRowsV154 || pos.riCalendarRowsV149 || []).length),"RI bimestral oficial; alimenta el caso base y sirve como checkpoint cuando hay valor"],
+    ["mt_tetra_historica_pos_ejec",fmt0.format((pos.tetraRowsV158 || []).length),"MT tetra histórica oficial por periodo; se suma a NI + RI"],
+    ["pmp_mt_pos_ejec",fmt0.format((pos.pmpRowsV138 || pos.pmpMtRowsV127 || []).length),"PMP/MT 2026–2029 usado para validar el cuadre de componentes"],
+    ["tasas_ri_bimestre_pos_ejec",fmt0.format((pos.tasaRows || []).length),"Tasa B1→B2, B2→B3, etc. para proyectar RI desde 2030"],
+    ["stock_ri_periodo_pos_ejec",fmt0.format((pos.stockRowsV154 || pos.stockCalendarRowsV149 || []).length),"Distribución del RI por bimestre usada para conservar la estructura de cohortes"]
+  ];
+  el.innerHTML = tableHtml(["Hoja","Filas leídas","Uso"],rows,[0,2]);
+};
+
+// Exporta también la nueva fuente para auditoría.
+const exportInstitutionExcelPrevV158 = exportInstitutionExcelV129;
+exportInstitutionExcelV129 = function(){
+  const plan = buildPosEjecPlanV102();
+  const wb = XLSX.utils.book_new();
+  appendSheetV129(wb,"Resumen_institucional",institutionRowsExportV146());
+  appendSheetV129(wb,"Caso_base_por_nivel",fixedBaseRowsExportV138());
+  appendSheetV129(wb,"Escenario_comparacion",currentComparisonRowsV129(plan));
+  appendSheetV129(wb,"Distribucion_2027_2045",distributionRowsV129());
+  appendSheetV129(wb,"Crecimientos_bloques",growthBlockRowsV129());
+  appendSheetV129(wb,"Posgrado_Agosto_2045",levelRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Ejecutivo_Agosto_2045",levelRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Detalle_periodos_interno",internalPeriodRowsV154(plan));
+  appendSheetV129(wb,"Auditoria_async_PG",auditAsyncRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Auditoria_async_EJ",auditAsyncRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Tasas_usadas",ratesRowsExportV129());
+  appendSheetV129(wb,"NI_bimestral_fuente",state.posEjecV102?.niRowsV154 || state.posEjecV102?.niCalendarRowsV149 || []);
+  appendSheetV129(wb,"RI_bimestral_fuente",state.posEjecV102?.riRowsV154 || state.posEjecV102?.riCalendarRowsV149 || []);
+  appendSheetV129(wb,"MT_tetra_fuente",state.posEjecV102?.tetraRowsV158 || []);
+  appendSheetV129(wb,"PMP_fuente",state.posEjecV102?.pmpRowsV138 || state.posEjecV102?.pmpMtRowsV127 || []);
+  appendSheetV129(wb,"Internacional_Agosto",internationalAgostoRowsExportV140());
+  appendSheetV129(wb,"Internacional_crecimiento",internationalGrowthRowsExportV138());
+  appendSheetV129(wb,"Espacio_Connect",connectRowsExportV140());
+  XLSX.writeFile(wb,`plan_posgrado_ejecutivo_${scenarioSlug()}_v158.xlsx`);
+};
+
+
+/* ==============================
+   V159 patch · tetra histórica por corte y PMP informativo
+   - PMP queda únicamente como referencia informativa; NO se valida contra NI + RI + tetra.
+   - La MT tetra histórica se captura solo en sus cortes reales: Septiembre, Enero y Mayo.
+   - Para combinarla con la foto bimestral se usa el último corte tetra disponible:
+       Agosto  -> Mayo del mismo año
+       Octubre -> Septiembre del mismo año
+       Enero   -> Enero del mismo año
+       Marzo   -> Enero del mismo año
+       Junio   -> Mayo del mismo año
+   - En particular, la MT de Agosto = NI Agosto + RI bimestral Agosto + MT tetra de Mayo del mismo año.
+   - El PMP puede ser mayor porque puede incluir componentes asíncronos que no forman parte de este caso base síncrono.
+   ============================== */
+
+function tetraPeriodV159(periodo){
+  const p = normKeyV102(periodo);
+  const aliases = {
+    sep:"Septiembre", septiembre:"Septiembre",
+    ene:"Enero", enero:"Enero",
+    may:"Mayo", mayo:"Mayo"
+  };
+  return aliases[p] || txtV102(periodo);
+}
+
+function tetraSnapshotForBimV159(periodo){
+  const p = periodNameV102(periodo);
+  const map = {
+    "Agosto":"Mayo",
+    "Octubre":"Septiembre",
+    "Enero":"Enero",
+    "Marzo":"Enero",
+    "Junio":"Mayo"
+  };
+  return map[p] || tetraPeriodV159(periodo);
+}
+
+function tetraKeyV159(anioCalendario, periodoTetra, nivel, modalidad){
+  return `${Math.floor(n(anioCalendario,0))}|${tetraPeriodV159(periodoTetra)}|${txtV102(nivel)}|${txtV102(modalidad || "Síncrono")}`;
+}
+function tetraTotalKeyV159(anioCalendario, periodoTetra, nivel){
+  return `${Math.floor(n(anioCalendario,0))}|${tetraPeriodV159(periodoTetra)}|${txtV102(nivel)}|Total`;
+}
+
+function parseTetraHistoricaV159(wb){
+  const rows = readSheetRowsV102(wb,"mt_tetra_historica_pos_ejec")
+    .map(r=>{
+      const periodo = tetraPeriodV159(rowValV102(r,["periodo","Periodo","corte","Corte"]));
+      const calRaw = rowValV102(r,["anio_calendario","año_calendario","anio calendario","año calendario","year_calendario","anio","año","year"]);
+      const cal = Math.floor(n(calRaw,0));
+      const raw = rowValV102(r,[
+        "MT_tetra_historica","mt_tetra_historica","MT tetra histórica","MT tetra historica",
+        "mt tetra histórica","mt tetra historica","MT_tetra","mt_tetra","MT","mt"
+      ]);
+      const val = (raw === null || raw === undefined || raw === "") ? null : n(raw,null);
+      return {
+        anio_calendario:cal,
+        periodo,
+        nivel:txtV102(rowValV102(r,["nivel","Nivel"])),
+        modalidad:txtV102(rowValV102(r,["modalidad","Modalidad"])) || "Síncrono",
+        mt_tetra_historica:val
+      };
+    })
+    .filter(r=>
+      r.anio_calendario>0 &&
+      ["Septiembre","Enero","Mayo"].includes(r.periodo) &&
+      r.nivel &&
+      r.mt_tetra_historica !== null &&
+      isFinite(r.mt_tetra_historica)
+    );
+
+  const map = {}, has = {};
+  for(const r of rows){
+    const k = tetraKeyV159(r.anio_calendario,r.periodo,r.nivel,r.modalidad);
+    map[k] = (map[k] || 0) + Math.max(0,n(r.mt_tetra_historica,0));
+    has[k] = true;
+
+    const kt = tetraTotalKeyV159(r.anio_calendario,r.periodo,r.nivel);
+    map[kt] = (map[kt] || 0) + Math.max(0,n(r.mt_tetra_historica,0));
+    has[kt] = true;
+  }
+  return {rows,map,has};
+}
+
+const parsePosEjecWorkbookPrevV159 = parsePosEjecWorkbookV102;
+parsePosEjecWorkbookV102 = function(wb){
+  const pos = parsePosEjecWorkbookPrevV159(wb);
+  const tetra = parseTetraHistoricaV159(wb);
+  // Sobrescribe la lectura v158 para que Mayo/Septiembre no se conviertan erróneamente a Agosto.
+  pos.tetraRowsV158 = tetra.rows;
+  pos.tetraMapV158 = tetra.map;
+  pos.tetraHasV158 = tetra.has;
+  pos.tetraRowsV159 = tetra.rows;
+  pos.tetraMapV159 = tetra.map;
+  pos.tetraHasV159 = tetra.has;
+  return pos;
+};
+
+// Esta función recibe un periodo bimestral y busca el corte tetra que corresponde.
+tetraExactV158 = function(nivel, anioCal, periodo, modalidad="Síncrono"){
+  const pos = state.posEjecV102 || {};
+  const y = Math.floor(n(anioCal,0));
+  const corte = tetraSnapshotForBimV159(periodo);
+  const k = tetraKeyV159(y,corte,nivel,modalidad);
+  if(pos.tetraHasV159?.[k]) return Math.max(0,n(pos.tetraMapV159[k],0));
+  const kt = tetraTotalKeyV159(y,corte,nivel);
+  if(pos.tetraHasV159?.[kt]) return Math.max(0,n(pos.tetraMapV159[kt],0));
+  return null;
+};
+
+// Mantiene compatibilidad con el resto del simulador, pero ahora usa cortes Sep/Ene/Mayo.
+legacyTetraMtV110 = function(nivel, modalidad, anioAcademico, periodo){
+  if(modalidad !== "Síncrono") return 0;
+  const p = periodNameV102(periodo);
+  const calY = calYearV138(anioAcademico,p);
+  const v = tetraExactV158(nivel,calY,p,modalidad);
+  return v === null ? 0 : Math.max(0,n(v,0));
+};
+
+// PMP es informativo: se conserva visible, pero se elimina cualquier validación/cuadre.
+const fixedBaseLevelRowsPrevV159 = fixedBaseLevelRowsV142;
+fixedBaseLevelRowsV142 = function(){
+  return fixedBaseLevelRowsPrevV159().map(r=>({
+    ...r,
+    diferencia_vs_pmp:""
+  }));
+};
+
+fixedBaseRowsExportV138 = function(){
+  return fixedBaseLevelRowsV142().map(r=>({
+    anio:r.anio,
+    nivel:r.nivel,
+    ni_agosto:r.ni_agosto,
+    ri_bimestral_agosto:r.ri_bimestral_agosto,
+    mt_tetra_historica_mayo:r.mt_tetra_historica,
+    mt_agosto_sincrona:r.mt_agosto,
+    pmp_agosto_informativo:r.pmp_agosto,
+    gap_vs_43000:r.gap_vs_43000,
+    asincrono_requerido_para_43000:r.asincrono_requerido_para_43000,
+    marca_2036:r.marca_2036
+  }));
+};
+
+fixedBaseCaseLevelTableHtmlV142 = function(rows){
+  const headers = [
+    "Año","Nivel","NI Agosto","RI bimestral Agosto","MT tetra histórica (Mayo)",
+    "MT Agosto síncrona","PMP Agosto (informativo)","Gap vs 43,000","Asíncrono requerido"
+  ];
+  const head = `<thead><tr>${headers.map(h=>`<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`;
+  const body = rows.map(r=>{
+    const is2036 = Math.floor(n(r.anio,0))===2036;
+    const isTotal = r.nivel==="Total";
+    const baseStyle = is2036 ? "background:#FFF3B0;" : "";
+    const totalStyle = isTotal ? "font-weight:700;" : "";
+    return `<tr style="${baseStyle}${totalStyle}">
+      <td>${r.anio}</td>
+      <td>${escapeHtml(r.nivel)}</td>
+      <td>${fmt0.format(n(r.ni_agosto,0))}</td>
+      <td>${fmt0.format(n(r.ri_bimestral_agosto,0))}</td>
+      <td>${fmt0.format(n(r.mt_tetra_historica,0))}</td>
+      <td>${fmt0.format(n(r.mt_agosto,0))}</td>
+      <td>${r.pmp_agosto==="" ? "" : fmt0.format(n(r.pmp_agosto,0))}</td>
+      <td>${r.gap_vs_43000==="" ? "" : signedV102(r.gap_vs_43000)}</td>
+      <td>${r.asincrono_requerido_para_43000==="" ? "" : fmt0.format(r.asincrono_requerido_para_43000)}</td>
+    </tr>`;
+  }).join("");
+  return `<table class="case-base-fixed-v144">${head}<tbody>${body}</tbody></table>`;
+};
+
+renderFixedBaseCaseV129 = function(){
+  const el = $("posEjecFixedBaseV129");
+  if(!el) return;
+  let rows=[];
+  try{ rows=fixedBaseLevelRowsV142(); }
+  catch(err){
+    el.innerHTML=`<p class="muted small">No se pudo calcular el caso base fijo: ${escapeHtml(err.message || String(err))}</p>`;
+    return;
+  }
+
+  const r2036 = rows.find(r=>r.anio===2036 && r.nivel==="Total");
+  const r2045 = rows.find(r=>r.anio===2045 && r.nivel==="Total");
+  const gap2036 = r2036 ? Math.max(0,n(r2036.asincrono_requerido_para_43000,0)) : 0;
+
+  el.innerHTML =
+    `<p class="muted small"><b>Caso base fijo:</b> NI desde <b>ni_bimestral_pos_ejec</b> y RI desde <b>ri_bimestral_pos_ejec</b>. La MT tetra histórica se lee de <b>mt_tetra_historica_pos_ejec</b> en sus cortes de <b>Septiembre, Enero y Mayo</b>. Para la foto de <b>Agosto</b> se suma la MT tetra de <b>Mayo del mismo año</b>.</p>` +
+    `<p class="muted small" style="margin-top:10px;"><b>PMP:</b> se muestra únicamente como referencia informativa. No se espera que empate con NI + RI + tetra, porque el PMP puede incluir matrícula asíncrona que este caso base síncrono no está sumando. Desde 2030 el NI crece 3% anual y el RI avanza con <b>tasas_ri_bimestre_pos_ejec</b>. La fila 2036 queda marcada en amarillo; el asíncrono requerido para llegar a 43,000 es <b>${fmt0.format(gap2036)}</b>. ${r2045 ? `En 2045 la MT síncrona calculada llega a ${fmt0.format(r2045.mt_agosto)}.` : ""}</p>` +
+    fixedBaseCaseLevelTableHtmlV142(rows);
+};
+
+// La sección de tetra pasa a ser solo lectura y refleja exactamente los cortes capturados en Excel.
+renderTetraSectionV124 = function(){
+  const controls = $("posEjecTetraControlsV124");
+  const table = $("posEjecTetraTableV124");
+  if(!controls || !table) return;
+
+  controls.innerHTML = `<div class="note small"><b>Fuente oficial:</b> hoja <b>mt_tetra_historica_pos_ejec</b>. Captura únicamente los cortes <b>Septiembre, Enero y Mayo</b>. Para la foto bimestral, el simulador arrastra el último corte correspondiente; Agosto usa Mayo del mismo año.</div>`;
+
+  const source = (state.posEjecV102?.tetraRowsV159 || [])
+    .filter(r=>["Posgrado","Ejecutivo"].includes(r.nivel))
+    .sort((a,b)=>{
+      const dy=n(a.anio_calendario,0)-n(b.anio_calendario,0);
+      if(dy) return dy;
+      const ord={"Enero":1,"Mayo":2,"Septiembre":3};
+      const dp=(ord[a.periodo]||9)-(ord[b.periodo]||9);
+      if(dp) return dp;
+      return a.nivel.localeCompare(b.nivel,"es");
+    });
+
+  const rows = source.map(r=>[
+    r.anio_calendario,
+    r.periodo,
+    r.nivel,
+    r.modalidad,
+    fmt0.format(n(r.mt_tetra_historica,0))
+  ]);
+  table.innerHTML = tableHtml(
+    ["Año calendario","Corte tetra","Nivel","Modalidad","MT tetra histórica"],
+    rows,
+    [0,1,2,3]
+  );
+};
+
+renderPosEjecInputSummaryV102 = function(){
+  const el = $("posEjecInputSummaryV102");
+  if(!el) return;
+  const pos = state.posEjecV102 || {};
+  const rows = [
+    ["ni_bimestral_pos_ejec",fmt0.format((pos.niRowsV154 || pos.niCalendarRowsV149 || []).length),"NI exacto por año calendario + periodo + nivel + modalidad"],
+    ["ri_bimestral_pos_ejec",fmt0.format((pos.riRowsV154 || pos.riCalendarRowsV149 || []).length),"RI bimestral oficial; alimenta el caso base y sirve como checkpoint cuando hay valor"],
+    ["mt_tetra_historica_pos_ejec",fmt0.format((pos.tetraRowsV159 || []).length),"MT tetra histórica en cortes Septiembre / Enero / Mayo; Agosto usa Mayo del mismo año"],
+    ["pmp_mt_pos_ejec",fmt0.format((pos.pmpRowsV138 || pos.pmpMtRowsV127 || []).length),"PMP/MT mostrado solo como referencia informativa; puede incluir asíncrono"],
+    ["tasas_ri_bimestre_pos_ejec",fmt0.format((pos.tasaRows || []).length),"Tasa B1→B2, B2→B3, etc. para proyectar RI desde 2030"],
+    ["stock_ri_periodo_pos_ejec",fmt0.format((pos.stockRowsV154 || pos.stockCalendarRowsV149 || []).length),"Distribución del RI por bimestre usada para conservar la estructura de cohortes"]
+  ];
+  el.innerHTML = tableHtml(["Hoja","Filas leídas","Uso"],rows,[0,2]);
+};
+
+// Exportación v159: PMP queda informativo y la fuente tetra se conserva para auditoría.
+exportInstitutionExcelV129 = function(){
+  const plan = buildPosEjecPlanV102();
+  const wb = XLSX.utils.book_new();
+  appendSheetV129(wb,"Resumen_institucional",institutionRowsExportV146());
+  appendSheetV129(wb,"Caso_base_por_nivel",fixedBaseRowsExportV138());
+  appendSheetV129(wb,"Escenario_comparacion",currentComparisonRowsV129(plan));
+  appendSheetV129(wb,"Distribucion_2027_2045",distributionRowsV129());
+  appendSheetV129(wb,"Crecimientos_bloques",growthBlockRowsV129());
+  appendSheetV129(wb,"Posgrado_Agosto_2045",levelRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Ejecutivo_Agosto_2045",levelRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Detalle_periodos_interno",internalPeriodRowsV154(plan));
+  appendSheetV129(wb,"Auditoria_async_PG",auditAsyncRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Auditoria_async_EJ",auditAsyncRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Tasas_usadas",ratesRowsExportV129());
+  appendSheetV129(wb,"NI_bimestral_fuente",state.posEjecV102?.niRowsV154 || state.posEjecV102?.niCalendarRowsV149 || []);
+  appendSheetV129(wb,"RI_bimestral_fuente",state.posEjecV102?.riRowsV154 || state.posEjecV102?.riCalendarRowsV149 || []);
+  appendSheetV129(wb,"MT_tetra_fuente",state.posEjecV102?.tetraRowsV159 || []);
+  appendSheetV129(wb,"PMP_informativo",state.posEjecV102?.pmpRowsV138 || state.posEjecV102?.pmpMtRowsV127 || []);
+  appendSheetV129(wb,"Internacional_Agosto",internationalAgostoRowsExportV140());
+  appendSheetV129(wb,"Internacional_crecimiento",internationalGrowthRowsExportV138());
+  appendSheetV129(wb,"Espacio_Connect",connectRowsExportV140());
+  XLSX.writeFile(wb,`plan_posgrado_ejecutivo_${scenarioSlug()}_v159.xlsx`);
+};
+
+
+/* ==============================
+   V160 patch · MT = PMP hasta 2029
+   - 2026–2029: NI, RI bimestral y MT tetra se muestran como insumos informativos,
+     pero NO se suman para construir la columna MT.
+   - La columna MT usa directamente el PMP de pmp_mt_pos_ejec hasta 2029.
+   - Desde 2030: MT vuelve a ser calculada como NI + RI bimestral + MT tetra histórica.
+   - No se muestra una columna adicional de "suma de componentes" ni una columna PMP separada.
+   ============================== */
+
+const fixedBaseLevelRowsPrevV160 = fixedBaseLevelRowsV142;
+fixedBaseLevelRowsV142 = function(){
+  const rows = fixedBaseLevelRowsPrevV160();
+  const out = rows.map(r=>({...r}));
+
+  for(let y=2026; y<=2029; y++){
+    const yearRows = out.filter(r=>Math.floor(n(r.anio,0))===y);
+    const levelRows = yearRows.filter(r=>r.nivel!=="Total");
+
+    // Por nivel, MT es el PMP. NI/RI/tetra quedan visibles, pero no se suman para MT.
+    for(const r of levelRows){
+      let pmp = r.pmp_agosto;
+      if(pmp === "" || pmp === null || pmp === undefined){
+        const v = pmpLevelMtOrAllocatedV142(y,r.nivel);
+        pmp = (v === null || v === undefined) ? "" : Math.round(n(v,0));
+      }
+      r.mt_agosto = pmp === "" ? "" : Math.round(n(pmp,0));
+      r.pmp_agosto = pmp;
+      r.diferencia_vs_pmp = "";
+      r.gap_vs_43000 = "";
+      r.asincrono_requerido_para_43000 = "";
+    }
+
+    const totalRow = yearRows.find(r=>r.nivel==="Total");
+    if(totalRow){
+      let totalPmp = null;
+      if(typeof pmpTotalV138 === "function"){
+        const direct = pmpTotalV138(y,"Agosto");
+        if(direct !== null && direct !== undefined) totalPmp = Math.max(0,n(direct,0));
+      }
+      if(totalPmp === null){
+        const vals = levelRows.map(r=>r.mt_agosto).filter(v=>v!=="" && v!==null && v!==undefined);
+        totalPmp = vals.length ? vals.reduce((a,v)=>a+n(v,0),0) : null;
+      }
+      totalRow.mt_agosto = totalPmp === null ? "" : Math.round(totalPmp);
+      totalRow.pmp_agosto = totalPmp === null ? "" : Math.round(totalPmp);
+      totalRow.diferencia_vs_pmp = "";
+      totalRow.gap_vs_43000 = "";
+      totalRow.asincrono_requerido_para_43000 = "";
+    }
+  }
+
+  // Desde 2030 se conserva intacta la lógica v159: MT calculada = NI + RI + tetra.
+  return out;
+};
+
+// Mantiene consistente cualquier consumo del resumen anual del caso base.
+fixedBaseAnnualRowsV129 = function(){
+  const rows = fixedBaseLevelRowsV142();
+  const out = [];
+  for(let y=2026; y<=2045; y++){
+    const pg = rows.find(r=>r.anio===y && r.nivel==="Posgrado") || {};
+    const ej = rows.find(r=>r.anio===y && r.nivel==="Ejecutivo") || {};
+    const total = rows.find(r=>r.anio===y && r.nivel==="Total") || {};
+    const mtPg = pg.mt_agosto === "" ? 0 : n(pg.mt_agosto,0);
+    const mtEj = ej.mt_agosto === "" ? 0 : n(ej.mt_agosto,0);
+    const mtTot = total.mt_agosto === "" ? (mtPg+mtEj) : n(total.mt_agosto,0);
+    const tetra = n(total.mt_tetra_historica,0);
+    out.push({
+      anio:y,
+      ni_agosto_total:Math.round(n(total.ni_agosto,0)),
+      ri_bimestral_agosto:Math.round(n(total.ri_bimestral_agosto,0)),
+      mt_bimestral_agosto:y<=2029 ? "" : Math.round(n(total.ni_agosto,0)+n(total.ri_bimestral_agosto,0)),
+      mt_tetra_historica_agosto:Math.round(tetra),
+      mt_posgrado_agosto:Math.round(mtPg),
+      mt_ejecutivo_agosto:Math.round(mtEj),
+      mt_total_agosto:Math.round(mtTot),
+      diferencia_vs_43000:y>=2036 ? "" : (y<=2029 ? "" : Math.round(BASE_CASE_TARGET_V138-mtTot))
+    });
+  }
+  return out;
+};
+
+fixedBaseRowsExportV138 = function(){
+  return fixedBaseLevelRowsV142().map(r=>({
+    anio:r.anio,
+    nivel:r.nivel,
+    ni_agosto:r.ni_agosto,
+    ri_bimestral_agosto:r.ri_bimestral_agosto,
+    mt_tetra_historica_mayo:r.mt_tetra_historica,
+    mt_agosto:r.mt_agosto,
+    fuente_mt:r.anio<=2029 ? "PMP" : "NI + RI bimestral + MT tetra",
+    gap_vs_43000:r.gap_vs_43000,
+    asincrono_requerido_para_43000:r.asincrono_requerido_para_43000,
+    marca_2036:r.marca_2036
+  }));
+};
+
+fixedBaseCaseLevelTableHtmlV142 = function(rows){
+  const headers = [
+    "Año","Nivel","NI Agosto","RI bimestral Agosto","MT tetra histórica (Mayo)",
+    "MT Agosto","Gap vs 43,000","Asíncrono requerido"
+  ];
+  const head = `<thead><tr>${headers.map(h=>`<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`;
+  const body = rows.map(r=>{
+    const is2036 = Math.floor(n(r.anio,0))===2036;
+    const isTotal = r.nivel==="Total";
+    const baseStyle = is2036 ? "background:#FFF3B0;" : "";
+    const totalStyle = isTotal ? "font-weight:700;" : "";
+    const mtText = r.mt_agosto === "" || r.mt_agosto === null || r.mt_agosto === undefined
+      ? ""
+      : fmt0.format(n(r.mt_agosto,0));
+    return `<tr style="${baseStyle}${totalStyle}">
+      <td>${r.anio}</td>
+      <td>${escapeHtml(r.nivel)}</td>
+      <td>${fmt0.format(n(r.ni_agosto,0))}</td>
+      <td>${fmt0.format(n(r.ri_bimestral_agosto,0))}</td>
+      <td>${fmt0.format(n(r.mt_tetra_historica,0))}</td>
+      <td>${mtText}</td>
+      <td>${r.gap_vs_43000==="" ? "" : signedV102(r.gap_vs_43000)}</td>
+      <td>${r.asincrono_requerido_para_43000==="" ? "" : fmt0.format(r.asincrono_requerido_para_43000)}</td>
+    </tr>`;
+  }).join("");
+  return `<table class="case-base-fixed-v144">${head}<tbody>${body}</tbody></table>`;
+};
+
+renderFixedBaseCaseV129 = function(){
+  const el = $("posEjecFixedBaseV129");
+  if(!el) return;
+  let rows=[];
+  try{ rows=fixedBaseLevelRowsV142(); }
+  catch(err){
+    el.innerHTML=`<p class="muted small">No se pudo calcular el caso base fijo: ${escapeHtml(err.message || String(err))}</p>`;
+    return;
+  }
+
+  const r2036 = rows.find(r=>r.anio===2036 && r.nivel==="Total");
+  const r2045 = rows.find(r=>r.anio===2045 && r.nivel==="Total");
+  const gap2036 = r2036 ? Math.max(0,n(r2036.asincrono_requerido_para_43000,0)) : 0;
+
+  el.innerHTML =
+    `<p class="muted small"><b>Caso base fijo:</b> NI desde <b>ni_bimestral_pos_ejec</b>, RI desde <b>ri_bimestral_pos_ejec</b> y MT tetra histórica desde <b>mt_tetra_historica_pos_ejec</b>. La tetra se captura en <b>Septiembre, Enero y Mayo</b>; para la foto de Agosto se usa <b>Mayo del mismo año</b>.</p>` +
+    `<p class="muted small" style="margin-top:10px;"><b>MT:</b> de <b>2026 a 2029</b> la columna MT muestra directamente el valor de <b>pmp_mt_pos_ejec</b>; NI, RI y tetra se dejan visibles como referencia y <b>no se suman para construir MT</b>. Desde <b>2030</b>, la MT sí se calcula como <b>NI + RI bimestral + MT tetra histórica</b>, con NI creciendo 3% anual y RI avanzando con <b>tasas_ri_bimestre_pos_ejec</b>. La fila 2036 queda marcada en amarillo; el asíncrono requerido para llegar a 43,000 es <b>${fmt0.format(gap2036)}</b>. ${r2045 ? `En 2045 la MT síncrona calculada llega a ${fmt0.format(n(r2045.mt_agosto,0))}.` : ""}</p>` +
+    fixedBaseCaseLevelTableHtmlV142(rows);
+};
+
+// Actualiza la descripción de insumos para reflejar que PMP es la MT oficial hasta 2029.
+renderPosEjecInputSummaryV102 = function(){
+  const el = $("posEjecInputSummaryV102");
+  if(!el) return;
+  const pos = state.posEjecV102 || {};
+  const rows = [
+    ["ni_bimestral_pos_ejec",fmt0.format((pos.niRowsV154 || pos.niCalendarRowsV149 || []).length),"NI exacto por año calendario + periodo + nivel + modalidad"],
+    ["ri_bimestral_pos_ejec",fmt0.format((pos.riRowsV154 || pos.riCalendarRowsV149 || []).length),"RI bimestral oficial; alimenta el caso base y sirve como checkpoint cuando hay valor"],
+    ["mt_tetra_historica_pos_ejec",fmt0.format((pos.tetraRowsV159 || []).length),"MT tetra histórica en cortes Septiembre / Enero / Mayo; Agosto usa Mayo del mismo año"],
+    ["pmp_mt_pos_ejec",fmt0.format((pos.pmpRowsV138 || pos.pmpMtRowsV127 || []).length),"MT oficial mostrada en el caso base hasta 2029; no se obliga a cuadrar con NI + RI + tetra"],
+    ["tasas_ri_bimestre_pos_ejec",fmt0.format((pos.tasaRows || []).length),"Tasa B1→B2, B2→B3, etc. para proyectar RI desde 2030"],
+    ["stock_ri_periodo_pos_ejec",fmt0.format((pos.stockRowsV154 || pos.stockCalendarRowsV149 || []).length),"Distribución del RI por bimestre usada para conservar la estructura de cohortes"]
+  ];
+  el.innerHTML = tableHtml(["Hoja","Filas leídas","Uso"],rows,[0,2]);
+};
+
+// Exportación v160: una sola columna MT; hasta 2029 = PMP, desde 2030 = cálculo.
+exportInstitutionExcelV129 = function(){
+  const plan = buildPosEjecPlanV102();
+  const wb = XLSX.utils.book_new();
+  appendSheetV129(wb,"Resumen_institucional",institutionRowsExportV146());
+  appendSheetV129(wb,"Caso_base_por_nivel",fixedBaseRowsExportV138());
+  appendSheetV129(wb,"Escenario_comparacion",currentComparisonRowsV129(plan));
+  appendSheetV129(wb,"Distribucion_2027_2045",distributionRowsV129());
+  appendSheetV129(wb,"Crecimientos_bloques",growthBlockRowsV129());
+  appendSheetV129(wb,"Posgrado_Agosto_2045",levelRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Ejecutivo_Agosto_2045",levelRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Detalle_periodos_interno",internalPeriodRowsV154(plan));
+  appendSheetV129(wb,"Auditoria_async_PG",auditAsyncRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Auditoria_async_EJ",auditAsyncRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Tasas_usadas",ratesRowsExportV129());
+  appendSheetV129(wb,"NI_bimestral_fuente",state.posEjecV102?.niRowsV154 || state.posEjecV102?.niCalendarRowsV149 || []);
+  appendSheetV129(wb,"RI_bimestral_fuente",state.posEjecV102?.riRowsV154 || state.posEjecV102?.riCalendarRowsV149 || []);
+  appendSheetV129(wb,"MT_tetra_fuente",state.posEjecV102?.tetraRowsV159 || []);
+  appendSheetV129(wb,"PMP_fuente",state.posEjecV102?.pmpRowsV138 || state.posEjecV102?.pmpMtRowsV127 || []);
+  appendSheetV129(wb,"Internacional_Agosto",internationalAgostoRowsExportV140());
+  appendSheetV129(wb,"Internacional_crecimiento",internationalGrowthRowsExportV138());
+  appendSheetV129(wb,"Espacio_Connect",connectRowsExportV140());
+  XLSX.writeFile(wb,`plan_posgrado_ejecutivo_${scenarioSlug()}_v160.xlsx`);
+};
+
+
 loadAuto();
 </script>
 </body>
