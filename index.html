@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2026–2045 · v157</title>
+  <title>Simulador matrícula 2026–2045 · v161</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -240,7 +240,7 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2026–2045 · v157</h1>
+  <h1>Simulador de matrícula y salones 2026–2045 · v161</h1>
   <p>
     Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus, exportaciones CSV sin decimales, capacidad por tipos de espacios y aulas móviles separadas por nivel. Los salones disponibles se calculan desde los tipos capturados. Incluye módulo de inversión y NI por proyecto.
   </p>
@@ -37985,6 +37985,327 @@ exportInstitutionExcelV129 = function(){
   appendSheetV129(wb,"Internacional_crecimiento",internationalGrowthRowsExportV138());
   appendSheetV129(wb,"Espacio_Connect",connectRowsExportV140());
   XLSX.writeFile(wb,`plan_posgrado_ejecutivo_${scenarioSlug()}_v160.xlsx`);
+};
+
+
+/* ==============================
+   V161 patch · NI por iniciativas + anualizado Oct–Ago
+   - Lee la hoja ni_iniciativas_pos_ejec en formato largo.
+   - El NI orgánico siempre se incluye.
+   - Las iniciativas se pueden activar/desactivar con checks.
+   - Por default, cualquier iniciativa cuyo nombre contenga "Asíncrono" queda desactivada.
+   - Los checks afectan el NI del Caso base fijo y, por consecuencia, la proyección 3% desde 2030.
+   - 2026–2029: MT sigue siendo PMP (informativo), sin obligar a cuadrar componentes.
+   - Agrega tabla de NI anualizado: Oct año previo + Ene + Mar + Jun + Ago.
+   ============================== */
+
+function normInitiativeV161(x){
+  return txtV102(x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+}
+function initiativeKeyV161(nivel,iniciativa){
+  return `${txtV102(nivel)}|${txtV102(iniciativa)}`;
+}
+function initiativePeriodKeyV161(anio,periodo,nivel){
+  return `${Math.floor(n(anio,0))}|${periodNameV102(periodo)}|${txtV102(nivel)}`;
+}
+function isOrganicV161(name){
+  const s=normInitiativeV161(name);
+  return s==="organico" || s==="organica" || s.includes("base organica") || s.includes("base organico");
+}
+function isAsyncInitiativeV161(name){
+  return normInitiativeV161(name).includes("asincrono");
+}
+function boolCellV161(v, fallback=true){
+  if(v===null || v===undefined || v==="") return fallback;
+  if(typeof v==="boolean") return v;
+  if(typeof v==="number") return v!==0;
+  const s=normInitiativeV161(v);
+  if(["1","si","sí","true","verdadero","yes","x"].includes(s)) return true;
+  if(["0","no","false","falso"].includes(s)) return false;
+  return fallback;
+}
+
+function parseNiInitiativesV161(wb){
+  const rows=readSheetRowsV102(wb,"ni_iniciativas_pos_ejec")
+    .map(r=>{
+      const periodo=periodNameV102(rowValV102(r,["periodo","Periodo"]));
+      const yearRaw=rowValV102(r,["anio_calendario","año_calendario","anio calendario","año calendario","anio","año","year"]);
+      const ini=txtV102(rowValV102(r,["iniciativa","Iniciativa","INICIATIVA","concepto","Concepto"]));
+      const niRaw=rowValV102(r,["NI","ni","NIs","nis","nuevo_ingreso","nuevos_ingresos"]);
+      const defRaw=rowValV102(r,["incluir_default","incluir default","default","activo_default","activo"]);
+      return {
+        anio_calendario:Math.floor(n(yearRaw,0)),
+        periodo,
+        nivel:txtV102(rowValV102(r,["nivel","Nivel"])) || "",
+        modalidad:txtV102(rowValV102(r,["modalidad","Modalidad"])) || "Síncrono",
+        iniciativa:ini,
+        ni:(niRaw===null || niRaw===undefined || niRaw==="") ? null : n(niRaw,null),
+        incluir_default:boolCellV161(defRaw,true)
+      };
+    })
+    .filter(r=>r.anio_calendario>0 && r.periodo && r.nivel && r.iniciativa && r.ni!==null && isFinite(r.ni));
+
+  const byPeriod={};
+  for(const r of rows){
+    const k=initiativePeriodKeyV161(r.anio_calendario,r.periodo,r.nivel);
+    if(!byPeriod[k]) byPeriod[k]=[];
+    byPeriod[k].push(r);
+  }
+  return {rows,byPeriod};
+}
+
+const parsePosEjecWorkbookPrevV161=parsePosEjecWorkbookV102;
+parsePosEjecWorkbookV102=function(wb){
+  const pos=parsePosEjecWorkbookPrevV161(wb);
+  const ini=parseNiInitiativesV161(wb);
+  pos.niInitiativeRowsV161=ini.rows;
+  pos.niInitiativeByPeriodV161=ini.byPeriod;
+  return pos;
+};
+
+function initiativeCfgV161(){
+  if(!state.config) state.config={};
+  if(!state.config.niInitiativesV161) state.config.niInitiativesV161={};
+  return state.config.niInitiativesV161;
+}
+function initiativeEnabledV161(row){
+  if(isOrganicV161(row?.iniciativa)) return true;
+  const cfg=initiativeCfgV161();
+  const k=initiativeKeyV161(row?.nivel,row?.iniciativa);
+  if(Object.prototype.hasOwnProperty.call(cfg,k)) return !!cfg[k];
+  // Requisito: escenario default sin iniciativas asíncronas.
+  if(isAsyncInitiativeV161(row?.iniciativa)) return false;
+  return row?.incluir_default !== false;
+}
+function setInitiativeEnabledV161(nivel,iniciativa,value){
+  if(isOrganicV161(iniciativa)) return;
+  initiativeCfgV161()[initiativeKeyV161(nivel,iniciativa)]=!!value;
+}
+function initiativeRowsForPeriodV161(nivel,anioCal,periodo){
+  const pos=state.posEjecV102 || {};
+  const k=initiativePeriodKeyV161(anioCal,periodo,nivel);
+  return (pos.niInitiativeByPeriodV161 || {})[k] || [];
+}
+function niFromInitiativesV161(nivel,anioCal,periodo){
+  const rows=initiativeRowsForPeriodV161(nivel,anioCal,periodo);
+  if(!rows.length) return null;
+  return Math.max(0,rows.reduce((acc,r)=>acc + (initiativeEnabledV161(r) ? Math.max(0,n(r.ni,0)) : 0),0));
+}
+
+// Fuente del NI para el Caso base: iniciativas cuando existen; de lo contrario conserva la fuente oficial anterior.
+const baseCaseNiPrevV161=baseCaseNiV138;
+baseCaseNiV138=function(nivel,anioAcademico,periodo){
+  const p=periodNameV102(periodo);
+  const calY=calYearV138(anioAcademico,p);
+  if(calY<=2029){
+    const ini=niFromInitiativesV161(nivel,calY,p);
+    if(ini!==null) return ini;
+    return baseCaseNiPrevV161(nivel,anioAcademico,p);
+  }
+  const prevCalY=calY-1;
+  const prevAcad=academicFromCalendarPeriodV145(prevCalY,p);
+  return Math.max(0,baseCaseNiV138(nivel,prevAcad,p)*(1+BASE_CASE_GROWTH_V138));
+};
+
+// Corrige también las filas visibles 2026–2029, donde las versiones anteriores tomaban NI directo de ni_bimestral_pos_ejec.
+const fixedBaseLevelRowsPrevV161=fixedBaseLevelRowsV142;
+fixedBaseLevelRowsV142=function(){
+  const rows=fixedBaseLevelRowsPrevV161().map(r=>({...r}));
+  for(let y=2026;y<=2029;y++){
+    for(const nivel of ["Posgrado","Ejecutivo"]){
+      const ini=niFromInitiativesV161(nivel,y,"Agosto");
+      if(ini===null) continue;
+      const row=rows.find(r=>r.anio===y && r.nivel===nivel);
+      if(row) row.ni_agosto=Math.round(ini);
+    }
+    const total=rows.find(r=>r.anio===y && r.nivel==="Total");
+    if(total){
+      total.ni_agosto=["Posgrado","Ejecutivo"].reduce((a,nivel)=>{
+        const r=rows.find(x=>x.anio===y && x.nivel===nivel);
+        return a+n(r?.ni_agosto,0);
+      },0);
+    }
+  }
+  return rows;
+};
+
+function initiativeCatalogV161(){
+  const rows=(state.posEjecV102?.niInitiativeRowsV161 || []);
+  const map=new Map();
+  for(const r of rows){
+    if(isOrganicV161(r.iniciativa)) continue;
+    const k=initiativeKeyV161(r.nivel,r.iniciativa);
+    if(!map.has(k)) map.set(k,{nivel:r.nivel,iniciativa:r.iniciativa});
+  }
+  return [...map.values()].sort((a,b)=>a.nivel.localeCompare(b.nivel,"es") || a.iniciativa.localeCompare(b.iniciativa,"es"));
+}
+
+function initiativeControlsHtmlV161(contextId){
+  const items=initiativeCatalogV161();
+  if(!items.length){
+    return `<div class="note small" style="margin:10px 0;">No se encontraron filas en <b>ni_iniciativas_pos_ejec</b>. El simulador conserva el NI de <b>ni_bimestral_pos_ejec</b>.</div>`;
+  }
+  const levels=["Posgrado","Ejecutivo"];
+  let html=`<div class="note small" style="margin:10px 0 12px;"><b>Iniciativas incluidas en NI:</b> el <b>Orgánico</b> siempre se incluye. Por default, las iniciativas de <b>Asíncrono</b> están desmarcadas.</div>`;
+  html+=`<div class="grid2" style="margin-bottom:12px;align-items:start;">`;
+  for(const nivel of levels){
+    const levelItems=items.filter(x=>x.nivel===nivel);
+    html+=`<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;">`+
+      `<div style="font-weight:800;margin-bottom:7px;">${escapeHtml(nivel)}</div>`+
+      `<div style="display:grid;gap:7px;">`;
+    if(!levelItems.length) html+=`<span class="muted small">Sin iniciativas capturadas.</span>`;
+    for(const it of levelItems){
+      const sample=(state.posEjecV102?.niInitiativeRowsV161 || []).find(r=>r.nivel===it.nivel && r.iniciativa===it.iniciativa) || it;
+      const checked=initiativeEnabledV161(sample) ? " checked" : "";
+      html+=`<label style="display:flex;align-items:center;gap:8px;margin:0;font-weight:600;color:#374151;">`+
+        `<input type="checkbox" data-zone="niInitiativeV161" data-context="${escapeHtml(contextId)}" data-level="${escapeHtml(it.nivel)}" data-initiative="${escapeHtml(it.iniciativa)}"${checked} style="width:auto;">`+
+        `<span>${escapeHtml(it.iniciativa)}</span></label>`;
+    }
+    html+=`</div></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function bindInitiativeChecksV161(root){
+  if(!root) return;
+  root.querySelectorAll('input[data-zone="niInitiativeV161"]').forEach(inp=>{
+    inp.addEventListener("change",e=>{
+      setInitiativeEnabledV161(e.target.dataset.level,e.target.dataset.initiative,e.target.checked);
+      saveConfig();
+      // Render completo para que ambos juegos de checks y todas las tablas queden sincronizados.
+      render("ni-initiatives-v161");
+    });
+  });
+}
+
+function niCalendarValueV161(nivel,anioCal,periodo){
+  const p=periodNameV102(periodo);
+  const acad=academicFromCalendarPeriodV145(anioCal,p);
+  return Math.max(0,baseCaseNiV138(nivel,acad,p));
+}
+function annualizedNiRowsV161(){
+  const out=[];
+  for(let y=2027;y<=2045;y++){
+    const periods=[
+      {anio:y-1,periodo:"Octubre"},
+      {anio:y,periodo:"Enero"},
+      {anio:y,periodo:"Marzo"},
+      {anio:y,periodo:"Junio"},
+      {anio:y,periodo:"Agosto"}
+    ];
+    const pg=periods.reduce((a,x)=>a+niCalendarValueV161("Posgrado",x.anio,x.periodo),0);
+    const ej=periods.reduce((a,x)=>a+niCalendarValueV161("Ejecutivo",x.anio,x.periodo),0);
+    out.push({
+      anio:y,
+      ventana:`Oct-${String(y-1).slice(-2)} → Ago-${String(y).slice(-2)}`,
+      ni_posgrado:pg,
+      ni_ejecutivo:ej,
+      ni_total:pg+ej
+    });
+  }
+  return out;
+}
+function annualizedNiTableHtmlV161(){
+  const rows=annualizedNiRowsV161();
+  return tableHtml(
+    ["Año anualizado","Ventana NI","NI Posgrado","NI Ejecutivo","NI Total"],
+    rows.map(r=>[r.anio,escapeHtml(r.ventana),fmt0.format(r.ni_posgrado),fmt0.format(r.ni_ejecutivo),fmt0.format(r.ni_total)]),
+    [0,1]
+  );
+}
+
+renderFixedBaseCaseV129=function(){
+  const el=$("posEjecFixedBaseV129");
+  if(!el) return;
+  let rows=[];
+  try{ rows=fixedBaseLevelRowsV142(); }
+  catch(err){
+    el.innerHTML=`<p class="muted small">No se pudo calcular el caso base fijo: ${escapeHtml(err.message || String(err))}</p>`;
+    return;
+  }
+
+  const r2036=rows.find(r=>r.anio===2036 && r.nivel==="Total");
+  const r2045=rows.find(r=>r.anio===2045 && r.nivel==="Total");
+  const gap2036=r2036 ? Math.max(0,n(r2036.asincrono_requerido_para_43000,0)) : 0;
+
+  el.innerHTML=
+    `<p class="muted small"><b>Caso base fijo:</b> NI desde <b>ni_iniciativas_pos_ejec</b> cuando existe desglose para el periodo; el Orgánico siempre entra y las iniciativas se controlan con los checks. Si un periodo no está en esa hoja, conserva el NI de <b>ni_bimestral_pos_ejec</b>. RI desde <b>ri_bimestral_pos_ejec</b> y MT tetra histórica desde <b>mt_tetra_historica_pos_ejec</b>.</p>`+
+    `<p class="muted small" style="margin-top:10px;"><b>Default síncrono:</b> las iniciativas que contienen “Asíncrono” empiezan desmarcadas. De <b>2026 a 2029</b>, MT continúa mostrando directamente el <b>PMP</b> de forma informativa. Desde <b>2030</b>, MT se calcula como <b>NI + RI bimestral + MT tetra histórica</b>. La fila 2036 queda marcada en amarillo; el asíncrono requerido para llegar a 43,000 es <b>${fmt0.format(gap2036)}</b>. ${r2045 ? `En 2045 la MT síncrona calculada llega a ${fmt0.format(n(r2045.mt_agosto,0))}.` : ""}</p>`+
+    initiativeControlsHtmlV161("base")+
+    fixedBaseCaseLevelTableHtmlV142(rows)+
+    `<h3 style="margin:20px 0 6px;">NI anualizado · Octubre a Agosto</h3>`+
+    `<p class="muted small">Esta tabla contiene <b>solo NI</b>. Cada año suma Octubre del año previo + Enero + Marzo + Junio + Agosto del año mostrado. Los mismos checks modifican el anualizado y la proyección del caso base.</p>`+
+    initiativeControlsHtmlV161("annualized")+
+    annualizedNiTableHtmlV161();
+
+  bindInitiativeChecksV161(el);
+};
+
+// Diagnóstico de insumos: agrega la nueva hoja de iniciativas.
+const renderPosEjecInputSummaryPrevV161=renderPosEjecInputSummaryV102;
+renderPosEjecInputSummaryV102=function(){
+  const el=$("posEjecInputSummaryV102");
+  if(!el) return;
+  const pos=state.posEjecV102 || {};
+  const rows=[
+    ["ni_iniciativas_pos_ejec",fmt0.format((pos.niInitiativeRowsV161 || []).length),"Desglose largo de NI por periodo, nivel e iniciativa; Orgánico fijo y checks para iniciativas"],
+    ["ni_bimestral_pos_ejec",fmt0.format((pos.niRowsV154 || pos.niCalendarRowsV149 || []).length),"Fallback de NI cuando un periodo no existe en ni_iniciativas_pos_ejec"],
+    ["ri_bimestral_pos_ejec",fmt0.format((pos.riRowsV154 || pos.riCalendarRowsV149 || []).length),"RI bimestral oficial; alimenta el caso base y sirve como checkpoint cuando hay valor"],
+    ["mt_tetra_historica_pos_ejec",fmt0.format((pos.tetraRowsV159 || []).length),"MT tetra histórica en cortes Septiembre / Enero / Mayo; Agosto usa Mayo del mismo año"],
+    ["pmp_mt_pos_ejec",fmt0.format((pos.pmpRowsV138 || pos.pmpMtRowsV127 || []).length),"MT informativa mostrada en el caso base hasta 2029; no se obliga a cuadrar con NI + RI + tetra"],
+    ["tasas_ri_bimestre_pos_ejec",fmt0.format((pos.tasaRows || []).length),"Tasa B1→B2, B2→B3, etc. para proyectar RI desde 2030"],
+    ["stock_ri_periodo_pos_ejec",fmt0.format((pos.stockRowsV154 || pos.stockCalendarRowsV149 || []).length),"Distribución del RI por bimestre usada para conservar la estructura de cohortes"]
+  ];
+  el.innerHTML=tableHtml(["Hoja","Filas leídas","Uso"],rows,[0,2]);
+};
+
+function initiativeRowsExportV161(){
+  return (state.posEjecV102?.niInitiativeRowsV161 || []).map(r=>({
+    anio_calendario:r.anio_calendario,
+    periodo:r.periodo,
+    nivel:r.nivel,
+    modalidad:r.modalidad,
+    iniciativa:r.iniciativa,
+    NI:r.ni,
+    incluido_en_escenario:isOrganicV161(r.iniciativa) ? "Siempre" : (initiativeEnabledV161(r) ? "Sí" : "No")
+  }));
+}
+function annualizedNiRowsExportV161(){
+  return annualizedNiRowsV161().map(r=>({
+    anio_anualizado:r.anio,
+    ventana:r.ventana,
+    ni_posgrado:Math.round(r.ni_posgrado),
+    ni_ejecutivo:Math.round(r.ni_ejecutivo),
+    ni_total:Math.round(r.ni_total)
+  }));
+}
+
+// Exportación v161: agrega la fuente de iniciativas y la tabla de NI anualizado.
+exportInstitutionExcelV129=function(){
+  const plan=buildPosEjecPlanV102();
+  const wb=XLSX.utils.book_new();
+  appendSheetV129(wb,"Resumen_institucional",institutionRowsExportV146());
+  appendSheetV129(wb,"Caso_base_por_nivel",fixedBaseRowsExportV138());
+  appendSheetV129(wb,"NI_anualizado",annualizedNiRowsExportV161());
+  appendSheetV129(wb,"NI_iniciativas",initiativeRowsExportV161());
+  appendSheetV129(wb,"Escenario_comparacion",currentComparisonRowsV129(plan));
+  appendSheetV129(wb,"Distribucion_2027_2045",distributionRowsV129());
+  appendSheetV129(wb,"Crecimientos_bloques",growthBlockRowsV129());
+  appendSheetV129(wb,"Posgrado_Agosto_2045",levelRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Ejecutivo_Agosto_2045",levelRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Detalle_periodos_interno",internalPeriodRowsV154(plan));
+  appendSheetV129(wb,"Auditoria_async_PG",auditAsyncRowsV154(plan,"Posgrado"));
+  appendSheetV129(wb,"Auditoria_async_EJ",auditAsyncRowsV154(plan,"Ejecutivo"));
+  appendSheetV129(wb,"Tasas_usadas",ratesRowsExportV129());
+  appendSheetV129(wb,"NI_bimestral_fuente",state.posEjecV102?.niRowsV154 || state.posEjecV102?.niCalendarRowsV149 || []);
+  appendSheetV129(wb,"RI_bimestral_fuente",state.posEjecV102?.riRowsV154 || state.posEjecV102?.riCalendarRowsV149 || []);
+  appendSheetV129(wb,"MT_tetra_fuente",state.posEjecV102?.tetraRowsV159 || []);
+  appendSheetV129(wb,"PMP_fuente",state.posEjecV102?.pmpRowsV138 || state.posEjecV102?.pmpMtRowsV127 || []);
+  appendSheetV129(wb,"Internacional_Agosto",internationalAgostoRowsExportV140());
+  appendSheetV129(wb,"Internacional_crecimiento",internationalGrowthRowsExportV138());
+  appendSheetV129(wb,"Espacio_Connect",connectRowsExportV140());
+  XLSX.writeFile(wb,`plan_posgrado_ejecutivo_${scenarioSlug()}_v161.xlsx`);
 };
 
 
