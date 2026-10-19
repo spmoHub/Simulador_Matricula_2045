@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador matrícula 2026–2045 · v161</title>
+  <title>Simulador matrícula 2026–2045 · v162</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -240,7 +240,7 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de matrícula y salones 2026–2045 · v161</h1>
+  <h1>Simulador de matrícula y salones 2026–2045 · v162</h1>
   <p>
     Rediseño basado en PMP 2026–2029 y trayectoria NI/RI/MT 2030–2040 del Excel. Tasas visibles 2030–2040, S2–S8 cuadra RI, S1–S7 evalúa espacios, Multicampus cuadra con Salones e incluye consolidación docente nacional Flex/Multicampus, exportaciones CSV sin decimales, capacidad por tipos de espacios y aulas móviles separadas por nivel. Los salones disponibles se calculan desde los tipos capturados. Incluye módulo de inversión y NI por proyecto.
   </p>
@@ -37767,6 +37767,7 @@ renderPosEjecInputSummaryV102 = function(){
   const rows = [
     ["ni_bimestral_pos_ejec",fmt0.format((pos.niRowsV154 || pos.niCalendarRowsV149 || []).length),"NI exacto por año calendario + periodo + nivel + modalidad"],
     ["ri_bimestral_pos_ejec",fmt0.format((pos.riRowsV154 || pos.riCalendarRowsV149 || []).length),"RI bimestral oficial; alimenta el caso base y sirve como checkpoint cuando hay valor"],
+    ["calculo_tetra_pmp_pos_ejec",fmt0.format((pos.tetraPmpRowsV162 || []).length),"Fuente de MT tetra histórica mostrada en 2026–2029; usa MT_tetra_calculada por año, periodo, nivel y modalidad"],
     ["mt_tetra_historica_pos_ejec",fmt0.format((pos.tetraRowsV159 || []).length),"MT tetra histórica en cortes Septiembre / Enero / Mayo; Agosto usa Mayo del mismo año"],
     ["pmp_mt_pos_ejec",fmt0.format((pos.pmpRowsV138 || pos.pmpMtRowsV127 || []).length),"PMP/MT mostrado solo como referencia informativa; puede incluir asíncrono"],
     ["tasas_ri_bimestre_pos_ejec",fmt0.format((pos.tasaRows || []).length),"Tasa B1→B2, B2→B3, etc. para proyectar RI desde 2030"],
@@ -37900,7 +37901,7 @@ fixedBaseRowsExportV138 = function(){
 
 fixedBaseCaseLevelTableHtmlV142 = function(rows){
   const headers = [
-    "Año","Nivel","NI Agosto","RI bimestral Agosto","MT tetra histórica (Mayo)",
+    "Año","Nivel","NI Agosto","RI bimestral Agosto","MT tetra histórica",
     "MT Agosto","Gap vs 43,000","Asíncrono requerido"
   ];
   const head = `<thead><tr>${headers.map(h=>`<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`;
@@ -37954,7 +37955,8 @@ renderPosEjecInputSummaryV102 = function(){
   const rows = [
     ["ni_bimestral_pos_ejec",fmt0.format((pos.niRowsV154 || pos.niCalendarRowsV149 || []).length),"NI exacto por año calendario + periodo + nivel + modalidad"],
     ["ri_bimestral_pos_ejec",fmt0.format((pos.riRowsV154 || pos.riCalendarRowsV149 || []).length),"RI bimestral oficial; alimenta el caso base y sirve como checkpoint cuando hay valor"],
-    ["mt_tetra_historica_pos_ejec",fmt0.format((pos.tetraRowsV159 || []).length),"MT tetra histórica en cortes Septiembre / Enero / Mayo; Agosto usa Mayo del mismo año"],
+    ["calculo_tetra_pmp_pos_ejec",fmt0.format((pos.tetraPmpRowsV162 || []).length),"MT tetra histórica mostrada en 2026–2029; usa la columna MT_tetra_calculada"],
+    ["mt_tetra_historica_pos_ejec",fmt0.format((pos.tetraRowsV159 || []).length),"Desde 2030: MT tetra histórica en cortes Septiembre / Enero / Mayo; Agosto usa Mayo del mismo año"],
     ["pmp_mt_pos_ejec",fmt0.format((pos.pmpRowsV138 || pos.pmpMtRowsV127 || []).length),"MT oficial mostrada en el caso base hasta 2029; no se obliga a cuadrar con NI + RI + tetra"],
     ["tasas_ri_bimestre_pos_ejec",fmt0.format((pos.tasaRows || []).length),"Tasa B1→B2, B2→B3, etc. para proyectar RI desde 2030"],
     ["stock_ri_periodo_pos_ejec",fmt0.format((pos.stockRowsV154 || pos.stockCalendarRowsV149 || []).length),"Distribución del RI por bimestre usada para conservar la estructura de cohortes"]
@@ -38230,7 +38232,7 @@ renderFixedBaseCaseV129=function(){
   const gap2036=r2036 ? Math.max(0,n(r2036.asincrono_requerido_para_43000,0)) : 0;
 
   el.innerHTML=
-    `<p class="muted small"><b>Caso base fijo:</b> NI desde <b>ni_iniciativas_pos_ejec</b> cuando existe desglose para el periodo; el Orgánico siempre entra y las iniciativas se controlan con los checks. Si un periodo no está en esa hoja, conserva el NI de <b>ni_bimestral_pos_ejec</b>. RI desde <b>ri_bimestral_pos_ejec</b> y MT tetra histórica desde <b>mt_tetra_historica_pos_ejec</b>.</p>`+
+    `<p class="muted small"><b>Caso base fijo:</b> NI desde <b>ni_iniciativas_pos_ejec</b> cuando existe desglose para el periodo; el Orgánico siempre entra y las iniciativas se controlan con los checks. Si un periodo no está en esa hoja, conserva el NI de <b>ni_bimestral_pos_ejec</b>. RI desde <b>ri_bimestral_pos_ejec</b>. Para <b>2026–2029</b>, la MT tetra histórica se toma de <b>calculo_tetra_pmp_pos_ejec</b>, columna <b>MT_tetra_calculada</b>; desde <b>2030</b> se conserva la fuente <b>mt_tetra_historica_pos_ejec</b>.</p>`+
     `<p class="muted small" style="margin-top:10px;"><b>Default síncrono:</b> las iniciativas que contienen “Asíncrono” empiezan desmarcadas. De <b>2026 a 2029</b>, MT continúa mostrando directamente el <b>PMP</b> de forma informativa. Desde <b>2030</b>, MT se calcula como <b>NI + RI bimestral + MT tetra histórica</b>. La fila 2036 queda marcada en amarillo; el asíncrono requerido para llegar a 43,000 es <b>${fmt0.format(gap2036)}</b>. ${r2045 ? `En 2045 la MT síncrona calculada llega a ${fmt0.format(n(r2045.mt_agosto,0))}.` : ""}</p>`+
     initiativeControlsHtmlV161("base")+
     fixedBaseCaseLevelTableHtmlV142(rows)+
@@ -38305,7 +38307,105 @@ exportInstitutionExcelV129=function(){
   appendSheetV129(wb,"Internacional_Agosto",internationalAgostoRowsExportV140());
   appendSheetV129(wb,"Internacional_crecimiento",internationalGrowthRowsExportV138());
   appendSheetV129(wb,"Espacio_Connect",connectRowsExportV140());
-  XLSX.writeFile(wb,`plan_posgrado_ejecutivo_${scenarioSlug()}_v161.xlsx`);
+  XLSX.writeFile(wb,`plan_posgrado_ejecutivo_${scenarioSlug()}_v162.xlsx`);
+};
+
+
+/* ==============================
+   V162 patch · restaura MT tetra histórica calculada hasta 2029
+   - 2026–2029: la columna MT tetra histórica del Caso base lee
+     calculo_tetra_pmp_pos_ejec.MT_tetra_calculada.
+   - Esto recupera los valores históricos que antes salían alrededor de
+     12–14 mil en Posgrado y 9–12 mil en Ejecutivo, según el Excel cargado.
+   - MT 2026–2029 sigue siendo el PMP informativo, sin sumar componentes.
+   - Desde 2030 se mantiene la lógica v161/v159: tetra desde
+     mt_tetra_historica_pos_ejec, NI con iniciativas y RI por cohortes/tasas.
+   ============================== */
+
+function tetraPmpKeyV162(anioCalendario,periodo,nivel,modalidad){
+  return `${Math.floor(n(anioCalendario,0))}|${periodNameV102(periodo)}|${txtV102(nivel)}|${txtV102(modalidad || "Síncrono")}`;
+}
+
+function parseTetraPmpHistoricaV162(wb){
+  const rows=readSheetRowsV102(wb,"calculo_tetra_pmp_pos_ejec")
+    .map(r=>{
+      const raw=rowValV102(r,[
+        "MT_tetra_calculada","mt_tetra_calculada","MT tetra calculada","mt tetra calculada",
+        "MT_tetra_historica","mt_tetra_historica"
+      ]);
+      return {
+        anio_calendario:Math.floor(n(rowValV102(r,["anio_calendario","año_calendario","anio calendario","año calendario","anio","año","year"]),0)),
+        periodo:periodNameV102(rowValV102(r,["periodo","Periodo"])),
+        nivel:txtV102(rowValV102(r,["nivel","Nivel"])),
+        modalidad:txtV102(rowValV102(r,["modalidad","Modalidad"])) || "Síncrono",
+        mt_tetra_calculada:(raw===null || raw===undefined || raw==="") ? null : n(raw,null)
+      };
+    })
+    .filter(r=>r.anio_calendario>0 && r.periodo && r.nivel && r.mt_tetra_calculada!==null && isFinite(r.mt_tetra_calculada));
+
+  const map={};
+  for(const r of rows){
+    map[tetraPmpKeyV162(r.anio_calendario,r.periodo,r.nivel,r.modalidad)]=Math.max(0,n(r.mt_tetra_calculada,0));
+  }
+  return {rows,map};
+}
+
+const parsePosEjecWorkbookPrevV162=parsePosEjecWorkbookV102;
+parsePosEjecWorkbookV102=function(wb){
+  const pos=parsePosEjecWorkbookPrevV162(wb);
+  const hist=parseTetraPmpHistoricaV162(wb);
+  pos.tetraPmpRowsV162=hist.rows;
+  pos.tetraPmpMapV162=hist.map;
+  return pos;
+};
+
+function tetraPmpHistoricaV162(nivel,anioCal,periodo="Agosto",modalidad="Síncrono"){
+  const pos=state.posEjecV102 || {};
+  const map=pos.tetraPmpMapV162 || {};
+  const exact=tetraPmpKeyV162(anioCal,periodo,nivel,modalidad);
+  if(Object.prototype.hasOwnProperty.call(map,exact)) return Math.max(0,n(map[exact],0));
+  const total=tetraPmpKeyV162(anioCal,periodo,nivel,"Total");
+  if(Object.prototype.hasOwnProperty.call(map,total)) return Math.max(0,n(map[total],0));
+  return null;
+}
+
+// Solo sustituye la MT tetra visible histórica. NI, RI, checks y MT=PMP permanecen intactos.
+const fixedBaseLevelRowsPrevV162=fixedBaseLevelRowsV142;
+fixedBaseLevelRowsV142=function(){
+  const rows=fixedBaseLevelRowsPrevV162().map(r=>({...r}));
+  for(let y=2026;y<=2029;y++){
+    for(const nivel of ["Posgrado","Ejecutivo"]){
+      const row=rows.find(r=>Math.floor(n(r.anio,0))===y && r.nivel===nivel);
+      if(!row) continue;
+      const tetra=tetraPmpHistoricaV162(nivel,y,"Agosto","Síncrono");
+      if(tetra!==null) row.mt_tetra_historica=Math.round(tetra);
+    }
+    const total=rows.find(r=>Math.floor(n(r.anio,0))===y && r.nivel==="Total");
+    if(total){
+      total.mt_tetra_historica=["Posgrado","Ejecutivo"].reduce((acc,nivel)=>{
+        const r=rows.find(x=>Math.floor(n(x.anio,0))===y && x.nivel===nivel);
+        return acc+n(r?.mt_tetra_historica,0);
+      },0);
+    }
+  }
+  return rows;
+};
+
+// Exporta la misma MT tetra que se ve en pantalla, sin asumir que siempre viene de Mayo.
+fixedBaseRowsExportV138=function(){
+  return fixedBaseLevelRowsV142().map(r=>({
+    anio:r.anio,
+    nivel:r.nivel,
+    ni_agosto:r.ni_agosto,
+    ri_bimestral_agosto:r.ri_bimestral_agosto,
+    mt_tetra_historica:r.mt_tetra_historica,
+    mt_agosto:r.mt_agosto,
+    fuente_mt:r.anio<=2029 ? "PMP" : "NI + RI bimestral + MT tetra",
+    fuente_tetra:r.anio<=2029 ? "calculo_tetra_pmp_pos_ejec.MT_tetra_calculada" : "mt_tetra_historica_pos_ejec",
+    gap_vs_43000:r.gap_vs_43000,
+    asincrono_requerido_para_43000:r.asincrono_requerido_para_43000,
+    marca_2036:r.marca_2036
+  }));
 };
 
 
