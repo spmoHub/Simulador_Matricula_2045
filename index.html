@@ -38459,6 +38459,58 @@ fixedBaseLevelRowsV142=function(){
 };
 
 
+/* ==============================
+   V164 patch · separa Caso base fijo del escenario editable
+   - Corrige el NI 2030+ del ESCENARIO EDITABLE.
+   - El NI total de cada nivel/periodo se proyecta primero y DESPUÉS se
+     reparte entre Síncrono y Asíncrono según reparto_ni_anual_pos_ejec
+     o los controles del simulador.
+   - Si el reparto es 0% Síncrono / 100% Asíncrono, TODO el NI total
+     proyectado pasa a Asíncrono; no se hace crecer únicamente la pequeña
+     base histórica Asíncrona.
+   - 2026–2029 siguen respetando las capturas directas por modalidad.
+   - El Caso base fijo y sus checks de iniciativas NO cambian.
+   - Se renombra la tabla de comparación para dejar claro que pertenece
+     al escenario editable.
+   ============================== */
+
+niV154 = function(nivel, modalidad, anioCal, periodo, override=null, memo={}){
+  const y = Math.floor(n(anioCal,0));
+  const p = periodNameV102(periodo);
+
+  // Histórico/PMP: respeta exactamente lo capturado por modalidad.
+  if(y <= 2029){
+    const exact = exactNiV154(nivel,y,p,modalidad);
+    return exact !== null ? exact : 0;
+  }
+
+  // Proyección: primero crece el NI TOTAL del nivel para el mismo periodo,
+  // después se reparte entre Síncrono y Asíncrono.
+  const totalBase = (typeof totalNiBasePeriodV149 === "function")
+    ? totalNiBasePeriodV149(nivel,y,p,override,memo)
+    : 0;
+  const extra = (typeof connectExtraV149 === "function")
+    ? connectExtraV149(nivel,y,p)
+    : 0;
+  const share = modalShareV154(nivel,modalidad,y);
+  return Math.max(0,(n(totalBase,0)+n(extra,0))*share);
+};
+
+const renderInstitutionTablePrevV164 = renderInstitutionTable;
+renderInstitutionTable = function(){
+  renderInstitutionTablePrevV164();
+
+  const host = $("posEjecComparison2026V124");
+  const card = host?.closest?.("section.card") || host?.parentElement;
+  if(card){
+    const h2 = card.querySelector("h2");
+    const p = card.querySelector("p.muted");
+    if(h2) h2.textContent = "Escenario editable · Comparación vs 2026";
+    if(p) p.innerHTML = "Comparación anual del <b>escenario editable</b> contra 2026. Usa el reparto Síncrono/Asíncrono y los crecimientos del escenario; <b>no corresponde al Caso base fijo · Síncrono 3%</b>.";
+  }
+};
+
+
 loadAuto();
 </script>
 </body>
